@@ -87,6 +87,16 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
 .result-btn.delete:hover{background:#4A2A18}
 .result-empty{text-align:center;padding:40px;color:#707075;font-size:13px}
 
+/* Gallery admin */
+.admin-photo{display:flex;align-items:center;gap:12px;background:#151518;border:1px solid #2A2A30;border-radius:10px;padding:10px;margin-bottom:8px}
+.admin-photo:hover{border-color:#FF6B8A}
+.admin-photo-thumb{width:80px;height:60px;object-fit:cover;border-radius:6px}
+.admin-photo-info{flex:1}
+.admin-photo-caption{font-size:12px;font-weight:600;color:#E8E8E8}
+.admin-photo-meta{font-size:10px;color:#707075;margin-top:2px}
+.admin-photo-likes{font-size:11px;color:#FF6B8A;font-weight:700;margin-top:2px}
+.admin-photo-del{padding:6px 12px;border-radius:6px;border:1px solid #4A2A18;background:#3A1A10;color:#FF6B6B;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit}
+
 /* Schedule / Court Assignment */
 .sched-time{display:flex;align-items:center;gap:10px;margin-bottom:12px}
 .sched-time-label{font-size:13px;font-weight:700;color:#D2FF4E}
@@ -129,6 +139,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
     <button class="admin-tab" onclick="switchTab('courts',this)">코트 관리</button>
     <button class="admin-tab" onclick="switchTab('standings',this)">순위표</button>
     <button class="admin-tab" onclick="switchTab('results',this)">경기 결과</button>
+    <button class="admin-tab" onclick="switchTab('gallery',this)">사진 관리</button>
   </div>
 
   <!-- Tab 0: Team Registration -->
@@ -197,6 +208,27 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
     </div>
     <div id="resultsList"></div>
   </div>
+
+  <!-- Tab 5: Gallery Management -->
+  <div class="admin-section" id="sec-gallery">
+    <div class="setup-section">
+      <div class="setup-title">📸 사진 업로드</div>
+      <p style="font-size:12px;color:#707075;margin-bottom:12px">사진을 업로드하면 갤러리 페이지에 실시간 표시됩니다</p>
+      <div style="margin-bottom:10px">
+        <input type="file" id="photoFile" accept="image/*" multiple style="display:none" onchange="handleFileSelect(this.files)">
+        <button class="setup-btn" onclick="document.getElementById('photoFile').click()" style="background:#3A1030;color:#FF6B8A;border-color:#4A2040;padding:10px 24px">사진 선택 (여러 장 가능)</button>
+      </div>
+      <input class="team-name-input" id="photoCaption" placeholder="사진 설명 (선택)" style="width:100%;margin-bottom:10px">
+      <div id="uploadPreview" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px"></div>
+      <button class="setup-btn" id="uploadBtn" onclick="uploadPhotos()" style="background:#1A3A10;color:#D2FF4E;border-color:#2A4A18;padding:10px 24px;display:none">업로드</button>
+      <div id="uploadProgress" style="font-size:11px;color:#707075;margin-top:6px"></div>
+    </div>
+
+    <div class="setup-section">
+      <div class="setup-title">업로드된 사진 관리</div>
+    </div>
+    <div id="adminPhotoList"></div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -204,6 +236,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 <script>
 firebase.initializeApp({
   apiKey: "AIzaSyBLEGto1SK7JiowYJJCuBCfpBsjrkiqklM",
@@ -696,6 +729,107 @@ resultsRef.orderByChild('timestamp').on('value',function(snap){
       +'<button class="result-btn save" onclick="saveResult(\''+r._key+'\')">수정</button>'
       +'<button class="result-btn delete" onclick="deleteResult(\''+r._key+'\')">삭제</button>'
       +'</div>'
+      +'</div>';
+  });
+  container.innerHTML=html;
+});
+
+// ============ GALLERY MANAGEMENT ============
+var photosRef = db.ref('photos');
+var storage = firebase.storage();
+var selectedFiles = [];
+
+function handleFileSelect(files){
+  selectedFiles = Array.from(files);
+  var preview = document.getElementById('uploadPreview');
+  preview.innerHTML = '';
+  selectedFiles.forEach(function(file,i){
+    var reader = new FileReader();
+    reader.onload = function(e){
+      preview.innerHTML += '<img src="'+e.target.result+'" style="width:80px;height:60px;object-fit:cover;border-radius:6px;border:1px solid #2A2A30">';
+    };
+    reader.readAsDataURL(file);
+  });
+  document.getElementById('uploadBtn').style.display = selectedFiles.length>0?'inline-block':'none';
+}
+
+function uploadPhotos(){
+  if(selectedFiles.length===0) return;
+  var caption = document.getElementById('photoCaption').value.trim();
+  var progress = document.getElementById('uploadProgress');
+  var total = selectedFiles.length;
+  var done = 0;
+  
+  progress.textContent = '업로드 중... (0/'+total+')';
+  
+  selectedFiles.forEach(function(file){
+    var fileName = Date.now()+'_'+Math.random().toString(36).substr(2,6)+'_'+file.name;
+    var ref = storage.ref('gallery/'+fileName);
+    
+    ref.put(file).then(function(snapshot){
+      return snapshot.ref.getDownloadURL();
+    }).then(function(url){
+      photosRef.push({
+        url: url,
+        caption: caption,
+        fileName: fileName,
+        time: new Date().toLocaleString('ko-KR'),
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+      });
+      done++;
+      progress.textContent = '업로드 중... ('+done+'/'+total+')';
+      if(done===total){
+        progress.textContent = total+'장 업로드 완료!';
+        document.getElementById('uploadPreview').innerHTML='';
+        document.getElementById('photoCaption').value='';
+        document.getElementById('photoFile').value='';
+        document.getElementById('uploadBtn').style.display='none';
+        selectedFiles=[];
+        toast(total+'장 사진 업로드 완료!');
+        setTimeout(function(){progress.textContent=''},3000);
+      }
+    }).catch(function(err){
+      progress.textContent = '오류: '+err.message;
+    });
+  });
+}
+
+function deletePhoto(key, fileName){
+  if(!confirm('이 사진을 삭제하시겠습니까?')) return;
+  // Delete from storage
+  if(fileName){
+    storage.ref('gallery/'+fileName).delete().catch(function(){});
+  }
+  // Delete from database
+  photosRef.child(key).remove();
+  toast('사진 삭제 완료');
+}
+
+// Render admin photo list
+photosRef.orderByChild('timestamp').on('value',function(snap){
+  var data=snap.val();
+  var container=document.getElementById('adminPhotoList');
+  if(!container) return;
+  if(!data){
+    container.innerHTML='<div class="result-empty">아직 업로드된 사진이 없습니다</div>';
+    return;
+  }
+  var photos=[];
+  Object.keys(data).forEach(function(key){var p=data[key];p._key=key;photos.push(p)});
+  photos.sort(function(a,b){return(b.timestamp||0)-(a.timestamp||0)});
+  
+  var html='';
+  photos.forEach(function(p){
+    var likeCount=p.likes?Object.keys(p.likes).length:0;
+    html+='<div class="admin-photo">'
+      +'<img class="admin-photo-thumb" src="'+p.url+'">'
+      +'<div class="admin-photo-info">'
+      +(p.title?'<div class="admin-photo-caption" style="font-weight:800">'+p.title+'</div>':'')
+      +'<div class="admin-photo-caption">'+(p.caption||'(설명 없음)')+'</div>'
+      +'<div class="admin-photo-meta">'+(p.nickname||'익명')+(p.phone?' ('+p.phone+')':'')+'  ·  '+(p.time||'')+'</div>'
+      +'<div class="admin-photo-likes">❤️ '+likeCount+'명</div>'
+      +'</div>'
+      +'<button class="admin-photo-del" onclick="deletePhoto(\''+p._key+'\',\''+(p.fileName||'')+'\')">삭제</button>'
       +'</div>';
   });
   container.innerHTML=html;
