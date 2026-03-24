@@ -37,6 +37,12 @@ body{background:#0A0F0C;display:flex;justify-content:center;align-items:flex-sta
 .cta-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(201,168,76,.35)}
 .cta-btn .arrow{font-size:18px;transition:transform .3s}.cta-btn:hover .arrow{transform:translateY(3px)}
 
+/* Music button */
+.music-btn{position:fixed;top:16px;right:16px;z-index:200;width:40px;height:40px;border-radius:50%;border:1px solid rgba(201,168,76,.3);background:rgba(15,35,24,.85);color:var(--gold);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .3s;backdrop-filter:blur(8px)}
+.music-btn:hover{border-color:var(--gold);background:rgba(15,35,24,.95)}
+.music-btn.playing{animation:musicPulse 2s ease-in-out infinite}
+@keyframes musicPulse{0%,100%{box-shadow:0 0 0 0 rgba(201,168,76,.2)}50%{box-shadow:0 0 0 8px rgba(201,168,76,0)}}
+
 /* === PAGE 2 === */
 .p2{background:var(--fd);position:relative;overflow:hidden;border:2px solid rgba(201,168,76,.25);border-top:none;border-radius:0 0 4px 4px;max-height:0;opacity:0;transition:all .8s ease}
 .p2.open{opacity:1;max-height:3000px}
@@ -153,7 +159,29 @@ body{background:#0A0F0C;display:flex;justify-content:center;align-items:flex-sta
   </div>
 
 </div>
+<!-- Music -->
+<audio id="bgm" src="music.mp3" loop preload="auto"></audio>
+<button class="music-btn" id="musicBtn" onclick="toggleMusic()">♪</button>
+
 <script>
+var bgm=document.getElementById('bgm');
+var musicBtn=document.getElementById('musicBtn');
+var isPlaying=false;
+bgm.volume=0.3;
+
+function toggleMusic(){
+  if(isPlaying){
+    bgm.pause();
+    musicBtn.textContent='♪';
+    musicBtn.classList.remove('playing');
+  } else {
+    bgm.play();
+    musicBtn.textContent='♫';
+    musicBtn.classList.add('playing');
+  }
+  isPlaying=!isPlaying;
+}
+
 function go(){
   var p=document.getElementById('p2'),d=document.getElementById('pd'),v=document.getElementById('p1');
   p.classList.add('open');d.classList.add('show');
@@ -161,6 +189,7 @@ function go(){
   var b=document.querySelector('.cta-btn');
   b.innerHTML='대회 안내 ↑';b.onclick=function(){p.scrollIntoView({behavior:'smooth',block:'start'})};
   setTimeout(function(){p.scrollIntoView({behavior:'smooth',block:'start'})},300);
+  if(!isPlaying) toggleMusic();
 }
 </script>
 </body>
