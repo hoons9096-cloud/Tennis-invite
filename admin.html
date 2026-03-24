@@ -127,7 +127,6 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
   <div class="admin-tabs">
     <button class="admin-tab active" onclick="switchTab('teams',this)">팀 등록</button>
     <button class="admin-tab" onclick="switchTab('courts',this)">코트 관리</button>
-    <button class="admin-tab" onclick="switchTab('schedule',this)">코트 배정</button>
     <button class="admin-tab" onclick="switchTab('standings',this)">순위표</button>
     <button class="admin-tab" onclick="switchTab('results',this)">경기 결과</button>
   </div>
@@ -179,28 +178,6 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
       </div>
     </div>
     <div class="courts" id="courts"></div>
-  </div>
-
-  <!-- Tab 2: Court Assignment -->
-  <div class="admin-section" id="sec-schedule">
-    <div class="setup-section">
-      <div class="setup-title">코트 배정 현황판</div>
-      <p style="font-size:12px;color:#707075;margin-bottom:12px">다음 타임 경기를 미리 배정하면 관중 페이지에 실시간 표시됩니다</p>
-      <div class="sched-time">
-        <span class="sched-time-label">현재 타임:</span>
-        <input class="sched-time-input" id="currentRound" placeholder="예: 3타임" onchange="updateScheduleMeta('currentRound',this.value)">
-        <span class="sched-time-label" style="margin-left:12px">다음 타임:</span>
-        <input class="sched-time-input" id="nextRound" placeholder="예: 4타임" onchange="updateScheduleMeta('nextRound',this.value)">
-      </div>
-    </div>
-    <div class="setup-section" style="margin-bottom:0">
-      <div class="setup-title">다음 타임 코트 배정</div>
-    </div>
-    <div class="sched-grid" id="schedGrid"></div>
-    <div class="sched-actions">
-      <button class="setup-btn" onclick="clearSchedule()">배정 초기화</button>
-      <button class="setup-btn" onclick="applySchedule()" style="background:#1A3A10;color:#D2FF4E;border-color:#2A4A18">배정 → 코트에 적용</button>
-    </div>
   </div>
 
   <!-- Tab 3: Standings -->
