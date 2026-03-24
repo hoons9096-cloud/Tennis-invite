@@ -161,26 +161,44 @@ body{background:#0A0F0C;display:flex;justify-content:center;align-items:flex-sta
 </div>
 <!-- Music -->
 <audio id="bgm" src="music.mp3" loop preload="auto"></audio>
-<button class="music-btn" id="musicBtn" onclick="toggleMusic()">♪</button>
+<button class="music-btn playing" id="musicBtn" onclick="toggleMusic()">♫</button>
 
 <script>
 var bgm=document.getElementById('bgm');
 var musicBtn=document.getElementById('musicBtn');
 var isPlaying=false;
+var firstTouch=true;
 bgm.volume=0.3;
+
+function startMusic(){
+  bgm.play().then(function(){
+    isPlaying=true;
+    musicBtn.textContent='♫';
+    musicBtn.classList.add('playing');
+  }).catch(function(){});
+}
 
 function toggleMusic(){
   if(isPlaying){
     bgm.pause();
     musicBtn.textContent='♪';
     musicBtn.classList.remove('playing');
+    isPlaying=false;
   } else {
-    bgm.play();
-    musicBtn.textContent='♫';
-    musicBtn.classList.add('playing');
+    startMusic();
   }
-  isPlaying=!isPlaying;
 }
+
+// Auto-play on first user interaction (mobile requires touch)
+document.addEventListener('click',function(){
+  if(firstTouch){
+    firstTouch=false;
+    if(!isPlaying) startMusic();
+  }
+},{once:false});
+
+// Try auto-play immediately (works on desktop)
+startMusic();
 
 function go(){
   var p=document.getElementById('p2'),d=document.getElementById('pd'),v=document.getElementById('p1');
@@ -189,7 +207,6 @@ function go(){
   var b=document.querySelector('.cta-btn');
   b.innerHTML='대회 안내 ↑';b.onclick=function(){p.scrollIntoView({behavior:'smooth',block:'start'})};
   setTimeout(function(){p.scrollIntoView({behavior:'smooth',block:'start'})},300);
-  if(!isPlaying) toggleMusic();
 }
 </script>
 </body>
