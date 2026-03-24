@@ -125,14 +125,52 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
 <div class="container">
   <!-- Tabs -->
   <div class="admin-tabs">
-    <button class="admin-tab active" onclick="switchTab('courts',this)">코트 관리</button>
+    <button class="admin-tab active" onclick="switchTab('teams',this)">팀 등록</button>
+    <button class="admin-tab" onclick="switchTab('courts',this)">코트 관리</button>
     <button class="admin-tab" onclick="switchTab('schedule',this)">코트 배정</button>
     <button class="admin-tab" onclick="switchTab('standings',this)">순위표</button>
     <button class="admin-tab" onclick="switchTab('results',this)">경기 결과</button>
   </div>
 
+  <!-- Tab 0: Team Registration -->
+  <div class="admin-section active" id="sec-teams">
+    <div class="setup-section">
+      <div class="setup-title">참가팀 등록</div>
+      <p style="font-size:12px;color:#707075;margin-bottom:12px">대회 시작 전에 참가팀을 등록하면, 코트 관리·배정에서 드롭다운으로 선택할 수 있습니다</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+      <!-- A조 -->
+      <div class="setup-section" style="margin-bottom:0">
+        <div class="setup-title">A조</div>
+        <div id="groupA-inputs"></div>
+        <div style="margin-top:8px">
+          <button class="setup-btn" onclick="addTeamInput('A')">+ 팀 추가</button>
+        </div>
+      </div>
+      <!-- B조 -->
+      <div class="setup-section" style="margin-bottom:0">
+        <div class="setup-title">B조</div>
+        <div id="groupB-inputs"></div>
+        <div style="margin-top:8px">
+          <button class="setup-btn" onclick="addTeamInput('B')">+ 팀 추가</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="setup-row">
+      <button class="setup-btn" onclick="saveTeams()" style="background:#1A3A10;color:#D2FF4E;border-color:#2A4A18;padding:10px 30px;font-size:13px">팀 등록 저장</button>
+      <button class="setup-btn" onclick="loadDefaultTeams()">기본 팀 불러오기 (영남A,B,C + 초청1~5)</button>
+    </div>
+
+    <div style="margin-top:16px">
+      <div class="setup-title" style="font-size:12px">등록된 팀 목록</div>
+      <div id="registeredTeams" style="font-size:12px;color:#707075;padding:8px 0">아직 등록된 팀이 없습니다</div>
+    </div>
+  </div>
+
   <!-- Tab 1: Courts -->
-  <div class="admin-section active" id="sec-courts">
+  <div class="admin-section" id="sec-courts">
     <div class="setup-section">
       <div class="setup-title">빠른 설정</div>
       <div class="setup-row">
@@ -169,10 +207,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
   <div class="admin-section" id="sec-standings">
     <div class="setup-section">
       <div class="setup-title">조별 순위표 (자동 계산)</div>
-      <p style="font-size:12px;color:#707075;margin-bottom:8px">경기 결과를 기반으로 자동 계산됩니다 · 상위 2팀 본선 진출</p>
-      <div class="setup-row">
-        <button class="setup-btn" onclick="initGroups()">조 편성 초기화 (A조/B조 4팀씩)</button>
-      </div>
+      <p style="font-size:12px;color:#707075;margin-bottom:8px">경기 결과를 기반으로 자동 계산됩니다 · 상위 2팀 본선 진출 · 팀 등록 탭에서 조 편성</p>
     </div>
     <div id="standingsArea"></div>
   </div>
@@ -206,14 +241,126 @@ firebase.initializeApp({
 var db = firebase.database();
 var courtsRef = db.ref('courts');
 var resultsRef = db.ref('results');
+var teamsRef = db.ref('teams');
 
 var events = ['남복','혼복','여복'];
+var allTeams = []; // populated from Firebase
 
 function toast(msg){
   var t=document.getElementById('toast');
   t.textContent=msg;t.classList.add('show');
   setTimeout(function(){t.classList.remove('show')},2000);
 }
+
+// ============ TEAM REGISTRATION ============
+function addTeamInput(group){
+  var container = document.getElementById('group'+group+'-inputs');
+  var idx = container.children.length + 1;
+  var div = document.createElement('div');
+  div.style.cssText = 'display:flex;gap:6px;margin-bottom:6px';
+  div.innerHTML = '<input class="team-name-input" style="width:100%" placeholder="팀 이름 입력" id="team-'+group+'-'+idx+'">'
+    +'<button class="setup-btn" style="padding:6px 10px;font-size:11px;color:#FF6B6B" onclick="this.parentElement.remove()">✕</button>';
+  container.appendChild(div);
+}
+
+function loadDefaultTeams(){
+  var aContainer = document.getElementById('groupA-inputs');
+  var bContainer = document.getElementById('groupB-inputs');
+  aContainer.innerHTML = '';
+  bContainer.innerHTML = '';
+  ['영남A','영남B','초청1','초청2'].forEach(function(t,i){
+    var div = document.createElement('div');
+    div.style.cssText = 'display:flex;gap:6px;margin-bottom:6px';
+    div.innerHTML = '<input class="team-name-input" style="width:100%" value="'+t+'" id="team-A-'+(i+1)+'">'
+      +'<button class="setup-btn" style="padding:6px 10px;font-size:11px;color:#FF6B6B" onclick="this.parentElement.remove()">✕</button>';
+    aContainer.appendChild(div);
+  });
+  ['영남C','초청3','초청4','초청5'].forEach(function(t,i){
+    var div = document.createElement('div');
+    div.style.cssText = 'display:flex;gap:6px;margin-bottom:6px';
+    div.innerHTML = '<input class="team-name-input" style="width:100%" value="'+t+'" id="team-B-'+(i+1)+'">'
+      +'<button class="setup-btn" style="padding:6px 10px;font-size:11px;color:#FF6B6B" onclick="this.parentElement.remove()">✕</button>';
+    bContainer.appendChild(div);
+  });
+  toast('기본 팀 불러오기 완료');
+}
+
+function saveTeams(){
+  var groupA = [];
+  var groupB = [];
+  document.querySelectorAll('#groupA-inputs input').forEach(function(inp){
+    if(inp.value.trim()) groupA.push(inp.value.trim());
+  });
+  document.querySelectorAll('#groupB-inputs input').forEach(function(inp){
+    if(inp.value.trim()) groupB.push(inp.value.trim());
+  });
+  if(groupA.length===0 && groupB.length===0){toast('팀 이름을 입력해주세요');return}
+  
+  var teamsData = {A:{},B:{}};
+  groupA.forEach(function(t){teamsData.A[t]=t});
+  groupB.forEach(function(t){teamsData.B[t]=t});
+  teamsRef.set(teamsData);
+  
+  // Also update groups for standings
+  var groupsData = {
+    A:{name:'A조',teams:teamsData.A},
+    B:{name:'B조',teams:teamsData.B}
+  };
+  db.ref('groups').set(groupsData);
+  
+  toast('팀 등록 완료! (A조 '+groupA.length+'팀, B조 '+groupB.length+'팀)');
+}
+
+function teamSelectOptions(selectedValue){
+  var html = '<option value="">선택</option>';
+  allTeams.forEach(function(t){
+    html += '<option value="'+t+'"'+(t===selectedValue?' selected':'')+'>'+t+'</option>';
+  });
+  return html;
+}
+
+// Listen for team changes
+teamsRef.on('value',function(snap){
+  var data = snap.val();
+  allTeams = [];
+  var displayHtml = '';
+  if(data){
+    if(data.A){
+      var aTeams = Object.values(data.A);
+      allTeams = allTeams.concat(aTeams);
+      displayHtml += '<span style="color:#D2FF4E;font-weight:700">A조:</span> '+aTeams.join(', ')+'<br>';
+    }
+    if(data.B){
+      var bTeams = Object.values(data.B);
+      allTeams = allTeams.concat(bTeams);
+      displayHtml += '<span style="color:#D2FF4E;font-weight:700">B조:</span> '+bTeams.join(', ');
+    }
+  }
+  var el = document.getElementById('registeredTeams');
+  if(el) el.innerHTML = displayHtml || '아직 등록된 팀이 없습니다';
+  
+  // Load team inputs if empty
+  var aContainer = document.getElementById('groupA-inputs');
+  if(aContainer && aContainer.children.length===0 && data){
+    if(data.A) Object.values(data.A).forEach(function(t,i){
+      var div = document.createElement('div');
+      div.style.cssText='display:flex;gap:6px;margin-bottom:6px';
+      div.innerHTML='<input class="team-name-input" style="width:100%" value="'+t+'">'
+        +'<button class="setup-btn" style="padding:6px 10px;font-size:11px;color:#FF6B6B" onclick="this.parentElement.remove()">✕</button>';
+      aContainer.appendChild(div);
+    });
+    if(data.B){
+      var bContainer = document.getElementById('groupB-inputs');
+      Object.values(data.B).forEach(function(t,i){
+        var div = document.createElement('div');
+        div.style.cssText='display:flex;gap:6px;margin-bottom:6px';
+        div.innerHTML='<input class="team-name-input" style="width:100%" value="'+t+'">'
+          +'<button class="setup-btn" style="padding:6px 10px;font-size:11px;color:#FF6B6B" onclick="this.parentElement.remove()">✕</button>';
+        bContainer.appendChild(div);
+      });
+    }
+  }
+});
 
 function initCourts(n){
   if(!confirm(n+'코트로 초기화하시겠습니까?')) return;
@@ -291,7 +438,9 @@ function renderCourt(courtId, data){
     +'<div class="court-body">'
     // Team A
     +'<div class="team-row">'
-    +'<input class="team-name-input" placeholder="팀 A" value="'+(data.teamA||'')+'" onchange="updateCourt(\''+courtId+'\',\'teamA\',this.value)">'
+    +'<select class="team-name-input" onchange="updateCourt(\''+courtId+'\',\'teamA\',this.value)">'
+    +teamSelectOptions(data.teamA)
+    +'</select>'
     +'<div class="score-controls">'
     +'<button class="score-btn minus" onclick="changeScore(\''+courtId+'\',\'A\',-1)">−</button>'
     +'<span class="score-display">'+(data.scoreA||0)+'</span>'
@@ -301,7 +450,9 @@ function renderCourt(courtId, data){
     +'<div class="vs-divider">VS</div>'
     // Team B
     +'<div class="team-row">'
-    +'<input class="team-name-input" placeholder="팀 B" value="'+(data.teamB||'')+'" onchange="updateCourt(\''+courtId+'\',\'teamB\',this.value)">'
+    +'<select class="team-name-input" onchange="updateCourt(\''+courtId+'\',\'teamB\',this.value)">'
+    +teamSelectOptions(data.teamB)
+    +'</select>'
     +'<div class="score-controls">'
     +'<button class="score-btn minus" onclick="changeScore(\''+courtId+'\',\'B\',-1)">−</button>'
     +'<span class="score-display">'+(data.scoreB||0)+'</span>'
@@ -399,8 +550,8 @@ function renderScheduleGrid(numCourts){
       var c=data['court'+i]||{};
       html+='<div class="sched-card">'
         +'<div class="sched-court-name">코트 '+i+'</div>'
-        +'<input class="sched-input" placeholder="팀 A" value="'+(c.teamA||'')+'" onchange="updateScheduleCourt('+i+',\'teamA\',this.value)">'
-        +'<input class="sched-input" placeholder="팀 B" value="'+(c.teamB||'')+'" onchange="updateScheduleCourt('+i+',\'teamB\',this.value)">'
+        +'<select class="sched-input" onchange="updateScheduleCourt('+i+',\'teamA\',this.value)">'+teamSelectOptions(c.teamA)+'</select>'
+        +'<select class="sched-input" onchange="updateScheduleCourt('+i+',\'teamB\',this.value)">'+teamSelectOptions(c.teamB)+'</select>'
         +'<select class="sched-select" onchange="updateScheduleCourt('+i+',\'event\',this.value)">'
         +'<option'+(c.event==='남복'?' selected':'')+'>남복</option>'
         +'<option'+(c.event==='혼복'?' selected':'')+'>혼복</option>'
