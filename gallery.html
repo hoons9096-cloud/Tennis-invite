@@ -61,6 +61,12 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
 .empty{text-align:center;padding:60px 20px;color:#707075}
 .empty-icon{font-size:40px;margin-bottom:12px;display:block}
 
+/* Music button */
+.music-btn{position:fixed;top:16px;right:16px;z-index:200;width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,107,138,.3);background:rgba(12,12,14,.85);color:#FF6B8A;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .3s;backdrop-filter:blur(8px)}
+.music-btn:hover{border-color:#FF6B8A;background:rgba(12,12,14,.95)}
+.music-btn.playing{animation:musicPulse 2s ease-in-out infinite}
+@keyframes musicPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,107,138,.2)}50%{box-shadow:0 0 0 8px rgba(255,107,138,0)}}
+
 /* Upload area */
 .upload-area{background:#151518;border:2px dashed #2A2A30;border-radius:14px;padding:20px;margin-bottom:16px;text-align:center;transition:all .3s;cursor:pointer}
 .upload-area:hover{border-color:#FF6B8A}
@@ -136,6 +142,10 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
   <span class="lightbox-close">✕</span>
   <img id="lightboxImg" src="">
 </div>
+
+<!-- Music -->
+<audio id="bgm" src="music.mp3" loop preload="auto"></audio>
+<button class="music-btn playing" id="musicBtn" onclick="toggleMusic()">♫</button>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -342,6 +352,26 @@ photosRef.orderByChild('timestamp').on('value',function(snap){
   });
   rankList.innerHTML=rhtml;
 });
+
+// Music
+var bgm=document.getElementById('bgm');
+var musicBtn=document.getElementById('musicBtn');
+var isPlaying=false;
+var firstTouch=true;
+bgm.volume=0.3;
+function startMusic(){
+  bgm.play().then(function(){
+    isPlaying=true;musicBtn.textContent='♫';musicBtn.classList.add('playing');
+  }).catch(function(){});
+}
+function toggleMusic(){
+  if(isPlaying){bgm.pause();musicBtn.textContent='♪';musicBtn.classList.remove('playing');isPlaying=false}
+  else{startMusic()}
+}
+document.addEventListener('click',function(){
+  if(firstTouch){firstTouch=false;if(!isPlaying)startMusic()}
+},{once:false});
+startMusic();
 </script>
 </body>
 </html>
