@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>대회 본부 - 스코어 관리</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-height:100vh}
+.header{background:#151518;border-bottom:2px solid #D2FF4E;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.header h1{font-size:18px;font-weight:800;color:#D2FF4E}
+.header .badge{background:#D2FF4E;color:#0C0C0E;font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px}
+.container{max-width:1200px;margin:0 auto;padding:16px}
+
+/* Court cards */
+.courts{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;margin-bottom:20px}
+.court{background:#151518;border:1px solid #2A2A30;border-radius:12px;overflow:hidden;transition:all .3s}
+.court.active{border-color:#D2FF4E;box-shadow:0 0 20px rgba(210,255,78,.08)}
+.court-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#1C1C20}
+.court-name{font-size:14px;font-weight:800;color:#D2FF4E}
+.court-event{font-size:11px;color:#707075;font-weight:600}
+.court-status{font-size:10px;padding:3px 10px;border-radius:12px;font-weight:700}
+.court-status.live{background:rgba(255,60,60,.15);color:#FF4444;animation:pulse 2s infinite}
+.court-status.done{background:rgba(210,255,78,.1);color:#D2FF4E}
+.court-status.waiting{background:rgba(112,112,117,.15);color:#707075}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+.court-body{padding:16px}
+.team-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0}
+.team-name-input{background:#1C1C20;border:1px solid #2A2A30;border-radius:8px;color:#E8E8E8;font-size:14px;font-weight:600;padding:8px 12px;width:55%;font-family:inherit}
+.team-name-input:focus{outline:none;border-color:#D2FF4E}
+.score-controls{display:flex;align-items:center;gap:6px}
+.score-btn{width:36px;height:36px;border-radius:8px;border:none;font-size:18px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center}
+.score-btn.minus{background:#2A2A30;color:#FF6B6B}.score-btn.minus:hover{background:#3A2020}
+.score-btn.plus{background:#1A2A10;color:#D2FF4E}.score-btn.plus:hover{background:#2A3A18}
+.score-display{font-size:28px;font-weight:900;color:#FFFFFF;min-width:44px;text-align:center;font-family:'Noto Sans KR',monospace}
+.vs-divider{text-align:center;color:#2A2A30;font-size:12px;font-weight:700;padding:2px 0}
+
+/* Event selector */
+.event-row{display:flex;gap:6px;padding:12px 16px;border-top:1px solid #1C1C20}
+.event-chip{flex:1;text-align:center;padding:6px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid #2A2A30;color:#707075;transition:all .2s}
+.event-chip.selected{background:rgba(210,255,78,.1);border-color:#D2FF4E;color:#D2FF4E}
+
+/* Action buttons */
+.court-actions{display:flex;gap:8px;padding:0 16px 12px}
+.action-btn{flex:1;padding:10px;border-radius:8px;border:none;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;font-family:inherit}
+.action-btn.start{background:#1A3A10;color:#D2FF4E;border:1px solid #2A4A18}
+.action-btn.start:hover{background:#2A4A18}
+.action-btn.finish{background:#3A1A10;color:#FF6B6B;border:1px solid #4A2A18}
+.action-btn.finish:hover{background:#4A2A18}
+.action-btn.reset{background:#1C1C20;color:#707075;border:1px solid #2A2A30}
+.action-btn.reset:hover{background:#2A2A30}
+
+/* Quick setup */
+.setup-section{background:#151518;border:1px solid #2A2A30;border-radius:12px;padding:20px;margin-bottom:16px}
+.setup-title{font-size:14px;font-weight:800;color:#D2FF4E;margin-bottom:12px}
+.setup-row{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.setup-btn{padding:8px 16px;border-radius:8px;border:1px solid #2A2A30;background:#1C1C20;color:#E8E8E8;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s}
+.setup-btn:hover{border-color:#D2FF4E;color:#D2FF4E}
+
+/* Toast */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#D2FF4E;color:#0C0C0E;padding:10px 24px;border-radius:10px;font-size:13px;font-weight:700;opacity:0;transition:opacity .3s;z-index:200;pointer-events:none}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🎾 대회 본부 - 스코어 관리</h1>
+  <span class="badge">ADMIN</span>
+</div>
+
+<div class="container">
+  <!-- Quick Setup -->
+  <div class="setup-section">
+    <div class="setup-title">빠른 설정</div>
+    <div class="setup-row">
+      <button class="setup-btn" onclick="initCourts(5)">5코트 초기화</button>
+      <button class="setup-btn" onclick="resetAll()">전체 리셋</button>
+    </div>
+  </div>
+
+  <!-- Courts -->
+  <div class="courts" id="courts"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyBLEGto1SK7JiowYJJCuBCfpBsjrkiqklM",
+  authDomain: "tennis-score-a3654.firebaseapp.com",
+  databaseURL: "https://tennis-score-a3654-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "tennis-score-a3654",
+  storageBucket: "tennis-score-a3654.firebasestorage.app",
+  messagingSenderId: "361320303748",
+  appId: "1:361320303748:web:0238102b53e7209cef86d1"
+});
+
+var db = firebase.database();
+var courtsRef = db.ref('courts');
+var resultsRef = db.ref('results');
+
+var events = ['남복','혼복','여복'];
+
+function toast(msg){
+  var t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show')},2000);
+}
+
+function initCourts(n){
+  if(!confirm(n+'코트로 초기화하시겠습니까?')) return;
+  var data={};
+  for(var i=1;i<=n;i++){
+    data['court'+i]={
+      name:'코트 '+i,
+      teamA:'',teamB:'',
+      scoreA:0,scoreB:0,
+      event:'남복',group:'',
+      status:'waiting' // waiting, live, done
+    };
+  }
+  courtsRef.set(data);
+  toast(n+'코트 초기화 완료!');
+}
+
+function resetAll(){
+  if(!confirm('모든 데이터를 리셋하시겠습니까?')) return;
+  courtsRef.remove();
+  resultsRef.remove();
+  document.getElementById('courts').innerHTML='<p style="color:#707075;text-align:center;padding:40px">코트를 초기화해주세요</p>';
+  toast('전체 리셋 완료');
+}
+
+function updateCourt(courtId, field, value){
+  courtsRef.child(courtId).child(field).set(value);
+}
+
+function changeScore(courtId, team, delta){
+  courtsRef.child(courtId).child('score'+team).transaction(function(current){
+    var val = (current||0)+delta;
+    return val<0?0:val;
+  });
+}
+
+function startMatch(courtId){
+  courtsRef.child(courtId).update({status:'live',scoreA:0,scoreB:0});
+  toast('경기 시작!');
+}
+
+function finishMatch(courtId){
+  courtsRef.child(courtId).once('value',function(snap){
+    var d=snap.val();
+    if(!d) return;
+    // Save result
+    resultsRef.push({
+      court:d.name,
+      teamA:d.teamA,teamB:d.teamB,
+      scoreA:d.scoreA,scoreB:d.scoreB,
+      event:d.event,group:d.group,
+      time:new Date().toLocaleTimeString('ko-KR'),
+      timestamp:firebase.database.ServerValue.TIMESTAMP
+    });
+    courtsRef.child(courtId).update({status:'done'});
+    toast(d.teamA+' '+d.scoreA+':'+d.scoreB+' '+d.teamB+' 결과 저장!');
+  });
+}
+
+function resetCourt(courtId){
+  courtsRef.child(courtId).update({
+    teamA:'',teamB:'',scoreA:0,scoreB:0,event:'남복',group:'',status:'waiting'
+  });
+}
+
+function renderCourt(courtId, data){
+  var statusClass = data.status==='live'?'live':data.status==='done'?'done':'waiting';
+  var statusText = data.status==='live'?'LIVE':data.status==='done'?'종료':'대기';
+  
+  return '<div class="court '+(data.status==='live'?'active':'')+'" id="'+courtId+'">'
+    +'<div class="court-header">'
+    +'<span class="court-name">'+data.name+'</span>'
+    +'<span class="court-status '+statusClass+'">'+statusText+'</span>'
+    +'</div>'
+    +'<div class="court-body">'
+    // Team A
+    +'<div class="team-row">'
+    +'<input class="team-name-input" placeholder="팀 A" value="'+(data.teamA||'')+'" onchange="updateCourt(\''+courtId+'\',\'teamA\',this.value)">'
+    +'<div class="score-controls">'
+    +'<button class="score-btn minus" onclick="changeScore(\''+courtId+'\',\'A\',-1)">−</button>'
+    +'<span class="score-display">'+(data.scoreA||0)+'</span>'
+    +'<button class="score-btn plus" onclick="changeScore(\''+courtId+'\',\'A\',1)">+</button>'
+    +'</div></div>'
+    // VS
+    +'<div class="vs-divider">VS</div>'
+    // Team B
+    +'<div class="team-row">'
+    +'<input class="team-name-input" placeholder="팀 B" value="'+(data.teamB||'')+'" onchange="updateCourt(\''+courtId+'\',\'teamB\',this.value)">'
+    +'<div class="score-controls">'
+    +'<button class="score-btn minus" onclick="changeScore(\''+courtId+'\',\'B\',-1)">−</button>'
+    +'<span class="score-display">'+(data.scoreB||0)+'</span>'
+    +'<button class="score-btn plus" onclick="changeScore(\''+courtId+'\',\'B\',1)">+</button>'
+    +'</div></div>'
+    +'</div>'
+    // Event selector
+    +'<div class="event-row">'
+    +events.map(function(e){
+      return '<div class="event-chip '+(data.event===e?'selected':'')+'" onclick="updateCourt(\''+courtId+'\',\'event\',\''+e+'\')">'+e+'</div>';
+    }).join('')
+    +'</div>'
+    // Group input
+    +'<div style="padding:0 16px 8px">'
+    +'<input class="team-name-input" style="width:100%;font-size:12px" placeholder="조/라운드 (예: A조 1R)" value="'+(data.group||'')+'" onchange="updateCourt(\''+courtId+'\',\'group\',this.value)">'
+    +'</div>'
+    // Actions
+    +'<div class="court-actions">'
+    +'<button class="action-btn start" onclick="startMatch(\''+courtId+'\')">경기 시작</button>'
+    +'<button class="action-btn finish" onclick="finishMatch(\''+courtId+'\')">경기 종료</button>'
+    +'<button class="action-btn reset" onclick="resetCourt(\''+courtId+'\')">리셋</button>'
+    +'</div>'
+    +'</div>';
+}
+
+// Listen for changes
+courtsRef.on('value',function(snap){
+  var data=snap.val();
+  var container=document.getElementById('courts');
+  if(!data){
+    container.innerHTML='<p style="color:#707075;text-align:center;padding:40px">코트를 초기화해주세요</p>';
+    return;
+  }
+  var html='';
+  Object.keys(data).sort().forEach(function(key){
+    html+=renderCourt(key,data[key]);
+  });
+  container.innerHTML=html;
+});
+</script>
+</body>
+</html>
