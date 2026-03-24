@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>영남테니스회장배 - 포토 갤러리</title>
+<meta property="og:title" content="📸 영남테니스회장배 포토 갤러리">
+<meta property="og:description" content="대회 사진을 보고 좋아요를 눌러주세요! 가장 많은 좋아요를 받은 사진에 상품!">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-height:100vh}
+.header{background:#151518;border-bottom:2px solid #FF6B8A;padding:16px 20px;text-align:center;position:sticky;top:0;z-index:100}
+.header h1{font-size:20px;font-weight:900;color:#FF6B8A}
+.header p{font-size:11px;color:#707075;margin-top:2px}
+.refresh-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#FF6B8A;margin-right:6px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+.tabs{display:flex;justify-content:center;gap:4px;padding:12px 16px;background:#0C0C0E;position:sticky;top:62px;z-index:99}
+.tab{padding:8px 24px;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid #2A2A30;color:#707075;transition:all .2s;background:transparent}
+.tab.active{background:#FF6B8A;color:#FFFFFF;border-color:#FF6B8A}
+
+.container{max-width:900px;margin:0 auto;padding:16px}
+.section{display:none}.section.active{display:block}
+.section-title{font-size:13px;font-weight:800;color:#FF6B8A;letter-spacing:3px;margin-bottom:12px}
+
+/* Gallery grid */
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.photo-card{background:#151518;border:1px solid #2A2A30;border-radius:14px;overflow:hidden;transition:all .3s}
+.photo-card:hover{border-color:#FF6B8A;transform:translateY(-2px)}
+.photo-img{width:100%;aspect-ratio:4/3;object-fit:cover;cursor:pointer;transition:transform .3s}
+.photo-img:hover{transform:scale(1.02)}
+.photo-info{padding:12px 14px}
+.photo-caption{font-size:13px;font-weight:500;color:#E8E8E8;margin-bottom:8px;word-break:keep-all}
+.photo-time{font-size:10px;color:#707075;margin-bottom:8px}
+.photo-actions{display:flex;align-items:center;justify-content:space-between}
+.like-btn{display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:20px;border:1px solid #2A2A30;background:transparent;color:#707075;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;font-family:inherit}
+.like-btn:hover{border-color:#FF6B8A;color:#FF6B8A}
+.like-btn.liked{background:rgba(255,107,138,.12);border-color:#FF6B8A;color:#FF6B8A}
+.like-btn .heart{font-size:16px;transition:transform .3s}
+.like-btn.liked .heart{transform:scale(1.2)}
+.like-count{font-size:12px;color:#707075;font-weight:600}
+
+/* Ranking */
+.rank-card{display:flex;align-items:center;gap:14px;background:#151518;border:1px solid #2A2A30;border-radius:12px;padding:12px;margin-bottom:8px;transition:all .3s}
+.rank-card:hover{border-color:#FF6B8A}
+.rank-card.top{border-color:rgba(255,107,138,.3);background:rgba(255,107,138,.04)}
+.rank-num{font-family:'Bebas Neue',sans-serif;font-size:28px;color:#FF6B8A;min-width:36px;text-align:center}
+.rank-thumb{width:70px;height:52px;object-fit:cover;border-radius:8px}
+.rank-info{flex:1}
+.rank-caption{font-size:13px;font-weight:600;color:#E8E8E8}
+.rank-likes{font-size:12px;color:#FF6B8A;font-weight:700;margin-top:2px}
+.rank-empty{text-align:center;padding:60px 20px;color:#707075}
+
+/* Lightbox */
+.lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:200;justify-content:center;align-items:center;cursor:pointer}
+.lightbox.open{display:flex}
+.lightbox img{max-width:90vw;max-height:85vh;object-fit:contain;border-radius:8px}
+.lightbox-close{position:absolute;top:20px;right:24px;color:#FFF;font-size:28px;cursor:pointer;font-weight:300}
+
+.empty{text-align:center;padding:60px 20px;color:#707075}
+.empty-icon{font-size:40px;margin-bottom:12px;display:block}
+
+/* Upload area */
+.upload-area{background:#151518;border:2px dashed #2A2A30;border-radius:14px;padding:20px;margin-bottom:16px;text-align:center;transition:all .3s;cursor:pointer}
+.upload-area:hover{border-color:#FF6B8A}
+.upload-area.dragging{border-color:#FF6B8A;background:rgba(255,107,138,.04)}
+.upload-icon{font-size:32px;margin-bottom:8px;display:block}
+.upload-text{font-size:13px;color:#707075;margin-bottom:8px}
+.upload-btn{display:inline-block;padding:8px 20px;border-radius:20px;background:rgba(255,107,138,.12);border:1px solid #FF6B8A;color:#FF6B8A;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s}
+.upload-btn:hover{background:rgba(255,107,138,.2)}
+.upload-caption{width:100%;background:#1C1C20;border:1px solid #2A2A30;border-radius:8px;color:#E8E8E8;font-size:13px;padding:10px 14px;font-family:inherit;margin-top:10px}
+.upload-caption:focus{outline:none;border-color:#FF6B8A}
+.upload-caption::placeholder{color:#505055}
+.preview-grid{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.preview-thumb{width:70px;height:52px;object-fit:cover;border-radius:6px;border:1px solid #2A2A30}
+.upload-submit{display:none;margin-top:12px;padding:10px 28px;border-radius:20px;background:#FF6B8A;border:none;color:#FFF;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s}
+.upload-submit:hover{background:#E85A78}
+.upload-progress{font-size:11px;color:#707075;margin-top:8px}
+.nickname-input{width:100%;background:#1C1C20;border:1px solid #2A2A30;border-radius:8px;color:#E8E8E8;font-size:13px;padding:10px 14px;font-family:inherit;margin-bottom:6px}
+.nickname-input:focus{outline:none;border-color:#FF6B8A}
+.nickname-input::placeholder{color:#505055}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📸 포토 갤러리</h1>
+  <p><span class="refresh-dot"></span>사진을 올리고 좋아요를 눌러주세요! 1등 사진에 상품!</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('gallery',this)">갤러리</div>
+  <div class="tab" onclick="showTab('upload',this)">사진 올리기</div>
+  <div class="tab" onclick="showTab('ranking',this)">좋아요 랭킹</div>
+</div>
+
+<div class="container">
+  <div class="section active" id="sec-gallery">
+    <div class="section-title">PHOTO GALLERY</div>
+    <div class="gallery" id="galleryGrid">
+      <div class="empty"><span class="empty-icon">📸</span>아직 사진이 없습니다</div>
+    </div>
+  </div>
+
+  <!-- Upload Section -->
+  <div class="section" id="sec-upload">
+    <div class="section-title">사진 올리기</div>
+    <div class="upload-area" id="uploadArea" onclick="document.getElementById('photoInput').click()">
+      <span class="upload-icon">📷</span>
+      <div class="upload-text">터치하거나 사진을 드래그하세요</div>
+      <span class="upload-btn">사진 선택</span>
+      <input type="file" id="photoInput" accept="image/*" multiple style="display:none" onchange="handleFiles(this.files)">
+    </div>
+    <div class="preview-grid" id="previewGrid"></div>
+    <input class="nickname-input" id="titleInput" placeholder="제목 (예: 결승전 명장면!)">
+    <div style="display:flex;gap:8px">
+      <input class="nickname-input" id="nickInput" placeholder="닉네임 (예: 홍길동)" style="flex:1">
+      <input class="nickname-input" id="phoneInput" placeholder="전화번호 뒷자리 4자리" maxlength="4" style="width:140px" inputmode="numeric">
+    </div>
+    <input class="upload-caption" id="captionInput" placeholder="사진 설명 (선택)">
+    <button class="upload-submit" id="submitBtn" onclick="doUpload()">업로드</button>
+    <div class="upload-progress" id="uploadProg"></div>
+  </div>
+
+  <div class="section" id="sec-ranking">
+    <div class="section-title">❤️ BEST PHOTO RANKING</div>
+    <div id="rankingList">
+      <div class="empty"><span class="empty-icon">🏆</span>아직 좋아요 데이터가 없습니다</div>
+    </div>
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <span class="lightbox-close">✕</span>
+  <img id="lightboxImg" src="">
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyBLEGto1SK7JiowYJJCuBCfpBsjrkiqklM",
+  authDomain:"tennis-score-a3654.firebaseapp.com",
+  databaseURL:"https://tennis-score-a3654-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:"tennis-score-a3654",
+  storageBucket:"tennis-score-a3654.firebasestorage.app",
+  messagingSenderId:"361320303748",
+  appId:"1:361320303748:web:0238102b53e7209cef86d1"
+});
+var db=firebase.database();
+var photosRef=db.ref('photos');
+var storage=firebase.storage();
+
+// User ID (persistent per browser)
+function getUserId(){
+  var id=localStorage.getItem('gallery_user_id');
+  if(!id){id='user_'+Date.now()+'_'+Math.random().toString(36).substr(2,6);localStorage.setItem('gallery_user_id',id)}
+  return id;
+}
+var userId=getUserId();
+
+function showTab(tab,el){
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active')});
+  document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active')});
+  if(el)el.classList.add('active');
+  document.getElementById('sec-'+tab).classList.add('active');
+}
+
+function toggleLike(photoId){
+  var likeRef=photosRef.child(photoId).child('likes').child(userId);
+  likeRef.once('value',function(snap){
+    if(snap.val()){
+      likeRef.remove();
+    } else {
+      likeRef.set(true);
+    }
+  });
+}
+
+function openLightbox(url){
+  document.getElementById('lightboxImg').src=url;
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox(){
+  document.getElementById('lightbox').classList.remove('open');
+}
+
+// ============ UPLOAD ============
+var selectedFiles=[];
+
+// Drag & drop
+var uploadArea=document.getElementById('uploadArea');
+if(uploadArea){
+  uploadArea.addEventListener('dragover',function(e){e.preventDefault();this.classList.add('dragging')});
+  uploadArea.addEventListener('dragleave',function(){this.classList.remove('dragging')});
+  uploadArea.addEventListener('drop',function(e){
+    e.preventDefault();this.classList.remove('dragging');
+    handleFiles(e.dataTransfer.files);
+  });
+}
+
+function handleFiles(files){
+  selectedFiles=Array.from(files);
+  var preview=document.getElementById('previewGrid');
+  preview.innerHTML='';
+  selectedFiles.forEach(function(file){
+    var reader=new FileReader();
+    reader.onload=function(e){
+      preview.innerHTML+='<img class="preview-thumb" src="'+e.target.result+'">';
+    };
+    reader.readAsDataURL(file);
+  });
+  document.getElementById('submitBtn').style.display=selectedFiles.length>0?'inline-block':'none';
+}
+
+function doUpload(){
+  if(selectedFiles.length===0) return;
+  var title=document.getElementById('titleInput').value.trim()||'';
+  var nick=document.getElementById('nickInput').value.trim()||'익명';
+  var phone=document.getElementById('phoneInput').value.trim()||'';
+  var caption=document.getElementById('captionInput').value.trim();
+  var prog=document.getElementById('uploadProg');
+  var total=selectedFiles.length;
+  var done=0;
+  
+  // Save for next time
+  localStorage.setItem('gallery_nickname',nick);
+  localStorage.setItem('gallery_phone',phone);
+  
+  prog.textContent='업로드 중... (0/'+total+')';
+  document.getElementById('submitBtn').disabled=true;
+  
+  selectedFiles.forEach(function(file){
+    var fileName=Date.now()+'_'+Math.random().toString(36).substr(2,6)+'_'+file.name;
+    var ref=storage.ref('gallery/'+fileName);
+    
+    ref.put(file).then(function(snapshot){
+      return snapshot.ref.getDownloadURL();
+    }).then(function(url){
+      photosRef.push({
+        url:url,
+        title:title,
+        caption:caption,
+        nickname:nick,
+        phone:phone,
+        fileName:fileName,
+        time:new Date().toLocaleString('ko-KR'),
+        timestamp:firebase.database.ServerValue.TIMESTAMP
+      });
+      done++;
+      prog.textContent='업로드 중... ('+done+'/'+total+')';
+      if(done===total){
+        prog.textContent=total+'장 업로드 완료!';
+        document.getElementById('previewGrid').innerHTML='';
+        document.getElementById('titleInput').value='';
+        document.getElementById('captionInput').value='';
+        document.getElementById('photoInput').value='';
+        document.getElementById('submitBtn').style.display='none';
+        document.getElementById('submitBtn').disabled=false;
+        selectedFiles=[];
+        setTimeout(function(){
+          prog.textContent='';
+          showTab('gallery',document.querySelector('.tab'));
+        },1500);
+      }
+    }).catch(function(err){
+      prog.textContent='오류: '+err.message;
+      document.getElementById('submitBtn').disabled=false;
+    });
+  });
+}
+
+// Load saved nickname & phone
+var savedNick=localStorage.getItem('gallery_nickname');
+var savedPhone=localStorage.getItem('gallery_phone');
+if(savedNick){var ni=document.getElementById('nickInput');if(ni)ni.value=savedNick}
+if(savedPhone){var pi=document.getElementById('phoneInput');if(pi)pi.value=savedPhone}
+
+// Render gallery
+photosRef.orderByChild('timestamp').on('value',function(snap){
+  var data=snap.val();
+  var grid=document.getElementById('galleryGrid');
+  var rankList=document.getElementById('rankingList');
+  
+  if(!data){
+    grid.innerHTML='<div class="empty"><span class="empty-icon">📸</span>아직 사진이 없습니다</div>';
+    rankList.innerHTML='<div class="empty"><span class="empty-icon">🏆</span>아직 좋아요 데이터가 없습니다</div>';
+    return;
+  }
+  
+  // Convert to array, newest first
+  var photos=[];
+  Object.keys(data).forEach(function(key){
+    var p=data[key];p._key=key;
+    p.likeCount=p.likes?Object.keys(p.likes).length:0;
+    p.isLiked=p.likes&&p.likes[userId]?true:false;
+    photos.push(p);
+  });
+  photos.sort(function(a,b){return(b.timestamp||0)-(a.timestamp||0)});
+  
+  // Gallery grid
+  var ghtml='';
+  photos.forEach(function(p){
+    ghtml+='<div class="photo-card">'
+      +'<img class="photo-img" src="'+p.url+'" onclick="openLightbox(\''+p.url+'\')" loading="lazy">'
+      +'<div class="photo-info">'
+      +(p.title?'<div class="photo-caption" style="font-weight:700;font-size:14px;margin-bottom:4px">'+p.title+'</div>':'')
+      +(p.caption?'<div class="photo-caption" style="font-size:12px;color:#AAA">'+p.caption+'</div>':'')
+      +'<div class="photo-time">📷 '+(p.nickname||'익명')+(p.phone?' ('+p.phone+')':'')+'  ·  '+(p.time||'')+'</div>'
+      +'<div class="photo-actions">'
+      +'<button class="like-btn '+(p.isLiked?'liked':'')+'" onclick="toggleLike(\''+p._key+'\')">'
+      +'<span class="heart">'+(p.isLiked?'❤️':'🤍')+'</span> 좋아요'
+      +'</button>'
+      +'<span class="like-count">'+p.likeCount+'명</span>'
+      +'</div></div></div>';
+  });
+  grid.innerHTML=ghtml;
+  
+  // Ranking (sorted by likes)
+  var ranked=photos.slice().sort(function(a,b){return b.likeCount-a.likeCount});
+  ranked=ranked.filter(function(p){return p.likeCount>0});
+  
+  if(ranked.length===0){
+    rankList.innerHTML='<div class="empty"><span class="empty-icon">🏆</span>아직 좋아요가 없습니다. 맘에 드는 사진에 좋아요를 눌러주세요!</div>';
+    return;
+  }
+  
+  var rhtml='';
+  ranked.forEach(function(p,i){
+    var medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+    rhtml+='<div class="rank-card '+(i<3?'top':'')+'">'
+      +'<div class="rank-num">'+(medal||(i+1))+'</div>'
+      +'<img class="rank-thumb" src="'+p.url+'" onclick="openLightbox(\''+p.url+'\')">'
+      +'<div class="rank-info">'
+      +'<div class="rank-caption">'+(p.title||p.caption||'사진 '+(i+1))+'</div>'
+      +'<div style="font-size:10px;color:#707075;margin-top:1px">'+(p.nickname||'익명')+(p.phone?' ('+p.phone+')':'')+'</div>'
+      +'<div class="rank-likes">❤️ '+p.likeCount+'명</div>'
+      +'</div></div>';
+  });
+  rankList.innerHTML=rhtml;
+});
+</script>
+</body>
+</html>
