@@ -164,40 +164,30 @@ body{background:#0A0F0C;display:flex;justify-content:center;align-items:flex-sta
 <button class="music-btn playing" id="musicBtn" onclick="toggleMusic()">♫</button>
 
 <script>
+// Music
 var bgm=document.getElementById('bgm');
 var musicBtn=document.getElementById('musicBtn');
 var isPlaying=false;
-var firstTouch=true;
 bgm.volume=0.3;
-
 function startMusic(){
   bgm.play().then(function(){
-    isPlaying=true;
-    musicBtn.textContent='♫';
-    musicBtn.classList.add('playing');
+    isPlaying=true;musicBtn.textContent='♫';musicBtn.classList.add('playing');
   }).catch(function(){});
 }
-
 function toggleMusic(){
-  if(isPlaying){
-    bgm.pause();
-    musicBtn.textContent='♪';
-    musicBtn.classList.remove('playing');
-    isPlaying=false;
-  } else {
-    startMusic();
-  }
+  if(isPlaying){bgm.pause();musicBtn.textContent='♪';musicBtn.classList.remove('playing');isPlaying=false}
+  else{startMusic()}
 }
-
-// Auto-play on first user interaction (mobile requires touch)
-document.addEventListener('click',function(){
-  if(firstTouch){
-    firstTouch=false;
-    if(!isPlaying) startMusic();
-  }
-},{once:false});
-
-// Try auto-play immediately (works on desktop)
+// Auto-play on any user interaction
+function autoPlay(){
+  if(!isPlaying){startMusic()}
+  document.removeEventListener('click',autoPlay);
+  document.removeEventListener('touchstart',autoPlay);
+  document.removeEventListener('scroll',autoPlay);
+}
+document.addEventListener('click',autoPlay);
+document.addEventListener('touchstart',autoPlay);
+document.addEventListener('scroll',autoPlay);
 startMusic();
 
 function go(){
