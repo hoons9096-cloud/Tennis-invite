@@ -18,6 +18,12 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
 
 .container{max-width:700px;margin:0 auto;padding:16px}
 
+/* Nickname input */
+.nick-bar{background:#151518;border:1px solid #2A2A30;border-radius:12px;padding:12px 16px;margin-bottom:12px;display:flex;align-items:center;gap:10px}
+.nick-label{font-size:12px;font-weight:700;color:#5B8DEF;white-space:nowrap}
+.nick-input{flex:1;background:#1C1C20;border:1px solid #2A2A30;border-radius:8px;color:#E8E8E8;font-size:13px;padding:8px 12px;font-family:inherit}
+.nick-input:focus{outline:none;border-color:#5B8DEF}
+
 /* Progress bar */
 .progress-wrap{background:#151518;border:1px solid #2A2A30;border-radius:12px;padding:16px;margin-bottom:16px}
 .progress-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
@@ -36,28 +42,60 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
 .week-header:hover{background:#222228}
 .week-title{font-size:14px;font-weight:800;color:#5B8DEF}
 .week-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:10px}
-.week-badge.done{background:rgba(91,141,239,.1);color:#5B8DEF}
+.week-badge.alldone{background:rgba(91,141,239,.15);color:#5B8DEF}
 .week-badge.partial{background:rgba(255,180,60,.1);color:#FFB43C}
+.week-badge.zero{background:rgba(112,112,117,.1);color:#707075}
 .week-arrow{color:#707075;font-size:14px;transition:transform .3s}
 .week-arrow.open{transform:rotate(180deg)}
 .week-body{padding:0;max-height:0;overflow:hidden;transition:max-height .4s ease}
-.week-body.open{max-height:2000px}
+.week-body.open{max-height:3000px}
 
 /* Check items */
-.check-item{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;border-bottom:1px solid #1C1C20;transition:background .2s;cursor:pointer}
+.check-item{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;border-bottom:1px solid #1C1C20;transition:background .2s}
 .check-item:last-child{border-bottom:none}
-.check-item:hover{background:rgba(91,141,239,.03)}
-.check-item.checked{opacity:.6}
-.check-box{width:22px;height:22px;min-width:22px;border-radius:6px;border:2px solid #2A2A30;display:flex;align-items:center;justify-content:center;margin-top:1px;transition:all .2s;font-size:12px}
+.check-item:hover{background:rgba(255,255,255,.02)}
+.check-item.checked{opacity:.55}
+.check-box{width:24px;height:24px;min-width:24px;border-radius:6px;border:2px solid #2A2A30;display:flex;align-items:center;justify-content:center;margin-top:1px;transition:all .2s;font-size:13px;cursor:pointer}
+.check-box:hover{border-color:#5B8DEF}
 .check-item.checked .check-box{background:#5B8DEF;border-color:#5B8DEF;color:#FFF}
 .check-info{flex:1}
-.check-cat{font-size:9px;font-weight:700;letter-spacing:1px;color:#5B8DEF;margin-bottom:2px}
+.check-cat{display:inline-block;font-size:9px;font-weight:700;letter-spacing:1px;padding:1px 6px;border-radius:4px;margin-bottom:3px}
 .check-text{font-size:13px;font-weight:500;color:#E8E8E8;line-height:1.5;word-break:keep-all}
-.check-item.checked .check-text{text-decoration:line-through;color:#707075}
+.check-item.checked .check-text{text-decoration:line-through;color:#606060}
 .check-note{font-size:10px;color:#707075;margin-top:3px;font-style:italic}
-.check-who{font-size:10px;color:#FFB43C;margin-top:2px}
+.check-who{font-size:10px;margin-top:3px;font-weight:600}
 
-/* Reset button */
+/* Category colors */
+.cat-초청{background:rgba(210,130,255,.15);color:#D282FF}
+.cat-운영{background:rgba(91,141,239,.15);color:#5B8DEF}
+.cat-예산{background:rgba(80,200,120,.15);color:#50C878}
+.cat-물품{background:rgba(255,180,60,.15);color:#FFB43C}
+.cat-IT{background:rgba(0,210,210,.15);color:#00D2D2}
+.cat-당일{background:rgba(255,107,138,.15);color:#FF6B8A}
+.cat-후속{background:rgba(160,160,170,.15);color:#A0A0AA}
+
+.who-초청{color:#D282FF}
+.who-운영{color:#5B8DEF}
+.who-예산{color:#50C878}
+.who-물품{color:#FFB43C}
+.who-IT{color:#00D2D2}
+.who-당일{color:#FF6B8A}
+.who-후속{color:#A0A0AA}
+
+/* Edit mode */
+.edit-input{width:100%;background:#1C1C20;border:1px solid #5B8DEF;border-radius:6px;color:#E8E8E8;font-size:13px;padding:6px 10px;font-family:inherit;margin-top:4px}
+.edit-input:focus{outline:none}
+.edit-btns{display:flex;gap:6px;margin-top:6px}
+.edit-btn{padding:4px 12px;border-radius:6px;border:none;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit}
+.edit-btn.save{background:#1A3A10;color:#50C878}
+.edit-btn.cancel{background:#2A2A30;color:#707075}
+
+/* Add item */
+.add-item{padding:10px 16px;text-align:center}
+.add-btn{padding:6px 16px;border-radius:8px;border:1px dashed #2A2A30;background:transparent;color:#707075;font-size:12px;cursor:pointer;font-family:inherit;width:100%;transition:all .2s}
+.add-btn:hover{border-color:#5B8DEF;color:#5B8DEF}
+
+/* Reset */
 .reset-wrap{text-align:center;padding:20px}
 .reset-btn{padding:8px 20px;border-radius:8px;border:1px solid #2A2A30;background:#1C1C20;color:#707075;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
 .reset-btn:hover{border-color:#FF6B6B;color:#FF6B6B}
@@ -76,6 +114,13 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
 </div>
 
 <div class="container">
+  <!-- Nickname -->
+  <div class="nick-bar">
+    <span class="nick-label">내 이름</span>
+    <input class="nick-input" id="nickInput" placeholder="이름 입력 (체크 시 기록됩니다)" onchange="localStorage.setItem('cl_nick',this.value)">
+  </div>
+
+  <!-- Progress -->
   <div class="progress-wrap">
     <div class="progress-header">
       <span class="progress-label">전체 진행률</span>
@@ -108,9 +153,17 @@ firebase.initializeApp({
   appId:"1:361320303748:web:0238102b53e7209cef86d1"
 });
 var db=firebase.database();
-var clRef=db.ref('checklist');
+var clRef=db.ref('checklist2');
 
-var CHECKLIST=[
+// Load saved nickname
+var savedNick=localStorage.getItem('cl_nick')||'';
+document.getElementById('nickInput').value=savedNick;
+
+function getNick(){
+  return document.getElementById('nickInput').value.trim()||'익명';
+}
+
+var DEFAULT_WEEKS=[
   {week:'이번 주 (3/24~3/30)',dday:'D-32~D-26',items:[
     {cat:'초청',text:'초청 클럽 5곳 확정 및 공식 초청장 발송',note:'카톡 초대장 링크 활용'},
     {cat:'초청',text:'월촌테니스장 코트 5면 예약 확정 (4/25)',note:'사용료 확인'},
@@ -178,18 +231,33 @@ var CHECKLIST=[
   ]},
 ];
 
-// Build item IDs
-var allItems=[];
-CHECKLIST.forEach(function(w,wi){
-  w.items.forEach(function(item,ii){
-    item.id='w'+wi+'i'+ii;
-    allItems.push(item);
+// Initialize data if empty
+function initData(){
+  clRef.once('value',function(snap){
+    if(snap.val()) return;
+    var data={};
+    DEFAULT_WEEKS.forEach(function(w,wi){
+      w.items.forEach(function(item,ii){
+        var id='w'+wi+'i'+ii;
+        data[id]={cat:item.cat,text:item.text,note:item.note,done:false,who:'',when:''};
+      });
+    });
+    clRef.set(data);
   });
-});
+}
 
 function toggleCheck(id){
   clRef.child(id).once('value',function(snap){
-    clRef.child(id).set(snap.val()?null:true);
+    var v=snap.val();
+    if(!v) return;
+    if(v.done){
+      clRef.child(id).update({done:false,who:'',when:''});
+    } else {
+      var nick=getNick();
+      var now=new Date();
+      var timeStr=(now.getMonth()+1)+'/'+now.getDate()+' '+now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
+      clRef.child(id).update({done:true,who:nick,when:timeStr});
+    }
   });
 }
 
@@ -200,28 +268,89 @@ function toggleWeek(idx){
   arrow.classList.toggle('open');
 }
 
-function resetAll(){
-  if(!confirm('전체 체크를 초기화하시겠습니까?')) return;
-  clRef.remove();
+function startEdit(id){
+  event.stopPropagation();
+  var el=document.getElementById('txt-'+id);
+  var noteEl=document.getElementById('note-'+id);
+  var curText=el.textContent;
+  var curNote=noteEl?noteEl.textContent:'';
+  el.outerHTML='<input class="edit-input" id="edit-'+id+'" value="'+curText.replace(/"/g,'&quot;')+'" onclick="event.stopPropagation()">';
+  if(noteEl) noteEl.outerHTML='<input class="edit-input" id="editn-'+id+'" value="'+curNote.replace(/"/g,'&quot;')+'" placeholder="비고" onclick="event.stopPropagation()" style="margin-top:4px">';
+  var btns=document.getElementById('btns-'+id);
+  btns.style.display='flex';
 }
 
-function initChecklist(){
-  // First time: set up Firebase data structure
+function saveEdit(id){
+  event.stopPropagation();
+  var textInput=document.getElementById('edit-'+id);
+  var noteInput=document.getElementById('editn-'+id);
+  var updates={};
+  if(textInput) updates.text=textInput.value;
+  if(noteInput) updates.note=noteInput.value;
+  clRef.child(id).update(updates);
+}
+
+function cancelEdit(id){
+  event.stopPropagation();
+  // Re-render will handle it
+  clRef.child(id).once('value',function(){});
+}
+
+function addItem(weekIdx){
+  var cat=prompt('카테고리를 입력하세요 (초청/운영/예산/물품/IT/당일/후속)');
+  if(!cat) return;
+  var text=prompt('체크 항목을 입력하세요');
+  if(!text) return;
+  // Find next available ID for this week
   clRef.once('value',function(snap){
-    if(!snap.val()){
-      // Initialize with IT items checked
-      var init={};
-      init['w0i4']=true; // IT 웹 시스템 테스트
-      clRef.set(init);
-    }
+    var data=snap.val()||{};
+    var maxI=-1;
+    Object.keys(data).forEach(function(k){
+      if(k.startsWith('w'+weekIdx+'i')){
+        var num=parseInt(k.replace('w'+weekIdx+'i',''));
+        if(num>maxI) maxI=num;
+      }
+    });
+    var newId='w'+weekIdx+'i'+(maxI+1);
+    clRef.child(newId).set({cat:cat,text:text,note:'',done:false,who:'',when:''});
   });
 }
 
-// Render & listen
+function resetAll(){
+  if(!confirm('전체 체크를 초기화하시겠습니까?\n(항목은 유지, 체크만 해제)')) return;
+  clRef.once('value',function(snap){
+    var data=snap.val()||{};
+    var updates={};
+    Object.keys(data).forEach(function(k){
+      updates[k+'/done']=false;
+      updates[k+'/who']='';
+      updates[k+'/when']='';
+    });
+    clRef.update(updates);
+  });
+}
+
+// Render
 clRef.on('value',function(snap){
-  var checked=snap.val()||{};
-  var total=allItems.length;
-  var done=Object.keys(checked).length;
+  var data=snap.val()||{};
+  
+  // Group items by week
+  var weeks={};
+  Object.keys(data).forEach(function(id){
+    var match=id.match(/^w(\d+)i(\d+)$/);
+    if(!match) return;
+    var wi=parseInt(match[1]);
+    if(!weeks[wi]) weeks[wi]=[];
+    var item=data[id];
+    item._id=id;
+    item._ii=parseInt(match[2]);
+    weeks[wi].push(item);
+  });
+  
+  // Count totals
+  var total=Object.keys(data).length;
+  var done=0;
+  Object.values(data).forEach(function(v){if(v.done)done++});
   var pct=total>0?Math.round(done/total*100):0;
   
   document.getElementById('pctText').textContent=pct+'%';
@@ -230,42 +359,49 @@ clRef.on('value',function(snap){
   document.getElementById('remainCount').textContent=(total-done);
   
   var html='';
-  CHECKLIST.forEach(function(w,wi){
+  DEFAULT_WEEKS.forEach(function(wDef,wi){
+    var items=weeks[wi]||[];
+    items.sort(function(a,b){return a._ii-b._ii});
     var wDone=0;
-    w.items.forEach(function(item){if(checked[item.id])wDone++});
-    var wTotal=w.items.length;
-    var allDone=wDone===wTotal;
-    var badgeClass=allDone?'done':'partial';
-    var badgeText=wDone+'/'+wTotal;
+    items.forEach(function(it){if(it.done)wDone++});
+    var wTotal=items.length;
+    var badgeClass=wDone===wTotal&&wTotal>0?'alldone':wDone>0?'partial':'zero';
     
     html+='<div class="week">'
       +'<div class="week-header" onclick="toggleWeek('+wi+')">'
-      +'<div><div class="week-title">'+w.week+'</div>'
-      +'<div style="font-size:10px;color:#707075;margin-top:2px">'+w.dday+'</div></div>'
+      +'<div><div class="week-title">'+wDef.week+'</div>'
+      +'<div style="font-size:10px;color:#707075;margin-top:2px">'+wDef.dday+'</div></div>'
       +'<div style="display:flex;align-items:center;gap:8px">'
-      +'<span class="week-badge '+badgeClass+'">'+badgeText+'</span>'
+      +'<span class="week-badge '+badgeClass+'">'+wDone+'/'+wTotal+'</span>'
       +'<span class="week-arrow" id="wa-'+wi+'">▼</span>'
       +'</div></div>'
       +'<div class="week-body" id="wb-'+wi+'">';
     
-    w.items.forEach(function(item){
-      var isChecked=checked[item.id]?true:false;
-      html+='<div class="check-item '+(isChecked?'checked':'')+'" onclick="toggleCheck(\''+item.id+'\')">'
-        +'<div class="check-box">'+(isChecked?'✓':'')+'</div>'
+    items.forEach(function(item){
+      var catClass='cat-'+item.cat;
+      var whoClass='who-'+item.cat;
+      html+='<div class="check-item '+(item.done?'checked':'')+'">'
+        +'<div class="check-box" onclick="toggleCheck(\''+item._id+'\')">'+(item.done?'✓':'')+'</div>'
         +'<div class="check-info">'
-        +'<div class="check-cat">'+item.cat+'</div>'
-        +'<div class="check-text">'+item.text+'</div>'
-        +(item.note?'<div class="check-note">'+item.note+'</div>':'')
+        +'<span class="check-cat '+catClass+'">'+item.cat+'</span>'
+        +'<div class="check-text" id="txt-'+item._id+'" ondblclick="startEdit(\''+item._id+'\')">'+item.text+'</div>'
+        +(item.note?'<div class="check-note" id="note-'+item._id+'" ondblclick="startEdit(\''+item._id+'\')">'+item.note+'</div>':'<div id="note-'+item._id+'"></div>')
+        +'<div class="edit-btns" id="btns-'+item._id+'" style="display:none">'
+        +'<button class="edit-btn save" onclick="saveEdit(\''+item._id+'\')">저장</button>'
+        +'<button class="edit-btn cancel" onclick="cancelEdit(\''+item._id+'\')">취소</button>'
+        +'</div>'
+        +(item.done&&item.who?'<div class="check-who '+whoClass+'">✓ '+item.who+(item.when?' · '+item.when:'')+'</div>':'')
         +'</div></div>';
     });
     
+    html+='<div class="add-item"><button class="add-btn" onclick="addItem('+wi+')">+ 항목 추가</button></div>';
     html+='</div></div>';
   });
   
   document.getElementById('checklistArea').innerHTML=html;
 });
 
-initChecklist();
+initData();
 </script>
 </body>
 </html>
