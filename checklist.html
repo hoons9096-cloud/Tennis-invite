@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>영남테니스회장배 - 준비 체크리스트</title>
+<meta property="og:title" content="📋 대회 준비 체크리스트">
+<meta property="og:description" content="준비위원회 실시간 공유 체크리스트">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-height:100vh}
+.header{background:#151518;border-bottom:2px solid #5B8DEF;padding:16px 20px;text-align:center;position:sticky;top:0;z-index:100}
+.header h1{font-size:18px;font-weight:900;color:#5B8DEF}
+.header p{font-size:11px;color:#707075;margin-top:2px}
+.refresh-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#5B8DEF;margin-right:6px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+.container{max-width:700px;margin:0 auto;padding:16px}
+
+/* Progress bar */
+.progress-wrap{background:#151518;border:1px solid #2A2A30;border-radius:12px;padding:16px;margin-bottom:16px}
+.progress-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.progress-label{font-size:13px;font-weight:700;color:#5B8DEF}
+.progress-pct{font-size:22px;font-weight:900;color:#5B8DEF}
+.progress-bar{height:8px;background:#1C1C20;border-radius:4px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#5B8DEF,#8BB4FF);border-radius:4px;transition:width .5s ease}
+.progress-detail{display:flex;justify-content:center;gap:16px;margin-top:10px;font-size:11px;color:#707075}
+.progress-detail span{font-weight:700}
+.pd-done{color:#5B8DEF}
+.pd-remain{color:#FF6B6B}
+
+/* Week sections */
+.week{background:#151518;border:1px solid #2A2A30;border-radius:12px;margin-bottom:12px;overflow:hidden}
+.week-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#1C1C20;cursor:pointer;user-select:none}
+.week-header:hover{background:#222228}
+.week-title{font-size:14px;font-weight:800;color:#5B8DEF}
+.week-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:10px}
+.week-badge.done{background:rgba(91,141,239,.1);color:#5B8DEF}
+.week-badge.partial{background:rgba(255,180,60,.1);color:#FFB43C}
+.week-arrow{color:#707075;font-size:14px;transition:transform .3s}
+.week-arrow.open{transform:rotate(180deg)}
+.week-body{padding:0;max-height:0;overflow:hidden;transition:max-height .4s ease}
+.week-body.open{max-height:2000px}
+
+/* Check items */
+.check-item{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;border-bottom:1px solid #1C1C20;transition:background .2s;cursor:pointer}
+.check-item:last-child{border-bottom:none}
+.check-item:hover{background:rgba(91,141,239,.03)}
+.check-item.checked{opacity:.6}
+.check-box{width:22px;height:22px;min-width:22px;border-radius:6px;border:2px solid #2A2A30;display:flex;align-items:center;justify-content:center;margin-top:1px;transition:all .2s;font-size:12px}
+.check-item.checked .check-box{background:#5B8DEF;border-color:#5B8DEF;color:#FFF}
+.check-info{flex:1}
+.check-cat{font-size:9px;font-weight:700;letter-spacing:1px;color:#5B8DEF;margin-bottom:2px}
+.check-text{font-size:13px;font-weight:500;color:#E8E8E8;line-height:1.5;word-break:keep-all}
+.check-item.checked .check-text{text-decoration:line-through;color:#707075}
+.check-note{font-size:10px;color:#707075;margin-top:3px;font-style:italic}
+.check-who{font-size:10px;color:#FFB43C;margin-top:2px}
+
+/* Reset button */
+.reset-wrap{text-align:center;padding:20px}
+.reset-btn{padding:8px 20px;border-radius:8px;border:1px solid #2A2A30;background:#1C1C20;color:#707075;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
+.reset-btn:hover{border-color:#FF6B6B;color:#FF6B6B}
+
+@media(max-width:720px){
+  .container{padding:10px}
+  .check-text{font-size:12px}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📋 대회 준비 체크리스트</h1>
+  <p><span class="refresh-dot"></span>실시간 공유 · 준비위원회</p>
+</div>
+
+<div class="container">
+  <div class="progress-wrap">
+    <div class="progress-header">
+      <span class="progress-label">전체 진행률</span>
+      <span class="progress-pct" id="pctText">0%</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="pctBar" style="width:0%"></div></div>
+    <div class="progress-detail">
+      <div>완료 <span class="pd-done" id="doneCount">0</span></div>
+      <div>남은 항목 <span class="pd-remain" id="remainCount">0</span></div>
+    </div>
+  </div>
+
+  <div id="checklistArea"></div>
+
+  <div class="reset-wrap">
+    <button class="reset-btn" onclick="resetAll()">전체 체크 초기화</button>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyBLEGto1SK7JiowYJJCuBCfpBsjrkiqklM",
+  authDomain:"tennis-score-a3654.firebaseapp.com",
+  databaseURL:"https://tennis-score-a3654-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:"tennis-score-a3654",
+  storageBucket:"tennis-score-a3654.firebasestorage.app",
+  messagingSenderId:"361320303748",
+  appId:"1:361320303748:web:0238102b53e7209cef86d1"
+});
+var db=firebase.database();
+var clRef=db.ref('checklist');
+
+var CHECKLIST=[
+  {week:'이번 주 (3/24~3/30)',dday:'D-32~D-26',items:[
+    {cat:'초청',text:'초청 클럽 5곳 확정 및 공식 초청장 발송',note:'카톡 초대장 링크 활용'},
+    {cat:'초청',text:'월촌테니스장 코트 5면 예약 확정 (4/25)',note:'사용료 확인'},
+    {cat:'예산',text:'대회 예산 최종 확정 (150만원 내외)',note:''},
+    {cat:'운영',text:'준비위원회 역할 분담',note:'경기운영/기록IT/재정/섭외행사'},
+    {cat:'IT',text:'대회 웹 시스템 테스트',note:'스코어보드, 갤러리 확인'},
+  ]},
+  {week:'2주차 (3/31~4/6)',dday:'D-25~D-19',items:[
+    {cat:'초청',text:'각 클럽 참가 확정 회신 받기',note:''},
+    {cat:'초청',text:'참가 클럽별 대표 연락처 확보',note:''},
+    {cat:'운영',text:'조 편성 초안 작성 (A조/B조 4팀씩)',note:''},
+    {cat:'운영',text:'경기 일정표 초안 작성',note:'기획안 참고'},
+    {cat:'물품',text:'현수막 디자인 확정 및 제작 발주',note:'제작 2주 소요'},
+    {cat:'물품',text:'대회용 공(캔) 구매 계획',note:'12캔 이상'},
+    {cat:'예산',text:'상금 지급 방식 결정',note:'현금/상품권/이체'},
+  ]},
+  {week:'3주차 (4/7~4/13)',dday:'D-18~D-12',items:[
+    {cat:'초청',text:'각 클럽 참가 선수 명단 취합',note:''},
+    {cat:'운영',text:'조 편성 최종 확정',note:''},
+    {cat:'운영',text:'경기 일정표 최종 확정 및 배포',note:''},
+    {cat:'물품',text:'상금/경품 구매',note:''},
+    {cat:'물품',text:'추첨 경품 구매',note:''},
+    {cat:'물품',text:'진행용품 점검 (점수판, 테이프, 펜 등)',note:''},
+    {cat:'IT',text:'스코어보드에 참가팀 등록 테스트',note:'admin 페이지'},
+    {cat:'IT',text:'Firebase 보안규칙 확인',note:''},
+  ]},
+  {week:'4주차 (4/14~4/20)',dday:'D-11~D-5',items:[
+    {cat:'초청',text:'참가 선수 명단 최종 마감',note:''},
+    {cat:'운영',text:'각 클럽에 최종 안내 발송',note:'시간/장소/주차/복장/조편성'},
+    {cat:'운영',text:'진행 스태프 최종 역할 확인',note:''},
+    {cat:'물품',text:'현수막 수령 확인',note:''},
+    {cat:'물품',text:'음료/간식 구매 목록 확정',note:''},
+    {cat:'물품',text:'대진표, 기록지, 순위표 인쇄',note:''},
+    {cat:'IT',text:'스코어보드 최종 리허설',note:''},
+    {cat:'IT',text:'갤러리 업로드 테스트',note:''},
+  ]},
+  {week:'대회 주간 (4/21~4/24)',dday:'D-4~D-1',items:[
+    {cat:'물품',text:'대회용 공 구매 완료',note:''},
+    {cat:'물품',text:'음료/간식 구매',note:''},
+    {cat:'물품',text:'물품 최종 점검',note:'체크리스트 확인'},
+    {cat:'운영',text:'코트 상태 사전 확인',note:'가능하면 4/24'},
+    {cat:'운영',text:'당일 진행 시나리오 리허설',note:''},
+    {cat:'IT',text:'admin에서 팀 등록 + 5코트 초기화',note:'전날 미리 세팅'},
+    {cat:'IT',text:'단톡방에 스코어보드/갤러리 링크 준비',note:''},
+    {cat:'운영',text:'날씨 확인 (우천 시 대안)',note:''},
+  ]},
+  {week:'D-Day (4/25 토요일)',dday:'대회 당일',items:[
+    {cat:'당일',text:'07:00 스태프 집합',note:''},
+    {cat:'당일',text:'현수막 설치, 본부석 세팅',note:''},
+    {cat:'당일',text:'음료/간식 배치',note:''},
+    {cat:'당일',text:'스코어보드 시스템 최종 확인',note:''},
+    {cat:'당일',text:'08:00 개회식',note:'개회사, 규칙안내, 준비운동'},
+    {cat:'당일',text:'단톡방에 스코어보드+갤러리 링크 공유',note:''},
+    {cat:'당일',text:'예선 리그 진행 (점수 실시간 입력)',note:''},
+    {cat:'당일',text:'예선 종료 → 순위 집계 → 4강 발표',note:''},
+    {cat:'당일',text:'본선 토너먼트 진행',note:''},
+    {cat:'당일',text:'폐회식 (시상, 베스트포토상, 단체사진)',note:'갤러리 랭킹 1등'},
+    {cat:'당일',text:'정산 및 뒷정리',note:''},
+  ]},
+  {week:'대회 후 (4/26~)',dday:'후속',items:[
+    {cat:'후속',text:'경비 정산 및 회계 정리',note:''},
+    {cat:'후속',text:'참가 클럽에 감사 인사 발송',note:''},
+    {cat:'후속',text:'대회 사진 정리 및 공유',note:'갤러리 링크'},
+    {cat:'후속',text:'차기 대회 피드백 수집',note:''},
+  ]},
+];
+
+// Build item IDs
+var allItems=[];
+CHECKLIST.forEach(function(w,wi){
+  w.items.forEach(function(item,ii){
+    item.id='w'+wi+'i'+ii;
+    allItems.push(item);
+  });
+});
+
+function toggleCheck(id){
+  clRef.child(id).once('value',function(snap){
+    clRef.child(id).set(snap.val()?null:true);
+  });
+}
+
+function toggleWeek(idx){
+  var body=document.getElementById('wb-'+idx);
+  var arrow=document.getElementById('wa-'+idx);
+  body.classList.toggle('open');
+  arrow.classList.toggle('open');
+}
+
+function resetAll(){
+  if(!confirm('전체 체크를 초기화하시겠습니까?')) return;
+  clRef.remove();
+}
+
+function initChecklist(){
+  // First time: set up Firebase data structure
+  clRef.once('value',function(snap){
+    if(!snap.val()){
+      // Initialize with IT items checked
+      var init={};
+      init['w0i4']=true; // IT 웹 시스템 테스트
+      clRef.set(init);
+    }
+  });
+}
+
+// Render & listen
+clRef.on('value',function(snap){
+  var checked=snap.val()||{};
+  var total=allItems.length;
+  var done=Object.keys(checked).length;
+  var pct=total>0?Math.round(done/total*100):0;
+  
+  document.getElementById('pctText').textContent=pct+'%';
+  document.getElementById('pctBar').style.width=pct+'%';
+  document.getElementById('doneCount').textContent=done;
+  document.getElementById('remainCount').textContent=(total-done);
+  
+  var html='';
+  CHECKLIST.forEach(function(w,wi){
+    var wDone=0;
+    w.items.forEach(function(item){if(checked[item.id])wDone++});
+    var wTotal=w.items.length;
+    var allDone=wDone===wTotal;
+    var badgeClass=allDone?'done':'partial';
+    var badgeText=wDone+'/'+wTotal;
+    
+    html+='<div class="week">'
+      +'<div class="week-header" onclick="toggleWeek('+wi+')">'
+      +'<div><div class="week-title">'+w.week+'</div>'
+      +'<div style="font-size:10px;color:#707075;margin-top:2px">'+w.dday+'</div></div>'
+      +'<div style="display:flex;align-items:center;gap:8px">'
+      +'<span class="week-badge '+badgeClass+'">'+badgeText+'</span>'
+      +'<span class="week-arrow" id="wa-'+wi+'">▼</span>'
+      +'</div></div>'
+      +'<div class="week-body" id="wb-'+wi+'">';
+    
+    w.items.forEach(function(item){
+      var isChecked=checked[item.id]?true:false;
+      html+='<div class="check-item '+(isChecked?'checked':'')+'" onclick="toggleCheck(\''+item.id+'\')">'
+        +'<div class="check-box">'+(isChecked?'✓':'')+'</div>'
+        +'<div class="check-info">'
+        +'<div class="check-cat">'+item.cat+'</div>'
+        +'<div class="check-text">'+item.text+'</div>'
+        +(item.note?'<div class="check-note">'+item.note+'</div>':'')
+        +'</div></div>';
+    });
+    
+    html+='</div></div>';
+  });
+  
+  document.getElementById('checklistArea').innerHTML=html;
+});
+
+initChecklist();
+</script>
+</body>
+</html>
