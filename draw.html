@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎾 조 추첨 — 영남테니스클럽</title>
+<style>
+:root{
+  --bg:#060b14;--sur:#0d1626;--sur2:#112038;--bor:#1e3a5f;
+  --aa:#38b6ff;--ab:#ff5e5e;--gold:#f5c842;--tx:#e8f4ff;--dm:#6b8cad;--r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Apple SD Gothic Neo','Malgun Gothic','맑은 고딕',sans-serif;
+  background:var(--bg);color:var(--tx);min-height:100vh;overflow-x:hidden;}
+
+.bg-glow{position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 60% 40% at 20% 20%,rgba(56,182,255,.07) 0%,transparent 70%),
+             radial-gradient(ellipse 50% 30% at 80% 80%,rgba(255,94,94,.06) 0%,transparent 70%);}
+.court-lines{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.03;
+  background-image:linear-gradient(0deg,#38b6ff 1px,transparent 1px),
+                   linear-gradient(90deg,#38b6ff 1px,transparent 1px);
+  background-size:60px 60px;}
+.confetti-wrap{position:fixed;inset:0;pointer-events:none;z-index:999;}
+.cf{position:absolute;animation:cfFall var(--dur) ease-in forwards;}
+@keyframes cfFall{0%{transform:translateY(0) rotate(0) translateX(0);opacity:1;}
+  100%{transform:translateY(110vh) rotate(720deg) translateX(var(--dx));opacity:0;}}
+
+.page{position:relative;z-index:1;max-width:680px;margin:0 auto;padding:20px 16px 80px;}
+
+/* 헤더 */
+.hero{text-align:center;padding:24px 0 20px;}
+.hero-badge{display:inline-block;background:rgba(56,182,255,.12);border:1px solid rgba(56,182,255,.3);
+  border-radius:20px;padding:4px 16px;font-size:.75rem;color:var(--aa);letter-spacing:2px;
+  text-transform:uppercase;margin-bottom:10px;}
+.hero h1{font-size:clamp(1.9rem,7vw,3rem);font-weight:900;line-height:1.15;
+  background:linear-gradient(135deg,#fff 0%,#38b6ff 55%,#a78bfa 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;margin-bottom:6px;}
+.hero p{color:var(--dm);font-size:.86rem;}
+
+/* 카드 */
+.card{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);
+  padding:16px 18px;margin-bottom:12px;}
+.ctitle{font-size:.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  color:var(--dm);margin-bottom:10px;}
+
+/* 스크린 */
+.screen{display:none;}
+.screen.active{display:block;animation:fadeIn .3s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
+
+/* 입력 */
+.txt-input{width:100%;background:var(--bg);border:1px solid var(--bor);color:var(--tx);
+  border-radius:9px;padding:9px 12px;font-size:.9rem;
+  font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;transition:border-color .2s;}
+.txt-input:focus{outline:none;border-color:var(--aa);}
+.club-row{display:flex;gap:8px;margin-bottom:7px;align-items:center;}
+.cnum{font-size:.72rem;color:var(--dm);width:22px;text-align:right;flex-shrink:0;}
+
+/* 버튼 */
+.btn{width:100%;padding:13px;border:none;border-radius:11px;font-size:1rem;font-weight:700;
+  cursor:pointer;font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  transition:transform .12s,opacity .15s;margin-bottom:10px;}
+.btn:hover{transform:translateY(-2px);}
+.btn:active{transform:translateY(0);opacity:.8;}
+.btn:last-child{margin-bottom:0;}
+.btn-blue{background:linear-gradient(135deg,#1a6fd4,#38b6ff);color:#fff;}
+.btn-gold{background:linear-gradient(135deg,#b8860b,#f5c842);color:#1a1200;font-weight:900;}
+.row-btns{display:flex;gap:8px;margin-top:10px;}
+.sub-btn{flex:1;padding:8px 12px;font-size:.82rem;font-weight:700;border:1px solid var(--bor);
+  border-radius:8px;cursor:pointer;background:var(--sur2);color:var(--dm);
+  font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;}
+.sub-btn:hover{border-color:var(--aa);color:var(--aa);}
+
+/* 진행 바 */
+.pbar{height:5px;background:var(--bor);border-radius:3px;overflow:hidden;margin-bottom:12px;}
+.pfill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--aa),#a78bfa);
+  transition:width .6s ease;}
+
+/* 조 현황 */
+.grp-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.grp-box{background:var(--bg);border:1px solid var(--bor);border-radius:10px;
+  padding:10px 13px;min-height:76px;}
+.grp-title{font-size:.72rem;font-weight:700;letter-spacing:1px;margin-bottom:7px;}
+.grp-title.a{color:var(--aa);}.grp-title.b{color:var(--ab);}
+.grp-club{font-size:.84rem;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.05);font-weight:600;}
+.grp-club:last-child{border:none;}
+.grp-club.a{color:var(--aa);}.grp-club.b{color:var(--ab);}
+.grp-empty{font-size:.76rem;color:var(--bor);}
+
+/* 추첨 무대 */
+.stage{text-align:center;padding:26px 18px 22px;
+  background:linear-gradient(135deg,var(--sur),rgba(17,32,56,.95));
+  border:1px solid var(--bor);border-radius:18px;margin-bottom:12px;
+  position:relative;overflow:hidden;}
+.stage::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(56,182,255,.07) 0%,transparent 70%);}
+.s-turn{font-size:.75rem;color:var(--dm);letter-spacing:2px;text-transform:uppercase;
+  margin-bottom:7px;position:relative;}
+.s-club{font-size:clamp(1.7rem,6vw,2.6rem);font-weight:900;color:#fff;
+  margin-bottom:5px;line-height:1.2;position:relative;}
+.s-sub{font-size:.83rem;color:var(--dm);margin-bottom:22px;position:relative;}
+
+/* 공 */
+.ball-wrap{height:120px;display:flex;align-items:center;justify-content:center;margin-bottom:18px;}
+.ball{width:105px;height:105px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:2.5rem;position:relative;user-select:none;}
+.ball.idle{background:linear-gradient(135deg,#1e3a5f,#2d5a8e);
+  border:3px solid rgba(56,182,255,.4);
+  box-shadow:0 0 28px rgba(56,182,255,.14);
+  animation:float 2.4s ease-in-out infinite;cursor:pointer;}
+.ball.idle:hover{transform:scale(1.07);}
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-9px);}}
+.ball.spinning{background:linear-gradient(135deg,#1a2e4a,#38b6ff,#1a2e4a);
+  border:3px solid var(--aa);font-size:.1rem;
+  animation:spinBall .13s linear infinite;}
+@keyframes spinBall{
+  0%  {transform:scale(1)   rotate(0deg);  box-shadow:0 0 18px var(--aa);}
+  50% {transform:scale(1.1) rotate(180deg);box-shadow:0 0 50px var(--aa);}
+  100%{transform:scale(1)   rotate(360deg);box-shadow:0 0 18px var(--aa);}}
+.ball.rev-a{background:linear-gradient(135deg,#0e4fa3,#38b6ff);
+  border:3px solid var(--aa);box-shadow:0 0 55px rgba(56,182,255,.75);
+  animation:pop .5s cubic-bezier(.17,.67,.35,1.4) forwards;font-size:2rem;color:#fff;cursor:default;font-weight:900;}
+.ball.rev-b{background:linear-gradient(135deg,#a30e0e,#ff5e5e);
+  border:3px solid var(--ab);box-shadow:0 0 55px rgba(255,94,94,.75);
+  animation:pop .5s cubic-bezier(.17,.67,.35,1.4) forwards;font-size:2rem;color:#fff;cursor:default;font-weight:900;}
+@keyframes pop{0%{transform:scale(.3) rotate(-20deg);opacity:0;}
+  60%{transform:scale(1.26) rotate(8deg);}80%{transform:scale(.96) rotate(-3deg);}
+  100%{transform:scale(1) rotate(0);opacity:1;}}
+
+/* 순서 목록 */
+.order-list{display:flex;flex-direction:column;gap:6px;}
+.oi{display:flex;align-items:center;gap:9px;background:var(--bg);
+  border:1px solid var(--bor);border-radius:9px;padding:9px 12px;}
+.oi.cur{border-color:var(--gold);background:rgba(245,200,66,.05);}
+.oi.da{border-color:rgba(56,182,255,.35);background:rgba(56,182,255,.05);}
+.oi.db{border-color:rgba(255,94,94,.35);background:rgba(255,94,94,.05);}
+.on{font-size:.7rem;color:var(--dm);width:18px;text-align:right;flex-shrink:0;}
+.oname{flex:1;font-weight:600;font-size:.9rem;}
+.ob{font-size:.7rem;font-weight:900;padding:3px 10px;border-radius:5px;letter-spacing:1px;}
+.ob.a{background:rgba(56,182,255,.18);color:var(--aa);border:1px solid rgba(56,182,255,.35);}
+.ob.b{background:rgba(255,94,94,.18);color:var(--ab);border:1px solid rgba(255,94,94,.35);}
+.ob.now{background:rgba(245,200,66,.15);color:var(--gold);border:1px solid rgba(245,200,66,.35);}
+.ob.wait{background:rgba(107,140,173,.08);color:var(--dm);border:1px solid var(--bor);}
+
+/* 결과 */
+.rg{border-radius:13px;padding:18px;margin-bottom:11px;}
+.rg.a{background:linear-gradient(135deg,rgba(14,79,163,.28),rgba(56,182,255,.07));border:1px solid rgba(56,182,255,.4);}
+.rg.b{background:linear-gradient(135deg,rgba(163,14,14,.28),rgba(255,94,94,.07));border:1px solid rgba(255,94,94,.4);}
+.rg-title{font-size:1.45rem;font-weight:900;margin-bottom:11px;}
+.rg-title.a{color:var(--aa);}.rg-title.b{color:var(--ab);}
+.rc{display:flex;align-items:center;gap:9px;padding:7px 0;
+  border-bottom:1px solid rgba(255,255,255,.06);font-weight:600;}
+.rc:last-child{border:none;}
+.rnum{font-size:.7rem;color:var(--dm);width:18px;}
+
+/* 복사박스 */
+.copy-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px;}
+.copy-label{font-size:.72rem;font-weight:700;margin-bottom:5px;}
+.copy-label.a{color:var(--aa);}.copy-label.b{color:var(--ab);}
+.copy-box{background:var(--bg);border:1px solid var(--bor);border-radius:8px;
+  padding:10px;font-size:.84rem;line-height:2;}
+.cbtn{display:block;width:100%;padding:8px;text-align:center;border-radius:7px;
+  font-size:.8rem;font-weight:700;cursor:pointer;margin-top:6px;border:none;
+  font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;}
+.cbtn.a{background:rgba(56,182,255,.15);color:var(--aa);}
+.cbtn.a:hover{background:rgba(56,182,255,.27);}
+.cbtn.b{background:rgba(255,94,94,.15);color:var(--ab);}
+.cbtn.b:hover{background:rgba(255,94,94,.27);}
+
+/* 메시지 */
+.msg{border-radius:8px;padding:9px 13px;font-size:.82rem;margin-bottom:11px;display:none;}
+.msg.ok{background:#0d2a0d;border:1px solid #2a5a2a;color:#6fda6f;}
+.msg.err{background:#2a0d0d;border:1px solid #7a2a2a;color:#f87171;}
+
+@media(max-width:460px){.grp-grid,.copy-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="bg-glow"></div>
+<div class="court-lines"></div>
+<div class="confetti-wrap" id="CF"></div>
+<div class="page">
+
+  <div class="hero">
+    <div class="hero-badge">🎾 영남테니스클럽</div>
+    <h1>조 추첨</h1>
+    <p>클럽별 순서 뽑기 — 공정하고 드라마틱하게</p>
+  </div>
+
+  <div class="msg" id="MSG"></div>
+
+  <!-- 화면1: 설정 -->
+  <div class="screen active" id="s1">
+    <div class="card">
+      <div class="ctitle">🏆 대회명</div>
+      <input class="txt-input" id="tname" value="2026 영남테니스 회장배 초청대회">
+    </div>
+    <div class="card">
+      <div class="ctitle">🎾 참가 클럽 8팀 — 위에서부터 추첨 순서</div>
+      <div id="CI"></div>
+      <div class="row-btns">
+        <button class="sub-btn" onclick="doShuffle()">🔀 순서 랜덤 섞기</button>
+        <button class="sub-btn" onclick="doReset()">↩ 기본값 복원</button>
+      </div>
+    </div>
+    <div class="card" style="border-color:rgba(245,200,66,.2);background:rgba(245,200,66,.03);">
+      <div class="ctitle" style="color:var(--gold);">📌 진행 방법</div>
+      <div style="font-size:.81rem;color:var(--dm);line-height:2.1;">
+        1. 클럽명 확인 후 <b style="color:var(--tx);">순서 랜덤 섞기</b> 로 뽑기 순서 공정하게 배정<br>
+        2. 카톡 그룹통화 → <b style="color:var(--tx);">화면공유</b> 켜기<br>
+        3. <b style="color:var(--tx);">추첨 시작</b> → 각 클럽 순서마다 뽑기 클릭<br>
+        4. 완료 후 결과 복사 → 대진표 생성기에 붙여넣기
+      </div>
+    </div>
+    <button class="btn btn-gold" onclick="startDraw()">✨ 추첨 시작!</button>
+  </div>
+
+  <!-- 화면2: 추첨 -->
+  <div class="screen" id="s2">
+    <div class="pbar"><div class="pfill" id="PF" style="width:0%"></div></div>
+    <div class="grp-grid">
+      <div class="grp-box">
+        <div class="grp-title a">🔵 A조 <span id="CA" style="font-size:.68rem;color:var(--dm)">(0/4)</span></div>
+        <div id="LA"><div class="grp-empty">아직 없음</div></div>
+      </div>
+      <div class="grp-box">
+        <div class="grp-title b">🔴 B조 <span id="CB" style="font-size:.68rem;color:var(--dm)">(0/4)</span></div>
+        <div id="LB"><div class="grp-empty">아직 없음</div></div>
+      </div>
+    </div>
+    <div class="stage">
+      <div class="s-turn" id="ST">1번째 클럽</div>
+      <div class="s-club" id="SC">—</div>
+      <div class="s-sub"  id="SS">공을 눌러 뽑으세요!</div>
+      <div class="ball-wrap">
+        <div class="ball idle" id="BALL" onclick="doDraw()">🎾</div>
+      </div>
+      <button class="btn btn-gold" id="DBTN" onclick="doDraw()"
+        style="max-width:250px;margin:0 auto;font-size:1.05rem;">🎲 뽑기!</button>
+    </div>
+    <div class="card">
+      <div class="ctitle">📋 추첨 순서</div>
+      <div class="order-list" id="OL"></div>
+    </div>
+  </div>
+
+  <!-- 화면3: 결과 -->
+  <div class="screen" id="s3">
+    <div style="text-align:center;padding:26px 0 18px;">
+      <div style="font-size:3.2rem;margin-bottom:8px;">🎉</div>
+      <div style="font-size:2rem;font-weight:900;color:var(--gold);">추첨 완료!</div>
+      <div style="font-size:.86rem;color:var(--dm);margin-top:5px;" id="RNAME"></div>
+    </div>
+    <div class="rg a"><div class="rg-title a">🔵 A조</div><div id="RA"></div></div>
+    <div class="rg b"><div class="rg-title b">🔴 B조</div><div id="RB"></div></div>
+    <div class="card" style="margin-top:14px;">
+      <div class="ctitle">📋 대진표 생성기에 바로 적용</div>
+      <div style="font-size:.79rem;color:var(--dm);margin-bottom:10px;">복사 후 대진표 생성기의 A조 / B조 칸에 붙여넣으세요.</div>
+      <div class="copy-grid">
+        <div>
+          <div class="copy-label a">A조 클럽명</div>
+          <div class="copy-box" id="CPA"></div>
+          <button class="cbtn a" onclick="copyGrp('A')">📋 A조 복사</button>
+        </div>
+        <div>
+          <div class="copy-label b">B조 클럽명</div>
+          <div class="copy-box" id="CPB"></div>
+          <button class="cbtn b" onclick="copyGrp('B')">📋 B조 복사</button>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-blue" onclick="goS1()" style="margin-top:13px;">🔄 다시 추첨하기</button>
+  </div>
+
+</div>
+<script>
+var DEF=['영남','동성','대구CC','수성','황금','범어','대경','서부'];
+var clubs=[],res={},turn=0,drawing=false;
+
+function msg(t,tp){
+  var e=document.getElementById('MSG');
+  e.className='msg '+tp;e.textContent=t;e.style.display='block';
+  setTimeout(function(){e.style.display='none';},3200);
+}
+function go(id){
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* 클럽 입력 */
+function buildInputs(v){
+  var w=document.getElementById('CI');w.innerHTML='';
+  for(var i=0;i<8;i++){
+    var r=document.createElement('div');r.className='club-row';
+    r.innerHTML='<span class="cnum">'+(i+1)+'.</span>'+
+      '<input class="txt-input" type="text" value="'+(v?v[i]:DEF[i])+'" placeholder="클럽명">';
+    w.appendChild(r);
+  }
+}
+function getNames(){
+  var ins=document.getElementById('CI').querySelectorAll('input'),n=[];
+  ins.forEach(function(x,i){n.push(x.value.trim()||'클럽'+(i+1));});return n;
+}
+function doShuffle(){
+  var v=getNames();
+  for(var i=v.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=v[i];v[i]=v[j];v[j]=t;}
+  buildInputs(v);msg('✓ 순서가 랜덤으로 섞였습니다!','ok');
+}
+function doReset(){buildInputs(DEF);}
+
+function cntG(g){return Object.keys(res).filter(function(k){return res[k]===g;}).length;}
+
+/* 추첨 시작 */
+function startDraw(){
+  clubs=getNames();res={};turn=0;drawing=false;
+  go('s2');render();
+}
+
+/* 화면 갱신 */
+function render(){
+  var a=cntG('A'),b=cntG('B');
+  document.getElementById('PF').style.width=(turn/clubs.length*100)+'%';
+  document.getElementById('CA').textContent='('+a+'/4)';
+  document.getElementById('CB').textContent='('+b+'/4)';
+
+  var aL=clubs.filter(function(c){return res[c]==='A';}),
+      bL=clubs.filter(function(c){return res[c]==='B';});
+  document.getElementById('LA').innerHTML=aL.length
+    ?aL.map(function(n){return '<div class="grp-club a">'+n+'</div>';}).join('')
+    :'<div class="grp-empty">아직 없음</div>';
+  document.getElementById('LB').innerHTML=bL.length
+    ?bL.map(function(n){return '<div class="grp-club b">'+n+'</div>';}).join('')
+    :'<div class="grp-empty">아직 없음</div>';
+
+  if(turn<clubs.length){
+    document.getElementById('ST').textContent=(turn+1)+'번째 클럽';
+    document.getElementById('SC').textContent=clubs[turn];
+    document.getElementById('SS').textContent='남은 자리 → A조: '+(4-a)+'팀 · B조: '+(4-b)+'팀';
+  }
+  document.getElementById('OL').innerHTML=clubs.map(function(n,i){
+    var g=res[n],cls='oi'+(g?' d'+g.toLowerCase():(i===turn?' cur':''));
+    var badge=g?'<span class="ob '+g.toLowerCase()+'">'+g+'조</span>'
+      :(i===turn?'<span class="ob now">← 지금</span>':'<span class="ob wait">대기</span>');
+    return '<div class="'+cls+'"><span class="on">'+(i+1)+'</span>'+
+      '<span class="oname">'+n+'</span>'+badge+'</div>';
+  }).join('');
+}
+
+/* 뽑기 */
+function doDraw(){
+  if(drawing||turn>=clubs.length)return;
+  drawing=true;
+  var btn=document.getElementById('DBTN'),ball=document.getElementById('BALL');
+  btn.disabled=true;btn.textContent='뽑는 중...';
+  ball.className='ball spinning';ball.textContent='';
+
+  var a=cntG('A'),b=cntG('B'),rA=4-a,rB=4-b;
+  var g=rA===0?'B':rB===0?'A':(Math.random()<rA/(rA+rB)?'A':'B');
+  var ms=1200+Math.random()*900;
+
+  setTimeout(function(){
+    ball.className='ball rev-'+g.toLowerCase();
+    ball.textContent=g+'조';
+    confetti(g==='A'?'#38b6ff':'#ff5e5e');
+    res[clubs[turn]]=g;turn++;
+    setTimeout(function(){
+      drawing=false;ball.className='ball idle';ball.textContent='🎾';
+      if(turn>=clubs.length){
+        btn.textContent='✅ 추첨 완료!';btn.disabled=true;
+        render();setTimeout(showResult,1200);
+      } else {
+        btn.disabled=false;btn.textContent='🎲 뽑기!';render();
+      }
+    },1800);
+  },ms);
+}
+
+/* 결과 */
+function showResult(){
+  go('s3');
+  document.getElementById('RNAME').textContent=document.getElementById('tname').value.trim()||'테니스 대회 조 추첨';
+  var aL=clubs.filter(function(c){return res[c]==='A';}),
+      bL=clubs.filter(function(c){return res[c]==='B';});
+  document.getElementById('RA').innerHTML=aL.map(function(n,i){
+    return '<div class="rc"><span class="rnum">'+(i+1)+'</span>'+n+'</div>';}).join('');
+  document.getElementById('RB').innerHTML=bL.map(function(n,i){
+    return '<div class="rc"><span class="rnum">'+(i+1)+'</span>'+n+'</div>';}).join('');
+  document.getElementById('CPA').innerHTML=aL.join('<br>');
+  document.getElementById('CPB').innerHTML=bL.join('<br>');
+  confetti('#f5c842');
+  setTimeout(function(){confetti('#38b6ff');},320);
+  setTimeout(function(){confetti('#ff5e5e');},640);
+}
+function goS1(){go('s1');}
+
+/* 클립보드 */
+function copyGrp(g){
+  var text=document.getElementById('CP'+g).innerText;
+  navigator.clipboard&&navigator.clipboard.writeText(text).then(function(){
+    msg('✓ '+g+'조 클럽명 복사 완료!','ok');
+  }).catch(fb);
+  function fb(){
+    var ta=document.createElement('textarea');ta.value=text;
+    document.body.appendChild(ta);ta.select();document.execCommand('copy');
+    document.body.removeChild(ta);msg('✓ '+g+'조 클럽명 복사 완료!','ok');
+  }
+}
+
+/* 폭죽 */
+function confetti(col){
+  var w=document.getElementById('CF');
+  var pal=[col,'#fff','#f5c842','#a78bfa'];
+  for(var i=0;i<48;i++){
+    (function(){
+      var el=document.createElement('div');el.className='cf';
+      var c=pal[Math.floor(Math.random()*pal.length)],sz=5+Math.random()*8;
+      el.style.cssText='left:'+(12+Math.random()*76)+'%;top:-8px;background:'+c+';'+
+        '--dur:'+(1.5+Math.random()*2)+'s;--dx:'+(-130+Math.random()*260)+'px;'+
+        'width:'+sz+'px;height:'+sz+'px;'+
+        'border-radius:'+(Math.random()>.5?'50%':'2px')+';'+
+        'animation-delay:'+(Math.random()*.45)+'s;';
+      w.appendChild(el);
+      setTimeout(function(){el.remove();},4800);
+    })();
+  }
+}
+
+buildInputs();
+</script>
+</body>
+</html>
