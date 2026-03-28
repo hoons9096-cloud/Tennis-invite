@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎾 테니스 대진표 생성기</title>
+<style>
+:root{--bg:#0f1117;--sur:#1a1d27;--sur2:#222638;--bor:#2e3249;
+  --aa:#4f9cf9;--ab:#f9634f;--gr:#4fbd72;--tx:#e8eaf0;--dm:#7a7f99;--r:12px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI','Apple SD Gothic Neo',sans-serif;background:var(--bg);color:var(--tx);padding:24px 16px 60px;}
+h1{text-align:center;font-size:1.7rem;font-weight:800;margin-bottom:6px;}
+.sub{text-align:center;color:var(--dm);font-size:.88rem;margin-bottom:28px;}
+.wrap{max-width:980px;margin:0 auto;}
+.cfg{display:flex;flex-wrap:wrap;gap:12px;background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:16px;margin-bottom:20px;}
+.ci{display:flex;align-items:center;gap:8px;}
+.ci label{font-size:.85rem;color:var(--dm);white-space:nowrap;}
+.ci input{background:var(--bg);border:1px solid var(--bor);color:var(--tx);border-radius:8px;padding:6px 10px;font-size:.9rem;width:80px;}
+.ci input[type=time]{width:110px;}
+.grps{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+@media(max-width:600px){.grps{grid-template-columns:1fr;}}
+.gbox{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:16px;}
+.gtitle{font-size:.82rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid;display:flex;align-items:center;gap:8px;}
+.gtitle.A{color:var(--aa);border-color:var(--aa);}
+.gtitle.B{color:var(--ab);border-color:var(--ab);}
+.crow{display:flex;gap:6px;margin-bottom:8px;align-items:center;}
+.cnum{font-size:.75rem;color:var(--dm);width:18px;text-align:right;flex-shrink:0;}
+.crow input{flex:1;background:var(--bg);border:1px solid var(--bor);color:var(--tx);border-radius:8px;padding:7px 10px;font-size:.88rem;}
+.crow input:focus{outline:none;border-color:var(--aa);}
+.btns{display:flex;gap:12px;margin-bottom:24px;justify-content:center;flex-wrap:wrap;}
+.btn{padding:12px 28px;border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer;transition:transform .12s;}
+.btn:hover{transform:translateY(-2px);}
+.btn-p{background:linear-gradient(135deg,var(--aa),#3a7dd4);color:#fff;}
+.btn-e{background:linear-gradient(135deg,#1d7f4a,#145e37);color:#fff;}
+/* version tabs */
+#verSection{display:none;margin-bottom:20px;}
+.ver-label{font-size:.82rem;color:var(--dm);margin-bottom:10px;}
+.ver-tabs{display:flex;flex-wrap:wrap;gap:8px;}
+.vtab{padding:8px 16px;border-radius:8px;border:1px solid var(--bor);background:var(--sur2);color:var(--dm);cursor:pointer;font-size:.85rem;font-weight:600;line-height:1.4;text-align:center;}
+.vtab:hover{border-color:var(--aa);color:var(--tx);}
+.vtab.on{background:var(--aa);border-color:var(--aa);color:#fff;}
+/* result */
+#result{display:none;}
+.ver-badge{display:inline-flex;align-items:center;gap:10px;background:var(--sur2);border:1px solid var(--bor);border-radius:10px;padding:10px 18px;margin-bottom:16px;}
+.vn{font-size:1.5rem;font-weight:900;color:var(--aa);}
+.vi{font-size:.82rem;color:var(--dm);}
+.stats{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px;}
+.sc{background:var(--sur);border:1px solid var(--bor);border-radius:10px;padding:12px 18px;}
+.sv{font-size:1.4rem;font-weight:800;}
+.sv.g{color:var(--gr);}
+.sl{font-size:.75rem;color:var(--dm);}
+.stitle{font-size:.85rem;font-weight:700;color:var(--dm);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.stitle::after{content:'';flex:1;height:1px;background:var(--bor);}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:20px;align-items:center;}
+.li{display:flex;align-items:center;gap:6px;font-size:.82rem;}
+.dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+/* court grid */
+.cgwrap{overflow-x:auto;margin-bottom:24px;}
+.cgrid{display:grid;border:1px solid var(--bor);border-radius:var(--r);overflow:hidden;}
+.cc{padding:10px 11px;border-right:1px solid var(--bor);border-bottom:1px solid var(--bor);font-size:.83rem;}
+.cc:last-child{border-right:none;}
+.cc.hdr{background:var(--sur2);color:var(--dm);font-weight:700;font-size:.75rem;text-transform:uppercase;border-bottom:2px solid var(--bor)!important;}
+.cc.last{border-bottom:none!important;}
+.cc.ctime{color:var(--gr);font-weight:700;}
+.cm{line-height:1.65;}
+.vs{color:var(--dm);font-size:.72rem;}
+.cempty{color:var(--bor);font-size:.8rem;display:block;text-align:center;}
+.tag-a,.tag-b{display:inline-block;padding:2px 6px;border-radius:4px;font-size:.7rem;font-weight:700;}
+.tag-a{background:rgba(79,156,249,.15);color:var(--aa);}
+.tag-b{background:rgba(249,99,79,.15);color:var(--ab);}
+.msg{border-radius:8px;padding:10px 14px;font-size:.84rem;margin-bottom:16px;display:none;}
+.msg.ok{background:#1a2a1a;border:1px solid #2a5a2a;color:#6fda6f;}
+.msg.err{background:#3d1a1a;border:1px solid #7a2a2a;color:#f87171;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>🎾 테니스 대진표 생성기</h1>
+<p class="sub">생성할 때마다 번호 · A·B조 동시 진행 · 컬러 엑셀 출력</p>
+
+<div class="msg" id="msg"></div>
+
+<div class="cfg">
+  <div class="ci"><label>코트 수</label><input type="number" id="nCourts" value="5" min="1" max="20"></div>
+  <div class="ci"><label>조당 클럽 수</label><input type="number" id="nClubs" value="4" min="2" max="8" oninput="buildUI()"></div>
+  <div class="ci"><label>클럽당 복식조</label><input type="number" id="nTeams" value="3" min="1" max="6" oninput="buildUI()"></div>
+  <div class="ci"><label>시작 시간</label><input type="time" id="startT" value="09:00"></div>
+  <div class="ci"><label>슬롯(분)</label><input type="number" id="slotM" value="60" min="15" max="180" step="15"></div>
+</div>
+
+<div class="grps">
+  <div class="gbox"><div class="gtitle A">🔵 A조 클럽</div><div id="cA"></div></div>
+  <div class="gbox"><div class="gtitle B">🔴 B조 클럽</div><div id="cB"></div></div>
+</div>
+
+<div class="btns">
+  <button class="btn btn-p" onclick="generate()">📋 대진표 생성</button>
+  <button class="btn btn-e" onclick="dlExcel()">📥 엑셀 다운로드</button>
+</div>
+
+<div id="verSection">
+  <div class="ver-label">생성된 대진표 — 탭을 눌러 비교하세요</div>
+  <div class="ver-tabs" id="verTabs"></div>
+</div>
+
+<div id="result">
+  <div class="ver-badge"><span class="vn" id="vn"></span><span class="vi" id="vi"></span></div>
+  <div class="stats" id="stats"></div>
+  <div class="legend" id="legend"></div>
+  <div class="stitle">📅 시간·코트별 배정</div>
+  <div class="cgwrap"><div class="cgrid" id="cgrid"></div></div>
+</div>
+</div>
+
+<script>
+// ── 색상 팔레트 ──────────────────────────────────────────────
+var DARK_A = ['#4f9cf9','#a78bfa','#38bdf8','#34d399','#fb923c','#818cf8','#f0abfc','#67e8f9'];
+var DARK_B = ['#f9634f','#f472b6','#facc15','#e879f9','#84cc16','#fb7185','#fbbf24','#4ade80'];
+var XL_BG_A= ['#DBEAFE','#EDE9FE','#CFFAFE','#D1FAE5','#FFEDD5','#E0E7FF','#FDF4FF','#E0F2FE'];
+var XL_BG_B= ['#FEE2E2','#FCE7F3','#FEF9C3','#F5D0FE','#DCFCE7','#FFE4E6','#FEF3C7','#D1FAE5'];
+var XL_TX_A= ['#1D4ED8','#6D28D9','#0E7490','#065F46','#C2410C','#3730A3','#86198F','#0369A1'];
+var XL_TX_B= ['#B91C1C','#9D174D','#854D0E','#7E22CE','#14532D','#9F1239','#92400E','#065F46'];
+
+var DA=['영남A','동성','대구CC','수성','황금','범어','대경','서부'];
+var DB=['영남B','범물','두류','파티마','서구','달서','북구','동구'];
+
+// ── 전역 상태 ────────────────────────────────────────────────
+var HISTORY = [];
+var CUR = 0;
+
+// ── UI ──────────────────────────────────────────────────────
+function buildUI() {
+  var n = parseInt(document.getElementById('nClubs').value) || 4;
+  ['A','B'].forEach(function(g) {
+    var wrap = document.getElementById('c' + g);
+    var prev = [];
+    wrap.querySelectorAll('input').forEach(function(el) { prev.push(el.value); });
+    wrap.innerHTML = '';
+    for (var i = 0; i < n; i++) {
+      var row = document.createElement('div');
+      row.className = 'crow';
+      var def = prev[i] || (g === 'A' ? DA[i] : DB[i]) || (g + '조' + (i + 1));
+      row.innerHTML = '<span class="cnum">' + (i+1) + '.</span>' +
+        '<input type="text" value="' + def.replace(/"/g,'&quot;') + '" placeholder="클럽명">';
+      wrap.appendChild(row);
+    }
+  });
+}
+
+function fmtTime(base, slotIdx, slotMin) {
+  var p = base.split(':');
+  var t = parseInt(p[0]) * 60 + parseInt(p[1]) + slotIdx * slotMin;
+  return String(Math.floor(t / 60)).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0');
+}
+
+// ── 라운드로빈 대진 ──────────────────────────────────────────
+// 결과: [{c1, c2}, ...] 쌍의 배열 (라운드 구분 없이 평탄화)
+// 각 쌍에 id 부여해서 나중에 Set으로 추적
+function makeAllMatches(gd, nTeams) {
+  var clubs = gd.clubs;
+  var arr = clubs.slice();
+  if (arr.length % 2 === 1) arr.push(null);
+  var half = arr.length / 2;
+  var matches = [];
+  var id = 0;
+
+  for (var r = 0; r < arr.length - 1; r++) {
+    for (var ti = 0; ti < nTeams; ti++) {
+      for (var i = 0; i < half; i++) {
+        var c1 = arr[i], c2 = arr[arr.length - 1 - i];
+        if (c1 && c2) {
+          matches.push({
+            id: (gd.key + '_' + (id++)),
+            group: gd.name, gk: gd.key,
+            club1: c1.name, team1: c1.name + ' ' + (ti+1) + '조',
+            club2: c2.name, team2: c2.name + ' ' + (ti+1) + '조',
+            ttype: (ti+1) + '조',
+            round: r
+          });
+        }
+      }
+    }
+    // 회전
+    arr = [arr[0], arr[arr.length-1]].concat(arr.slice(1, arr.length-1));
+  }
+  return matches;
+}
+
+// ── 셔플 (Fisher-Yates) ──────────────────────────────────────
+function shuffle(arr) {
+  var a = arr.slice();
+  for (var i = a.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+  }
+  return a;
+}
+
+// ── 핵심 스케줄러 ────────────────────────────────────────────
+// id 기반 추적으로 Set 비교 버그 완전히 제거
+function schedule(matchesA, matchesB, nCourts, startT, slotM) {
+  // 셔플로 매번 다른 결과
+  var remA = shuffle(matchesA);
+  var remB = shuffle(matchesB);
+
+  // scheduled id 추적
+  var scheduledIds = {};
+
+  // 클럽별 누적 배정 수 (균등 분배용)
+  var playCount = {};
+  matchesA.concat(matchesB).forEach(function(m) {
+    playCount[m.club1] = playCount[m.club1] || 0;
+    playCount[m.club2] = playCount[m.club2] || 0;
+  });
+
+  var slots = [];
+  var slotIdx = 0;
+  var maxIter = 1000;
+
+  while ((remA.length + remB.length) > 0 && maxIter-- > 0) {
+    var total = remA.length + remB.length;
+
+    // A·B 비례 배분 목표
+    var quotaA, quotaB;
+    if (remA.length === 0) { quotaA = 0; quotaB = nCourts; }
+    else if (remB.length === 0) { quotaA = nCourts; quotaB = 0; }
+    else {
+      quotaA = Math.max(1, Math.min(nCourts - 1, Math.round(nCourts * remA.length / total)));
+      quotaB = nCourts - quotaA;
+    }
+
+    var usedTeams = {};  // team name → true (object key로 충돌 체크)
+    var slotMatches = [];
+
+    // 그리디 픽: 오래 쉰 클럽 우선 (playCount 낮은 쌍)
+    function pickFrom(rem, quota) {
+      // 정렬: playCount 합 낮은 순 → 같으면 잔여 경기 많은 순
+      var remCount = {};
+      rem.forEach(function(m) {
+        remCount[m.team1] = (remCount[m.team1] || 0) + 1;
+        remCount[m.team2] = (remCount[m.team2] || 0) + 1;
+      });
+
+      var sorted = rem.slice().sort(function(a, b) {
+        var pa = (playCount[a.club1] || 0) + (playCount[a.club2] || 0);
+        var pb = (playCount[b.club1] || 0) + (playCount[b.club2] || 0);
+        if (pa !== pb) return pa - pb;
+        var ra = (remCount[a.team1] || 0) + (remCount[a.team2] || 0);
+        var rb = (remCount[b.team1] || 0) + (remCount[b.team2] || 0);
+        return rb - ra; // 잔여 많은 것 우선
+      });
+
+      var picked = [];
+      for (var i = 0; i < sorted.length && picked.length < quota; i++) {
+        var m = sorted[i];
+        if (!usedTeams[m.team1] && !usedTeams[m.team2]) {
+          picked.push(m);
+          usedTeams[m.team1] = true;
+          usedTeams[m.team2] = true;
+        }
+      }
+      return picked;
+    }
+
+    var pickedA = pickFrom(remA, quotaA);
+    var pickedB = pickFrom(remB, quotaB);
+
+    // 부족한 쪽 보충
+    var spare = nCourts - pickedA.length - pickedB.length;
+    if (spare > 0 && remA.length > pickedA.length) {
+      pickedA = pickedA.concat(pickFrom(remA.filter(function(m) {
+        return !usedTeams[m.team1] && !usedTeams[m.team2];
+      }), spare));
+    }
+    if (spare > 0 && remB.length > pickedB.length) {
+      pickedB = pickedB.concat(pickFrom(remB.filter(function(m) {
+        return !usedTeams[m.team1] && !usedTeams[m.team2];
+      }), spare));
+    }
+
+    var allPicked = pickedA.concat(pickedB);
+    if (allPicked.length === 0) break; // 안전 탈출
+
+    // playCount 업데이트
+    allPicked.forEach(function(m) {
+      playCount[m.club1]++;
+      playCount[m.club2]++;
+      scheduledIds[m.id] = true;
+    });
+
+    // 슬롯에 저장
+    var time = fmtTime(startT, slotIdx, slotM);
+    allPicked.forEach(function(m, ci) {
+      slots.push({
+        slot: slotIdx + 1, time: time, court: (ci + 1) + '번코트',
+        group: m.group, gk: m.gk,
+        club1: m.club1, team1: m.team1,
+        club2: m.club2, team2: m.team2,
+        ttype: m.ttype
+      });
+    });
+
+    // 배정된 것 제거 (id 기반)
+    remA = remA.filter(function(m) { return !scheduledIds[m.id]; });
+    remB = remB.filter(function(m) { return !scheduledIds[m.id]; });
+    slotIdx++;
+  }
+
+  return { slots: slots, numSlots: slotIdx };
+}
+
+// ── 색상 유틸 ────────────────────────────────────────────────
+function getColor(clubName, gds, palette_a, palette_b) {
+  for (var gi = 0; gi < gds.length; gi++) {
+    var pal = gi === 0 ? palette_a : palette_b;
+    var clubs = gds[gi].clubs;
+    for (var ci = 0; ci < clubs.length; ci++) {
+      if (clubs[ci].name === clubName) return pal[ci % pal.length];
+    }
+  }
+  return palette_a[0];
+}
+
+// ── 메시지 ───────────────────────────────────────────────────
+function showMsg(text, type) {
+  var el = document.getElementById('msg');
+  el.className = 'msg ' + type;
+  el.textContent = (type === 'ok' ? '✓ ' : '⚠ ') + text;
+  el.style.display = 'block';
+}
+function clearMsg() {
+  document.getElementById('msg').style.display = 'none';
+}
+
+// ── 메인 생성 ────────────────────────────────────────────────
+function generate() {
+  clearMsg();
+  try {
+    var nCourts = parseInt(document.getElementById('nCourts').value) || 5;
+    var nTeams  = parseInt(document.getElementById('nTeams').value)  || 3;
+    var startT  = document.getElementById('startT').value || '09:00';
+    var slotM   = parseInt(document.getElementById('slotM').value)   || 60;
+
+    var gds = ['A', 'B'].map(function(g) {
+      var inputs = document.getElementById('c' + g).querySelectorAll('input');
+      var clubs = [];
+      inputs.forEach(function(inp, ci) {
+        clubs.push({ name: inp.value.trim() || (g + '조클럽' + (ci+1)) });
+      });
+      return { name: g + '조', key: g, clubs: clubs };
+    });
+
+    var mA = makeAllMatches(gds[0], nTeams);
+    var mB = makeAllMatches(gds[1], nTeams);
+    var result = schedule(mA, mB, nCourts, startT, slotM);
+
+    var ver = HISTORY.length + 1;
+    var sd = {
+      ver: ver, slots: result.slots, numSlots: result.numSlots,
+      nCourts: nCourts, nTeams: nTeams, gds: gds, startT: startT, slotM: slotM
+    };
+    HISTORY.push(sd);
+    CUR = HISTORY.length - 1;
+    renderTabs();
+    renderResult(sd);
+  } catch(e) {
+    showMsg('오류: ' + e.message, 'err');
+  }
+}
+
+// ── 버전 탭 ──────────────────────────────────────────────────
+function renderTabs() {
+  document.getElementById('verSection').style.display = 'block';
+  var wrap = document.getElementById('verTabs');
+  wrap.innerHTML = '';
+  HISTORY.forEach(function(sd, i) {
+    var maxC = sd.numSlots * sd.nCourts;
+    var util = maxC > 0 ? Math.round(sd.slots.length / maxC * 100) : 0;
+    var btn = document.createElement('button');
+    btn.className = 'vtab' + (i === CUR ? ' on' : '');
+    btn.innerHTML = '대진표 #' + sd.ver + '<br><small style="font-weight:400;font-size:.72rem">' +
+      sd.numSlots + '슬롯 · ' + util + '% 가동</small>';
+    (function(idx) { btn.onclick = function() { CUR = idx; renderTabs(); renderResult(HISTORY[idx]); }; })(i);
+    wrap.appendChild(btn);
+  });
+}
+
+// ── 결과 렌더링 ──────────────────────────────────────────────
+function renderResult(d) {
+  document.getElementById('result').style.display = 'block';
+
+  var totMin = d.numSlots * d.slotM;
+  var dh = Math.floor(totMin / 60), dm = totMin % 60;
+  var endT = fmtTime(d.startT, d.numSlots, d.slotM);
+  var maxC = d.numSlots * d.nCourts;
+  var util = maxC > 0 ? Math.round(d.slots.length / maxC * 100) : 0;
+  var empty = maxC - d.slots.length;
+
+  document.getElementById('vn').textContent = '대진표 #' + d.ver;
+  document.getElementById('vi').textContent =
+    '총 ' + d.slots.length + '경기 · ' + d.numSlots + '슬롯 · 가동률 ' + util + '%';
+
+  // 통계 카드
+  var html = '';
+  function card(v, l, cls) { return '<div class="sc"><div class="sv' + (cls ? ' '+cls : '') + '">' + v + '</div><div class="sl">' + l + '</div></div>'; }
+  html += card(d.slots.length, '총 경기 수');
+  html += card(d.numSlots, '시간 슬롯');
+  html += card(dh + 'h' + (dm ? dm + 'm' : ''), '총 소요시간', 'g');
+  html += card(d.startT + ' ~ ' + endT, '운영 시간');
+  html += card(util + '%', '코트 가동률', 'g');
+  html += card(empty, '빈 코트 수');
+  document.getElementById('stats').innerHTML = html;
+
+  // 범례
+  var leg = '<span style="font-size:.8rem;color:var(--dm);margin-right:4px">클럽 색상:</span>';
+  d.gds.forEach(function(gd, gi) {
+    var pal = gi === 0 ? DARK_A : DARK_B;
+    gd.clubs.forEach(function(cl, ci) {
+      leg += '<div class="li"><div class="dot" style="background:' + pal[ci % pal.length] + '"></div>' +
+        '<span style="color:' + pal[ci % pal.length] + '">' + cl.name + '</span></div>';
+    });
+  });
+  document.getElementById('legend').innerHTML = leg;
+
+  // 코트 그리드
+  var sm = {};
+  d.slots.forEach(function(m) {
+    if (!sm[m.time]) sm[m.time] = {};
+    sm[m.time][m.court] = m;
+  });
+  var times = [];
+  for (var s = 0; s < d.numSlots; s++) times.push(fmtTime(d.startT, s, d.slotM));
+  var courts = [];
+  for (var c = 1; c <= d.nCourts; c++) courts.push(c + '번코트');
+
+  var grid = document.getElementById('cgrid');
+  grid.innerHTML = '';
+  grid.style.gridTemplateColumns = '88px ' + courts.map(function() { return '1fr'; }).join(' ');
+
+  function addCell(parent, text, cls, inner) {
+    var el = document.createElement('div');
+    el.className = cls;
+    if (inner) el.innerHTML = inner; else el.textContent = text;
+    parent.appendChild(el);
+  }
+
+  // 헤더
+  addCell(grid, '시간', 'cc hdr');
+  courts.forEach(function(c) { addCell(grid, c, 'cc hdr'); });
+
+  // 데이터 행
+  times.forEach(function(t, ti) {
+    var isLast = ti === times.length - 1;
+    addCell(grid, t, 'cc ctime' + (isLast ? ' last' : ''));
+    courts.forEach(function(c) {
+      var m = sm[t] && sm[t][c];
+      if (m) {
+        var col1 = getColor(m.club1, d.gds, DARK_A, DARK_B);
+        var col2 = getColor(m.club2, d.gds, DARK_A, DARK_B);
+        var tag = m.gk === 'A'
+          ? '<span class="tag-a">' + m.group + '</span>'
+          : '<span class="tag-b">' + m.group + '</span>';
+        var inner = '<div class="cm">' + tag +
+          ' <span style="font-size:.7rem;color:var(--dm)">' + m.ttype + '</span><br>' +
+          '<span style="color:' + col1 + ';font-weight:700">' + m.club1 + '</span>' +
+          '<span class="vs"> vs </span>' +
+          '<span style="color:' + col2 + ';font-weight:700">' + m.club2 + '</span>' +
+          '</div>';
+        addCell(grid, '', 'cc' + (isLast ? ' last' : ''), inner);
+      } else {
+        addCell(grid, '', 'cc' + (isLast ? ' last' : ''), '<span class="cempty">—</span>');
+      }
+    });
+  });
+
+  document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
+}
+
+// ── 엑셀 다운로드 (SpreadsheetML XML — 에러 없이 Excel에서 바로 열림) ──
+function dlExcel() {
+  if (!HISTORY.length) { showMsg('먼저 대진표를 생성해주세요.', 'err'); return; }
+  clearMsg();
+  var d = HISTORY[CUR];
+
+  var sm = {};
+  d.slots.forEach(function(m) { if (!sm[m.time]) sm[m.time] = {}; sm[m.time][m.court] = m; });
+  var times = [];
+  for (var s = 0; s < d.numSlots; s++) times.push(fmtTime(d.startT, s, d.slotM));
+  var courts = [];
+  for (var c = 1; c <= d.nCourts; c++) courts.push(c + '번코트');
+
+  // ── 스타일 ID 맵 구성 ──
+  // 0: 헤더(시간열), 1: 코트헤더, 2: 빈칸, 3~: 클럽별 색상
+  var styles = [];
+  var styleMap = {}; // clubName → styleID
+
+  styles.push({ id:'sHdr',  bg:'1E293B', fg:'F1F5F9', bold:true,  align:'Center', sz:11 });
+  styles.push({ id:'sTime', bg:'0F172A', fg:'4ADE80', bold:true,  align:'Center', sz:12 });
+  styles.push({ id:'sEmpty',bg:'F8FAFC', fg:'94A3B8', bold:false, align:'Center', sz:10 });
+
+  var allClubs = [];
+  d.gds.forEach(function(gd, gi) {
+    gd.clubs.forEach(function(cl, ci) {
+      var bg = (gi===0 ? XL_BG_A : XL_BG_B)[ci % 8].replace('#','');
+      var fg = (gi===0 ? XL_TX_A : XL_TX_B)[ci % 8].replace('#','');
+      var sid = 'sC' + gi + ci;
+      styles.push({ id:sid, bg:bg, fg:fg, bold:true, align:'Center', sz:11 });
+      styleMap[cl.name] = sid;
+      allClubs.push({ name:cl.name, sid:sid });
+    });
+  });
+
+  function styleXml(s) {
+    return '<Style ss:ID="' + s.id + '">' +
+      '<Alignment ss:Horizontal="' + s.align + '" ss:Vertical="Center" ss:WrapText="1"/>' +
+      '<Font ss:FontName="맑은 고딕" ss:Size="' + s.sz + '" ss:Color="#' + s.fg + '"' + (s.bold?' ss:Bold="1"':'') + '/>' +
+      '<Interior ss:Color="#' + s.bg + '" ss:Pattern="Solid"/>' +
+      '<Borders>' +
+        '<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>' +
+        '<Border ss:Position="Left"   ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>' +
+        '<Border ss:Position="Right"  ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>' +
+        '<Border ss:Position="Top"    ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>' +
+      '</Borders>' +
+      '</Style>';
+  }
+
+  function cell(val, sid, merge) {
+    var m = merge ? ' ss:MergeAcross="' + merge + '"' : '';
+    return '<Cell' + (sid ? ' ss:StyleID="' + sid + '"' : '') + m + '>' +
+           '<Data ss:Type="String">' + xmlEsc(String(val)) + '</Data></Cell>';
+  }
+
+  function xmlEsc(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function row(cells, height) {
+    var h = height ? ' ss:AutoFitHeight="0" ss:Height="' + height + '"' : '';
+    return '<Row' + h + '>' + cells + '</Row>';
+  }
+
+  // ── XML 조립 ──
+  var xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+  xml += '<?mso-application progid="Excel.Sheet"?>\n';
+  xml += '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"\n';
+  xml += ' xmlns:o="urn:schemas-microsoft-com:office:office"\n';
+  xml += ' xmlns:x="urn:schemas-microsoft-com:office:excel"\n';
+  xml += ' xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"\n';
+  xml += ' xmlns:html="http://www.w3.org/TR/REC-html40">\n';
+
+  // Styles
+  xml += '<Styles>';
+  styles.forEach(function(s) { xml += styleXml(s); });
+  // 제목 스타일
+  xml += '<Style ss:ID="sTitle"><Font ss:FontName="맑은 고딕" ss:Size="14" ss:Bold="1" ss:Color="#1E293B"/></Style>';
+  // 범례 라벨
+  xml += '<Style ss:ID="sLbl"><Font ss:FontName="맑은 고딕" ss:Size="10" ss:Bold="1" ss:Color="#374151"/>' +
+         '<Interior ss:Color="#F1F5F9" ss:Pattern="Solid"/>' +
+         '<Borders><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>' +
+         '<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>' +
+         '<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>' +
+         '<Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/></Borders>' +
+         '<Alignment ss:Horizontal="Center" ss:Vertical="Center"/></Style>';
+  xml += '</Styles>';
+
+  // Worksheet
+  xml += '<Worksheet ss:Name="코트배정표">';
+  xml += '<Table ss:DefaultRowHeight="50" ss:DefaultColumnWidth="110">';
+
+  // 컬럼 너비
+  xml += '<Column ss:Width="70"/>'; // 시간열
+  courts.forEach(function() { xml += '<Column ss:Width="130"/>'; });
+
+  // 제목 행
+  var maxC = d.numSlots * d.nCourts;
+  var util = maxC > 0 ? Math.round(d.slots.length / maxC * 100) : 0;
+  var title = '테니스 대진표 #' + d.ver + '    (' + d.startT + ' 시작 / ' + d.numSlots + '슬롯 / 코트가동률 ' + util + '%)';
+  xml += row('<Cell ss:StyleID="sTitle" ss:MergeAcross="' + d.nCourts + '"><Data ss:Type="String">' + xmlEsc(title) + '</Data></Cell>', 30);
+
+  // 빈 행
+  xml += '<Row ss:Height="6"></Row>';
+
+  // 헤더 행
+  xml += row(cell('시간','sTime') + courts.map(function(c){return cell(c,'sHdr');}).join(''), 32);
+
+  // 데이터 행
+  times.forEach(function(t) {
+    var cells = cell(t, 'sTime');
+    courts.forEach(function(c) {
+      var m = sm[t] && sm[t][c];
+      if (m) {
+        var sid = styleMap[m.club1] || 'sEmpty';
+        var val = '[' + m.group + ' ' + m.ttype + ']\n' + m.club1 + '  vs  ' + m.club2;
+        cells += cell(val, sid);
+      } else {
+        cells += cell('—', 'sEmpty');
+      }
+    });
+    xml += row(cells, 52);
+  });
+
+  // 빈 행
+  xml += '<Row ss:Height="10"></Row>';
+
+  // 범례 행
+  var legCells = cell('클럽 범례', 'sHdr');
+  allClubs.forEach(function(cl) { legCells += cell(cl.name, cl.sid); });
+  xml += row(legCells, 28);
+
+  xml += '</Table>';
+  xml += '<WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">';
+  xml += '<FreezePanes/><FrozenNoSplit/><SplitHorizontal>3</SplitHorizontal><TopRowBottomPane>3</TopRowBottomPane>';
+  xml += '</WorksheetOptions>';
+  xml += '</Worksheet></Workbook>';
+
+  var blob = new Blob([xml], { type: 'application/vnd.ms-excel;charset=utf-8' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = '테니스대진표_#' + d.ver + '_' + new Date().toISOString().slice(0,10) + '.xls';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showMsg('대진표 #' + d.ver + ' 엑셀 다운로드 완료! (에러 없이 열립니다)', 'ok');
+}
+
+// 초기화
+buildUI();
+</script>
+</body>
+</html>
