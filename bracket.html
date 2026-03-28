@@ -416,8 +416,9 @@ function renderTabs() {
     var util = maxC > 0 ? Math.round(sd.slots.length / maxC * 100) : 0;
     var btn = document.createElement('button');
     btn.className = 'vtab' + (i === CUR ? ' on' : '');
-    btn.innerHTML = '대진표 #' + sd.ver + '<br><small style="font-weight:400;font-size:.72rem">' +
-      sd.numSlots + '슬롯 · ' + util + '% 가동</small>';
+    btn.innerHTML = '대진표 #' + sd.ver +
+      (sd.savedName ? '<br><small style="font-weight:600;font-size:.72rem;color:#fbbf24">📂 ' + sd.savedName + '</small>' : '') +
+      '<br><small style="font-weight:400;font-size:.72rem">' + sd.numSlots + '슬롯 · ' + util + '% 가동</small>';
     (function(idx) { btn.onclick = function() { CUR = idx; renderTabs(); renderResult(HISTORY[idx]); }; })(i);
     wrap.appendChild(btn);
   });
@@ -435,7 +436,8 @@ function renderResult(d) {
   var empty = maxC - d.slots.length;
 
   document.getElementById('vn').textContent = '대진표 #' + d.ver;
-  document.getElementById('vi').textContent =
+  document.getElementById('vi').innerHTML =
+    (d.savedName ? '<span style="color:#fbbf24;font-weight:700;margin-right:8px">📂 ' + d.savedName + '</span>' : '') +
     '총 ' + d.slots.length + '경기 · ' + d.numSlots + '슬롯 · 가동률 ' + util + '%';
 
   // 통계 카드
@@ -730,8 +732,9 @@ function loadSchedule(id) {
     });
   });
 
-  // 대진표 복원 (버전 번호는 새로 부여)
+  // 대진표 복원 (버전 번호는 새로 부여, 저장 이름 기록)
   sd.ver = HISTORY.length + 1;
+  sd.savedName = entry.name;
   HISTORY.push(sd);
   CUR = HISTORY.length - 1;
   renderTabs();
