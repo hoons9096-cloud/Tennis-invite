@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>테니스 MBTI - S.E.M.T</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#09090f;min-height:100vh;font-family:'Noto Sans KR',sans-serif;color:#f0f0f0;overflow-x:hidden}
+.bg{position:fixed;inset:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse at 10% 10%,rgba(99,102,241,.1) 0%,transparent 45%),
+    radial-gradient(ellipse at 90% 90%,rgba(236,72,153,.08) 0%,transparent 45%),
+    radial-gradient(ellipse at 50% 50%,rgba(16,185,129,.04) 0%,transparent 60%)}
+.wrap{position:relative;max-width:520px;margin:0 auto;padding:28px 18px 60px;z-index:1}
+
+/* ── HEADER ── */
+.header{text-align:center;padding:14px 0 26px}
+.brand{display:inline-block;font-size:11px;font-weight:900;letter-spacing:6px;color:#818cf8;margin-bottom:14px;
+  text-shadow:0 0 20px rgba(129,140,248,.5)}
+.header h1{font-size:28px;font-weight:900;line-height:1.2;margin-bottom:8px}
+.grad{background:linear-gradient(135deg,#818cf8,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.header p{font-size:12px;color:rgba(240,240,240,.38);letter-spacing:.5px;line-height:1.6}
+.hicon{font-size:40px;margin-bottom:10px;display:block;animation:sway 3s ease-in-out infinite}
+@keyframes sway{0%,100%{transform:rotate(-10deg)}50%{transform:rotate(10deg)}}
+
+/* axis chips */
+.axes{display:flex;justify-content:center;gap:6px;margin-bottom:24px;flex-wrap:wrap}
+.ax{font-size:10px;font-weight:700;letter-spacing:1px;padding:4px 11px;border-radius:20px;border:1px solid}
+.ax-ad{color:#f59e0b;border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.07)}
+.ax-pc{color:#10b981;border-color:rgba(16,185,129,.35);background:rgba(16,185,129,.07)}
+.ax-bn{color:#818cf8;border-color:rgba(129,140,248,.35);background:rgba(129,140,248,.07)}
+.ax-er{color:#ec4899;border-color:rgba(236,72,153,.35);background:rgba(236,72,153,.07)}
+
+/* ── PROGRESS ── */
+.prog-wrap{margin-bottom:20px}
+.prog-top{display:flex;justify-content:space-between;font-size:11px;color:rgba(240,240,240,.3);margin-bottom:7px}
+.prog-bar{height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,#818cf8,#ec4899);border-radius:2px;transition:width .5s ease}
+
+/* ── QUESTION ── */
+.q-card{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:24px 20px;margin-bottom:14px}
+.q-axis-badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:2px;padding:3px 10px;border-radius:20px;margin-bottom:12px}
+.q-text{font-size:16px;font-weight:700;line-height:1.6;color:#f0f0f0;margin-bottom:20px}
+
+/* options */
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.09);border-radius:12px;padding:14px 16px;cursor:pointer;transition:all .2s;display:flex;align-items:flex-start;gap:11px}
+.opt:hover{border-color:rgba(129,140,248,.4);background:rgba(129,140,248,.06)}
+.opt.sel{border-color:#818cf8;background:rgba(129,140,248,.12)}
+.opt-circle{width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,.2);flex-shrink:0;margin-top:1px;transition:all .2s}
+.opt.sel .opt-circle{background:#818cf8;border-color:#818cf8;box-shadow:0 0 10px rgba(129,140,248,.5)}
+.opt-txt{font-size:13px;line-height:1.6;color:rgba(240,240,240,.75)}
+.opt.sel .opt-txt{color:#fff}
+
+/* nav */
+.nav{display:flex;gap:10px;margin-top:14px}
+.nbtn{flex:1;padding:14px;border:none;border-radius:12px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;letter-spacing:.5px}
+.nprev{background:rgba(255,255,255,.05);color:rgba(240,240,240,.4);border:1px solid rgba(255,255,255,.09)}
+.nprev:hover{background:rgba(255,255,255,.09);color:#f0f0f0}
+.nnext{background:linear-gradient(135deg,#818cf8,#6366f1);color:#fff;box-shadow:0 4px 16px rgba(129,140,248,.3)}
+.nnext:hover{transform:translateY(-1px);box-shadow:0 6px 22px rgba(129,140,248,.4)}
+.nnext:disabled{background:rgba(255,255,255,.07);color:rgba(240,240,240,.22);box-shadow:none;transform:none;cursor:not-allowed}
+
+/* ── RESULT ── */
+.result{display:none}
+.result.show{display:block;animation:up .7s ease}
+@keyframes up{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* type card */
+.type-card{border-radius:18px;padding:28px 22px;margin-bottom:14px;text-align:center;position:relative;overflow:hidden}
+.type-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center top,rgba(255,255,255,.06),transparent 65%)}
+.tc-brand{font-size:10px;font-weight:700;letter-spacing:4px;margin-bottom:12px;opacity:.7}
+.tc-code{font-size:42px;font-weight:900;letter-spacing:8px;margin-bottom:6px;line-height:1}
+.tc-emoji{font-size:44px;margin-bottom:8px}
+.tc-name{font-size:22px;font-weight:900;color:#fff;margin-bottom:6px;letter-spacing:.5px}
+.tc-hero{font-size:13px;margin-bottom:16px;opacity:.6;letter-spacing:1px}
+.tc-desc{font-size:14px;line-height:1.9;opacity:.85;padding:0 4px}
+
+/* axis result bars */
+.axis-result{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px}
+.ar-item{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:14px}
+.ar-labels{display:flex;justify-content:space-between;margin-bottom:8px}
+.ar-lbl{font-size:11px;font-weight:700;letter-spacing:1px}
+.ar-bar-bg{height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;margin-bottom:6px;position:relative}
+.ar-bar-fill{height:100%;border-radius:3px;transition:width .8s ease}
+.ar-result{font-size:13px;font-weight:700;text-align:center}
+
+/* strengths & weaknesses */
+.sw-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px}
+.sw-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:14px}
+.sw-title{font-size:10px;font-weight:700;letter-spacing:2px;margin-bottom:10px}
+.sw-list{display:flex;flex-direction:column;gap:7px}
+.sw-item{font-size:12px;line-height:1.55;color:rgba(240,240,240,.65);display:flex;gap:7px;align-items:flex-start}
+.sw-dot{font-size:10px;margin-top:2px;flex-shrink:0}
+
+/* compatible */
+.compat-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:16px 18px;margin-bottom:14px}
+.compat-title{font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(240,240,240,.4);margin-bottom:14px}
+.compat-row{display:flex;gap:10px;flex-wrap:wrap}
+.compat-item{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;min-width:70px}
+.compat-code{font-size:15px;font-weight:900;letter-spacing:2px}
+.compat-lbl{font-size:10px;color:rgba(240,240,240,.4)}
+
+/* famous players */
+.famous-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:16px 18px;margin-bottom:18px}
+.famous-title{font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(240,240,240,.4);margin-bottom:12px}
+.famous-list{display:flex;flex-wrap:wrap;gap:8px}
+.famous-chip{font-size:12px;padding:5px 12px;border-radius:20px;border:1px solid rgba(255,255,255,.1);color:rgba(240,240,240,.7)}
+
+/* buttons */
+.sbtn{width:100%;padding:15px;border:none;border-radius:12px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.5px;transition:all .2s;margin-bottom:9px}
+.sbtn-main{background:linear-gradient(135deg,#818cf8,#ec4899);color:#fff;box-shadow:0 4px 16px rgba(129,140,248,.3)}
+.sbtn-main:hover{transform:translateY(-1px);box-shadow:0 6px 22px rgba(129,140,248,.4)}
+.sbtn-retry{background:rgba(255,255,255,.05);color:rgba(240,240,240,.35);border:1px solid rgba(255,255,255,.09)}
+.sbtn-retry:hover{background:rgba(255,255,255,.09);color:rgba(240,240,240,.6)}
+
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);background:linear-gradient(135deg,#818cf8,#6366f1);color:#fff;padding:11px 22px;border-radius:10px;font-size:13px;font-weight:700;opacity:0;transition:all .3s;z-index:100;letter-spacing:.5px}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="header">
+    <span class="hicon">🎾</span>
+    <div class="brand">S · E · M · T</div>
+    <h1>테니스 <span class="grad">MBTI</span></h1>
+    <p>12가지 질문으로 나의 코트 위 성격 유형을 알아보세요<br>총 16가지 유형 중 당신은 어떤 플레이어?</p>
+  </div>
+
+  <div class="axes">
+    <span class="ax ax-ad">⚔️ 공격 vs 수비</span>
+    <span class="ax ax-pc">💥 파워 vs 컨트롤</span>
+    <span class="ax ax-bn">🏃 베이스 vs 네트</span>
+    <span class="ax ax-er">❤️ 감성 vs 이성</span>
+  </div>
+
+  <!-- QUIZ -->
+  <div id="quizWrap">
+    <div class="prog-wrap">
+      <div class="prog-top"><span id="progTxt">1 / 12</span><span id="progPct">0%</span></div>
+      <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+    </div>
+    <div class="q-card">
+      <div class="q-axis-badge" id="axisBadge"></div>
+      <div class="q-text" id="qText"></div>
+      <div class="opts" id="opts"></div>
+    </div>
+    <div class="nav">
+      <button class="nbtn nprev" id="btnPrev" onclick="prev()">← 이전</button>
+      <button class="nbtn nnext" id="btnNext" onclick="next()" disabled>다음 →</button>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="result" id="resultWrap">
+    <div class="type-card" id="typeCard">
+      <div class="tc-brand">S · E · M · T TENNIS MBTI</div>
+      <div class="tc-code" id="tcCode"></div>
+      <div class="tc-emoji" id="tcEmoji"></div>
+      <div class="tc-name" id="tcName"></div>
+      <div class="tc-hero" id="tcHero"></div>
+      <div class="tc-desc" id="tcDesc"></div>
+    </div>
+    <div class="axis-result" id="axisResult"></div>
+    <div class="sw-grid" id="swGrid"></div>
+    <div class="compat-card">
+      <div class="compat-title">🤝 &nbsp;궁합 좋은 파트너 유형</div>
+      <div class="compat-row" id="compatRow"></div>
+    </div>
+    <div class="famous-card">
+      <div class="famous-title">🌟 &nbsp;비슷한 스타일의 선수들</div>
+      <div class="famous-list" id="famousList"></div>
+    </div>
+    <button class="sbtn sbtn-main" onclick="copyResult()">📋 &nbsp; 카톡에 공유하기</button>
+    <button class="sbtn sbtn-retry" onclick="retryQuiz()">↺ &nbsp; 다시 테스트하기</button>
+  </div>
+</div>
+<div class="toast" id="toast">📋 복사됐습니다! 카톡에 붙여넣기 하세요</div>
+
+<script>
+// ── 질문 데이터 ────────────────────────────────
+// 각 질문: axis(A/D/P/C/B/N/E/R), a = 첫 번째 축 선택, b = 두 번째 축 선택
+const Qs = [
+  // ── A vs D ──
+  {axis:'AD', badge:'⚔️ 공격 vs 수비', color:'#f59e0b', bg:'rgba(245,158,11,.12)',
+   text:'긴 랠리 중 짧은 공이 왔다! 나는?',
+   a:{txt:'바로 강하게 공격해서 위너를 노린다', val:'A'},
+   b:{txt:'한 번 더 안정적으로 넣고 기회를 기다린다', val:'D'}},
+  {axis:'AD', badge:'⚔️ 공격 vs 수비', color:'#f59e0b', bg:'rgba(245,158,11,.12)',
+   text:'듀스 상황, 나의 전략은?',
+   a:{txt:'과감하게 위너를 노린다. 지면 어쩔 수 없다', val:'A'},
+   b:{txt:'실수 없이 안정적으로, 상대 에러를 기다린다', val:'D'}},
+  {axis:'AD', badge:'⚔️ 공격 vs 수비', color:'#f59e0b', bg:'rgba(245,158,11,.12)',
+   text:'내가 생각하는 이상적인 득점 방법은?',
+   a:{txt:'내가 직접 위너로 끝내는 화끈한 득점', val:'A'},
+   b:{txt:'상대를 지치게 만들어 스스로 실수하게 유도', val:'D'}},
+
+  // ── P vs C ──
+  {axis:'PC', badge:'💥 파워 vs 컨트롤', color:'#10b981', bg:'rgba(16,185,129,.12)',
+   text:'나의 샷 특징을 한마디로 표현하면?',
+   a:{txt:'강하고 빠른 공. 속도로 압도한다', val:'P'},
+   b:{txt:'정교하고 코스 좋은 공. 빈 공간을 노린다', val:'C'}},
+  {axis:'PC', badge:'💥 파워 vs 컨트롤', color:'#10b981', bg:'rgba(16,185,129,.12)',
+   text:'실수가 주로 생기는 이유는?',
+   a:{txt:'너무 세게 쳐서 아웃이나 네트가 잦다', val:'P'},
+   b:{txt:'코스를 너무 노리다 걸리거나 짧아진다', val:'C'}},
+  {axis:'PC', badge:'💥 파워 vs 컨트롤', color:'#10b981', bg:'rgba(16,185,129,.12)',
+   text:'꿈에 그리는 완벽한 드림 샷은?',
+   a:{txt:'상대가 손도 못 대는 강력한 에이스 서브 또는 위너', val:'P'},
+   b:{txt:'상대를 좌우로 흔든 뒤 빈 코트를 향한 정교한 마무리', val:'C'}},
+
+  // ── B vs N ──
+  {axis:'BN', badge:'🏃 베이스라인 vs 네트', color:'#818cf8', bg:'rgba(129,140,248,.12)',
+   text:'복식에서 내가 선호하는 포지션은?',
+   a:{txt:'베이스라인. 뒤에서 안정적으로 볼을 올려준다', val:'B'},
+   b:{txt:'네트 앞. 포치하며 적극적으로 마무리한다', val:'N'}},
+  {axis:'BN', badge:'🏃 베이스라인 vs 네트', color:'#818cf8', bg:'rgba(129,140,248,.12)',
+   text:'상대가 약한 공을 보내왔을 때 나는?',
+   a:{txt:'베이스라인에서 강하게 때려 상대 코트 깊숙이 꽂는다', val:'B'},
+   b:{txt:'네트로 달려가서 발리로 깔끔하게 마무리한다', val:'N'}},
+  {axis:'BN', badge:'🏃 베이스라인 vs 네트', color:'#818cf8', bg:'rgba(129,140,248,.12)',
+   text:'내가 생각하는 이상적인 플레이 스타일은?',
+   a:{txt:'뒤에서 끈질기게 버티다가 결정적인 기회를 낚아챈다', val:'B'},
+   b:{txt:'빠르게 앞으로 치고 나가 상대를 시간적으로 압박한다', val:'N'}},
+
+  // ── E vs R ──
+  {axis:'ER', badge:'❤️ 감성 vs 이성', color:'#ec4899', bg:'rgba(236,72,153,.12)',
+   text:'실수했을 때 나는?',
+   a:{txt:'속상함이 얼굴이나 행동에 드러난다', val:'E'},
+   b:{txt:'표정 변화 없이 왜 실수했는지 분석한다', val:'R'}},
+  {axis:'ER', badge:'❤️ 감성 vs 이성', color:'#ec4899', bg:'rgba(236,72,153,.12)',
+   text:'경기력에 가장 큰 영향을 미치는 것은?',
+   a:{txt:'그날의 기분과 분위기. 잘 맞으면 날아다닌다', val:'E'},
+   b:{txt:'컨디션보다는 준비된 전술과 루틴. 항상 일정하다', val:'R'}},
+  {axis:'ER', badge:'❤️ 감성 vs 이성', color:'#ec4899', bg:'rgba(236,72,153,.12)',
+   text:'멋진 샷이 나왔을 때 나는?',
+   a:{txt:'기쁨을 표현하며 분위기를 끌어올린다', val:'E'},
+   b:{txt:'담담하게 다음 포인트를 준비한다', val:'R'}},
+];
+
+// ── 16가지 유형 ────────────────────────────────
+const TYPES = {
+  APBE:{emoji:'🔥',name:'폭발형 파이터',hero:'Rafael Nadal 스타일',
+    color:'#ef4444',grad:'linear-gradient(135deg,rgba(239,68,68,.15),rgba(245,158,11,.1))',border:'rgba(239,68,68,.3)',
+    desc:'코트 위에서 불꽃처럼 타오르는 유형입니다. 강한 파워와 공격적인 마인드, 거기에 감성적인 에너지까지 더해져 경기 분위기를 주도합니다. 힘들수록 더 강해지는 불굴의 투지가 최고의 무기입니다.',
+    strengths:['강력한 파워와 공격력','끝까지 포기하지 않는 투지','경기 분위기를 끌어올리는 에너지'],
+    weaknesses:['감정 기복으로 집중력 저하','무리한 공격으로 인한 실수','체력 소모가 빠를 수 있음'],
+    compat:['DCBR','ACNR'],
+    famous:['라파엘 나달','지미 코너스','앤디 머레이']},
+
+  APBR:{emoji:'⚡',name:'냉혈 포식자',hero:'Ivan Lendl 스타일',
+    color:'#f59e0b',grad:'linear-gradient(135deg,rgba(245,158,11,.15),rgba(239,68,68,.08))',border:'rgba(245,158,11,.3)',
+    desc:'강력한 파워와 냉철한 판단력을 갖춘 완성형 베이스라이너입니다. 감정에 흔들리지 않고 계획된 공격을 실행하며 상대를 체계적으로 무너뜨립니다. 위기에서 오히려 더 강해지는 무서운 유형입니다.',
+    strengths:['파워와 냉정함의 이상적 조합','위기 상황에서 흔들리지 않는 멘탈','일관된 경기력 유지'],
+    weaknesses:['지나친 냉철함으로 감이 떨어질 때 있음','파트너와의 소통이 부족할 수 있음','유연한 전술 변화가 필요'],
+    compat:['DCNE','ACBE'],
+    famous:['이반 렌들','앤디 머레이','토마스 무스터']},
+
+  APNE:{emoji:'💥',name:'돌격대장',hero:'John McEnroe 스타일',
+    color:'#8b5cf6',grad:'linear-gradient(135deg,rgba(139,92,246,.15),rgba(239,68,68,.1))',border:'rgba(139,92,246,.3)',
+    desc:'강력한 파워로 네트를 장악하는 공격적인 유형입니다. 빠른 발로 달려나가 강한 발리로 마무리하며 상대에게 시간을 주지 않습니다. 복식에서 특히 위력적인 타입입니다.',
+    strengths:['파워 발리로 빠른 마무리','네트 장악으로 상대 압박','복식에서 최강의 존재감'],
+    weaknesses:['네트 돌진이 읽히면 로브에 취약','감정적 판단으로 포인트를 놓칠 수 있음','베이스라인 랠리가 길어지면 불리'],
+    compat:['DCBR','ACBE'],
+    famous:['존 매켄로','팻 캐시','보리스 베커']},
+
+  APNR:{emoji:'🎯',name:'정밀 저격수',hero:'Boris Becker 스타일',
+    color:'#06b6d4',grad:'linear-gradient(135deg,rgba(6,182,212,.15),rgba(139,92,246,.08))',border:'rgba(6,182,212,.3)',
+    desc:'강한 파워와 냉철한 판단으로 네트를 완벽하게 지배합니다. 돌진 타이밍, 발리 코스 선택, 스매시 결정 모든 것이 계산된 정밀함 위에 있습니다. 서브앤발리의 교과서 같은 유형입니다.',
+    strengths:['완벽하게 계산된 네트 플레이','강한 서브와 발리 연계','흔들리지 않는 승부사 기질'],
+    weaknesses:['베이스라인 랠리에서 약점 노출 가능','너무 이성적이라 직관적 판단이 늦을 때 있음','상대가 로브를 잘 쓰면 고전'],
+    compat:['DCBE','ACBR'],
+    famous:['보리스 베커','피트 샘프라스','스테판 에드버그']},
+
+  ACBE:{emoji:'🌈',name:'천재 마술사',hero:'Roger Federer 스타일',
+    color:'#10b981',grad:'linear-gradient(135deg,rgba(16,185,129,.15),rgba(99,102,241,.1))',border:'rgba(16,185,129,.3)',
+    desc:'공격과 컨트롤의 완벽한 균형을 갖춘 이상적인 베이스라이너입니다. 정교한 샷으로 상대를 흔들다가 결정적 순간에 폭발적인 위너를 터뜨립니다. 경기를 예술로 만드는 타입입니다.',
+    strengths:['어떤 상황에서도 다양한 해결책','화려하고 정교한 샷 레퍼토리','경기 흐름을 읽는 탁월한 직관'],
+    weaknesses:['너무 화려함을 추구하다 실수 가능','감성적 기복이 경기력에 영향','완벽주의적 성향으로 스트레스'],
+    compat:['DPBR','ACNR'],
+    famous:['로저 페더러','페트 샘프라스','안드레 아가시']},
+
+  ACBR:{emoji:'🧠',name:'체스 그랜드마스터',hero:'Novak Djokovic 스타일',
+    color:'#818cf8',grad:'linear-gradient(135deg,rgba(129,140,248,.15),rgba(16,185,129,.08))',border:'rgba(129,140,248,.3)',
+    desc:'테니스 코트 위의 체스 그랜드마스터입니다. 정교한 샷과 완벽한 전술로 상대를 체계적으로 무너뜨립니다. 감정에 전혀 흔들리지 않으며 어떤 상황에서도 최선의 선택을 합니다.',
+    strengths:['완벽한 전술과 정교한 컨트롤','어떤 상황에서도 평정심 유지','상대의 약점을 정확히 파고드는 능력'],
+    weaknesses:['때로는 너무 완벽함을 추구','창의적 플레이보다 계산된 플레이 선호','감성적 분위기 전환이 어려울 수 있음'],
+    compat:['APBE','DPNE'],
+    famous:['노박 조코비치','비외른 보리','스테판 에드버그']},
+
+  ACNE:{emoji:'🎭',name:'네트의 예술가',hero:'Stefan Edberg 스타일',
+    color:'#ec4899',grad:'linear-gradient(135deg,rgba(236,72,153,.15),rgba(16,185,129,.08))',border:'rgba(ec4899,.3)',
+    desc:'정교한 컨트롤로 네트를 지배하는 예술가적 플레이어입니다. 부드러운 터치 발리와 앵글 샷으로 상대를 농락합니다. 경기를 즐기며 아름다운 테니스를 추구하는 낭만주의자입니다.',
+    strengths:['섬세한 터치와 정교한 발리','창의적이고 예술적인 샷 구사','경기를 즐기는 여유로운 플레이'],
+    weaknesses:['파워 부족으로 강타에 약할 수 있음','감성적 기복이 발리 성공률에 영향','현대 테니스의 강한 탑스핀에 고전 가능'],
+    compat:['DPBR','APBE'],
+    famous:['스테판 에드버그','패트릭 라프터','야닉 노아']},
+
+  ACNR:{emoji:'👑',name:'완벽주의 황제',hero:'Pete Sampras 스타일',
+    color:'#fbbf24',grad:'linear-gradient(135deg,rgba(251,191,36,.15),rgba(236,72,153,.08))',border:'rgba(251,191,36,.3)',
+    desc:'완벽한 기술과 냉철한 판단으로 네트를 지배하는 황제형입니다. 서브, 발리, 스매시 모든 것이 교과서 수준이며 중요한 순간일수록 더욱 빛납니다. 빅포인트에 강한 진정한 승부사입니다.',
+    strengths:['중요한 포인트에서 극강의 집중력','서브와 발리의 완벽한 연계','어떤 상황에서도 무너지지 않는 정신력'],
+    weaknesses:['지나친 완벽주의로 스스로 압박','평소 경기에서 동기 부여가 낮을 수 있음','감성적 소통이 다소 부족'],
+    compat:['DPBE','ACBE'],
+    famous:['피트 샘프라스','로저 페더러','존 엔브릭']},
+
+  DPBE:{emoji:'🛡️',name:'철벽 수호자',hero:'Jim Courier 스타일',
+    color:'#f97316',grad:'linear-gradient(135deg,rgba(249,115,22,.15),rgba(239,68,68,.08))',border:'rgba(249,115,22,.3)',
+    desc:'강한 파워와 끈질긴 수비를 결합한 베이스라인의 수호자입니다. 상대의 강공을 파워로 받아치며 감성적인 에너지로 관중을 사로잡습니다. 물러서지 않는 강인한 정신력이 무기입니다.',
+    strengths:['강한 파워로 수비에서 공격으로 전환','절대 포기하지 않는 끈질긴 투지','감성적 에너지로 역전 가능'],
+    weaknesses:['전술적 유연성이 부족할 수 있음','감정 소모로 후반 집중력 저하','세밀한 코스 공략이 다소 부족'],
+    compat:['ACNR','DCNE'],
+    famous:['짐 쿠리어','마이클 창','알베르토 베라사테기']},
+
+  DPBR:{emoji:'🏔️',name:'불굴의 전사',hero:'Andre Agassi 스타일',
+    color:'#14b8a6',grad:'linear-gradient(135deg,rgba(20,184,166,.15),rgba(245,158,11,.08))',border:'rgba(20,184,166,.3)',
+    desc:'강한 파워와 냉철한 분석력을 갖춘 수비형 베이스라이너입니다. 상대의 강공을 정확하게 받아치며 체계적으로 경기를 운영합니다. 지고 있어도 절대 흔들리지 않는 강철 멘탈의 소유자입니다.',
+    strengths:['강한 리턴과 파워 수비','흔들리지 않는 냉철한 멘탈','체계적인 경기 운영 능력'],
+    weaknesses:['공격 전환 타이밍이 늦을 수 있음','리스크를 꺼려 답답하게 느껴질 수 있음','창의적 플레이가 부족'],
+    compat:['ACNE','DCBE'],
+    famous:['안드레 아가시','마이클 창','레이톤 휴이트']},
+
+  DPNE:{emoji:'🌊',name:'유연한 적응자',hero:'Mats Wilander 스타일',
+    color:'#0ea5e9',grad:'linear-gradient(135deg,rgba(14,165,233,.15),rgba(139,92,246,.08))',border:'rgba(14,165,233,.3)',
+    desc:'물처럼 유연하게 모든 상황에 적응하는 전천후 플레이어입니다. 수비에서 시작해 네트까지 자유자재로 움직이며 상대를 혼란스럽게 만듭니다. 예측 불가능함이 최고의 무기입니다.',
+    strengths:['어떤 상황에서도 유연한 대응','수비에서 네트까지 자유로운 이동','상대가 패턴을 읽기 어려운 플레이'],
+    weaknesses:['특출난 무기가 없어 강자에게 약할 수 있음','감성적 기복에 따라 집중력 차이','전문적 발리 기술이 다소 부족'],
+    compat:['ACBR','APNR'],
+    famous:['마츠 빌란더','구이예르모 코리아','다비드 나달']},
+
+  DPNR:{emoji:'🔮',name:'전략의 달인',hero:'Guillermo Vilas 스타일',
+    color:'#a78bfa',grad:'linear-gradient(135deg,rgba(167,139,250,.15),rgba(20,184,166,.08))',border:'rgba(167,139,250,.3)',
+    desc:'철저한 전략과 분석으로 네트와 베이스라인을 넘나드는 전술가입니다. 상대의 패턴을 분석하고 의표를 찌르는 플레이로 경기를 지배합니다. 뒤에서 버티다 결정적 순간 네트로 치고 나갑니다.',
+    strengths:['탁월한 경기 분석 및 전술 수립','냉철하고 계획적인 플레이','수비와 네트 플레이의 균형'],
+    weaknesses:['지나친 계산이 직관적 플레이를 방해','파워 부족으로 강자에게 약할 수 있음','너무 신중해서 공격 기회를 놓치기도'],
+    compat:['APNE','ACBE'],
+    famous:['기예르모 빌라스','마르셀로 리오스','토마스 에네']},
+
+  DCBE:{emoji:'🍃',name:'클레이의 시인',hero:'Bjorn Borg 스타일',
+    color:'#84cc16',grad:'linear-gradient(135deg,rgba(132,204,22,.15),rgba(16,185,129,.08))',border:'rgba(132,204,22,.3)',
+    desc:'부드러운 컨트롤과 끈질긴 수비로 상대를 지치게 만드는 스타일리스트입니다. 아름다운 탑스핀으로 상대를 좌우로 흔들며 감성적인 에너지로 경기에 생기를 불어넣습니다.',
+    strengths:['정교한 탑스핀과 뛰어난 컨트롤','끝없이 공을 넣는 놀라운 일관성','감성적 에너지로 팀 분위기 업'],
+    weaknesses:['파워 부족으로 속도 게임에서 밀릴 수 있음','공격 전환 시점을 잡기 어려움','빠른 서피스에서 적응이 필요'],
+    compat:['APNR','DPBR'],
+    famous:['비외른 보리','마츠 빌란더','아란차 산체스']},
+
+  DCBR:{emoji:'🕊️',name:'차분한 전략가',hero:'Rod Laver 스타일',
+    color:'#6ee7b7',grad:'linear-gradient(135deg,rgba(110,231,183,.15),rgba(129,140,248,.08))',border:'rgba(110,231,183,.3)',
+    desc:'완벽한 컨트롤과 냉철한 전략으로 수비에서 승리를 만들어내는 현자형입니다. 절대 흔들리지 않는 멘탈과 정교한 샷으로 상대가 스스로 무너지게 만듭니다. 테니스의 진정한 철학자입니다.',
+    strengths:['완벽에 가까운 컨트롤과 안정성','어떤 상황에서도 평정심 유지','상대의 리듬을 끊는 탁월한 변화구'],
+    weaknesses:['때로 너무 안전하게 플레이해 득점 기회를 놓침','파워 부족으로 강서브에 취약','감성적 소통이 부족해 파트너와의 호흡이 어려울 수 있음'],
+    compat:['APBE','APNE'],
+    famous:['로드 레이버','켄 로즈웰','마르티나 나브라틸로바']},
+
+  DCNE:{emoji:'🌸',name:'우아한 테크니션',hero:'Martina Navratilova 스타일',
+    color:'#f472b6',grad:'linear-gradient(135deg,rgba(244,114,182,.15),rgba(132,204,22,.08))',border:'rgba(244,114,182,.3)',
+    desc:'섬세한 컨트롤과 우아한 네트 플레이를 펼치는 테크니션입니다. 부드러운 드롭샷과 정확한 앵글 발리로 상대를 매혹시킵니다. 아름다운 테니스를 추구하며 경기 자체를 즐기는 낭만파입니다.',
+    strengths:['섬세한 터치와 창의적인 샷','네트에서의 우아하고 정확한 발리','경기를 즐기는 여유와 감성'],
+    weaknesses:['파워 부족으로 강공에 밀릴 수 있음','감성에 치우쳐 집중력이 흔들릴 때 있음','빠른 볼 교환에서 수비가 약해질 수 있음'],
+    compat:['APBR','DPBR'],
+    famous:['마르티나 나브라틸로바','야닉 노아','패트릭 라프터']},
+
+  DCNR:{emoji:'🗿',name:'흔들리지 않는 벽',hero:'Chris Evert 스타일',
+    color:'#94a3b8',grad:'linear-gradient(135deg,rgba(148,163,184,.15),rgba(16,185,129,.08))',border:'rgba(148,163,184,.3)',
+    desc:'어떤 상황에서도 흔들리지 않는 완벽한 수비 네트 플레이어입니다. 정교한 컨트롤과 냉철한 판단으로 상대의 공격을 막아내고 빈틈을 찌릅니다. 코트 위에서 가장 믿음직한 파트너입니다.',
+    strengths:['완벽한 수비와 안정감','냉철한 판단력과 흔들리지 않는 멘탈','파트너에게 가장 믿음직한 존재'],
+    weaknesses:['공격적인 면이 부족해 답답할 수 있음','감성적 기복이 없어 경기 분위기 전환이 어려움','상대가 강하게 밀어붙이면 역공 타이밍 놓침'],
+    compat:['APBE','APNE'],
+    famous:['크리스 에버트','구스타보 쿠에르텐','마르셀로 리오스']},
+};
+
+// ── 퀴즈 상태 ──────────────────────────────────
+let cur = 0;
+let ans = new Array(Qs.length).fill(null); // 'A' or 'B'
+
+function render() {
+  const q = Qs[cur];
+  document.getElementById('axisBadge').textContent = q.badge;
+  document.getElementById('axisBadge').style.cssText = `color:${q.color};background:${q.bg};padding:4px 12px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:2px`;
+  document.getElementById('qText').textContent = q.text;
+
+  const pct = Math.round(cur / Qs.length * 100);
+  document.getElementById('progTxt').textContent = `${cur+1} / ${Qs.length}`;
+  document.getElementById('progPct').textContent = pct + '%';
+  document.getElementById('progFill').style.width = pct + '%';
+
+  document.getElementById('opts').innerHTML = [
+    {data: q.a, val: 'A'},
+    {data: q.b, val: 'B'},
+  ].map(o => `
+    <div class="opt ${ans[cur]===o.val?'sel':''}" onclick="pick('${o.val}')">
+      <div class="opt-circle"></div>
+      <div class="opt-txt">${o.data.txt}</div>
+    </div>`).join('');
+
+  document.getElementById('btnPrev').style.visibility = cur===0?'hidden':'visible';
+  document.getElementById('btnNext').disabled = ans[cur]===null;
+  document.getElementById('btnNext').textContent = cur===Qs.length-1 ? '결과 보기 🎾' : '다음 →';
+}
+
+function pick(v) {
+  ans[cur] = v;
+  document.querySelectorAll('.opt').forEach((el,i) => el.classList.toggle('sel', i===(v==='A'?0:1)));
+  document.getElementById('btnNext').disabled = false;
+}
+
+function next() {
+  if(ans[cur]===null) return;
+  if(cur===Qs.length-1) { showResult(); return; }
+  cur++; render();
+}
+function prev() {
+  if(cur===0) return;
+  cur--; render();
+}
+
+// ── 결과 계산 ──────────────────────────────────
+function showResult() {
+  // 각 축 점수 집계
+  const scores = {A:0,D:0,P:0,C:0,B:0,N:0,E:0,R:0};
+  Qs.forEach((q,i) => {
+    const picked = ans[i]; // 'A' or 'B'
+    // axis: 'AD','PC','BN','ER'
+    if(q.axis==='AD') picked==='A' ? scores.A++ : scores.D++;
+    if(q.axis==='PC') picked==='A' ? scores.P++ : scores.C++;
+    if(q.axis==='BN') picked==='A' ? scores.B++ : scores.N++;
+    if(q.axis==='ER') picked==='A' ? scores.E++ : scores.R++;
+  });
+
+  const code = 
+    (scores.A>=scores.D?'A':'D') +
+    (scores.P>=scores.C?'P':'C') +
+    (scores.B>=scores.N?'B':'N') +
+    (scores.E>=scores.R?'E':'R');
+
+  const type = TYPES[code] || TYPES['ACBR'];
+
+  // 헤더 카드
+  document.getElementById('typeCard').style.background = type.grad;
+  document.getElementById('typeCard').style.border = `1px solid ${type.border}`;
+  document.getElementById('tcCode').textContent = code;
+  document.getElementById('tcCode').style.color = type.color;
+  document.getElementById('tcEmoji').textContent = type.emoji;
+  document.getElementById('tcName').textContent = type.name;
+  document.getElementById('tcHero').textContent = '✦ ' + type.hero + ' ✦';
+  document.getElementById('tcDesc').textContent = type.desc;
+
+  // 축 결과 bars
+  const axData = [
+    {a:'A',b:'D',an:'공격',bn:'수비',sa:scores.A,sb:scores.D,color:'#f59e0b'},
+    {a:'P',b:'C',an:'파워',bn:'컨트롤',sa:scores.P,sb:scores.C,color:'#10b981'},
+    {a:'B',b:'N',an:'베이스',bn:'네트',sa:scores.B,sb:scores.N,color:'#818cf8'},
+    {a:'E',b:'R',an:'감성',bn:'이성',sa:scores.E,sb:scores.R,color:'#ec4899'},
+  ];
+  document.getElementById('axisResult').innerHTML = axData.map(d => {
+    const total = d.sa + d.sb;
+    const pA = Math.round(d.sa/total*100);
+    const win = d.sa >= d.sb ? d.an : d.bn;
+    return `<div class="ar-item">
+      <div class="ar-labels">
+        <span class="ar-lbl" style="color:${d.color}">${d.an} ${d.sa*10}%</span>
+        <span class="ar-lbl" style="color:rgba(240,240,240,.35)">${d.bn} ${d.sb*10}%</span>
+      </div>
+      <div class="ar-bar-bg"><div class="ar-bar-fill" style="width:${pA}%;background:${d.color}"></div></div>
+      <div class="ar-result" style="color:${d.color}">→ ${win}형</div>
+    </div>`;
+  }).join('');
+
+  // 강점/약점
+  document.getElementById('swGrid').innerHTML = `
+    <div class="sw-card">
+      <div class="sw-title" style="color:#10b981">💪 강점</div>
+      <div class="sw-list">${type.strengths.map(s=>`<div class="sw-item"><span class="sw-dot">✦</span><span>${s}</span></div>`).join('')}</div>
+    </div>
+    <div class="sw-card">
+      <div class="sw-title" style="color:#f87171">⚠️ 약점</div>
+      <div class="sw-list">${type.weaknesses.map(w=>`<div class="sw-item"><span class="sw-dot">▸</span><span>${w}</span></div>`).join('')}</div>
+    </div>`;
+
+  // 궁합
+  document.getElementById('compatRow').innerHTML = type.compat.map(c => {
+    const ct = TYPES[c];
+    return `<div class="compat-item">
+      <div class="compat-code" style="color:${ct?.color||'#fff'}">${c}</div>
+      <div style="font-size:18px">${ct?.emoji||'🎾'}</div>
+      <div class="compat-lbl">${ct?.name||c}</div>
+    </div>`;
+  }).join('');
+
+  // 유명 선수
+  document.getElementById('famousList').innerHTML = type.famous.map(f =>
+    `<div class="famous-chip">${f}</div>`).join('');
+
+  document.getElementById('quizWrap').style.display = 'none';
+  const r = document.getElementById('resultWrap');
+  r.classList.add('show');
+  r.scrollIntoView({behavior:'smooth'});
+
+  // 공유용 저장
+  window._result = {code, type};
+}
+
+function retryQuiz() {
+  cur = 0; ans = new Array(Qs.length).fill(null);
+  document.getElementById('resultWrap').classList.remove('show');
+  document.getElementById('quizWrap').style.display = 'block';
+  render(); window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function copyResult() {
+  if(!window._result) return;
+  const {code, type} = window._result;
+  const text = [
+    `🎾 S.E.M.T 테니스 MBTI 결과`,``,
+    `나의 유형: ${code} ${type.emoji} ${type.name}`,
+    `(${type.hero})`,``,
+    type.desc,``,
+    `💪 강점`,
+    ...type.strengths.map(s=>`• ${s}`),``,
+    `✦ 나의 코트 위 성격은 ${code}형!`,
+    `나는 어떤 유형?`,
+  ].join('\n');
+  navigator.clipboard.writeText(text).then(() => {
+    const t = document.getElementById('toast');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+  });
+}
+
+// init
+render();
+</script>
+</body>
+</html>
