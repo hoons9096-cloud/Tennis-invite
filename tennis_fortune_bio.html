@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>오늘의 테니스 운세 - 영남테니스클럽</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700;900&family=Noto+Sans+KR:wght@300;400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d0a06;min-height:100vh;font-family:'Noto Serif KR',serif;color:#f0e6c8;overflow-x:hidden}
+.bg{position:fixed;inset:0;background:radial-gradient(ellipse at 20% 20%,rgba(180,130,40,.12) 0%,transparent 50%),radial-gradient(ellipse at 80% 80%,rgba(120,60,20,.15) 0%,transparent 50%);pointer-events:none}
+.stars{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+.star{position:absolute;width:2px;height:2px;background:#f0e6c8;border-radius:50%;animation:twinkle var(--d,3s) ease-in-out infinite;opacity:var(--o,.4)}
+@keyframes twinkle{0%,100%{opacity:var(--o,.4);transform:scale(1)}50%{opacity:.1;transform:scale(.5)}}
+.wrap{position:relative;max-width:500px;margin:0 auto;padding:30px 20px 60px;z-index:1}
+
+/* header */
+.header{text-align:center;margin-bottom:32px}
+.badge{display:inline-block;font-family:'Noto Sans KR',sans-serif;font-size:11px;font-weight:300;letter-spacing:4px;color:#c8a84b;border:1px solid rgba(200,168,75,.4);padding:5px 16px;margin-bottom:14px}
+.header h1{font-size:30px;font-weight:900;line-height:1.2;text-shadow:0 0 30px rgba(200,168,75,.4)}
+.header h1 span{color:#c8a84b}
+.subtitle{font-family:'Noto Sans KR',sans-serif;font-size:12px;font-weight:300;color:rgba(240,230,200,.45);margin-top:8px;letter-spacing:1px}
+.icon{font-size:34px;display:block;margin-bottom:8px;animation:float 3s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+
+/* input */
+.card{background:rgba(200,168,75,.06);border:1px solid rgba(200,168,75,.25);border-radius:4px;padding:26px 22px;margin-bottom:18px}
+.card-label{font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:700;color:#c8a84b;letter-spacing:2px;display:block;margin-bottom:16px;text-align:center}
+.field{margin-bottom:14px}
+.field label{font-family:'Noto Sans KR',sans-serif;font-size:11px;color:rgba(200,168,75,.7);letter-spacing:2px;display:block;margin-bottom:6px}
+.field input{width:100%;background:rgba(0,0,0,.4);border:1px solid rgba(200,168,75,.3);border-radius:3px;padding:14px 16px;font-family:'Noto Serif KR',serif;font-size:18px;color:#f0e6c8;text-align:center;outline:none;letter-spacing:3px;transition:border-color .3s,box-shadow .3s}
+.field input:focus{border-color:rgba(200,168,75,.7);box-shadow:0 0 18px rgba(200,168,75,.13)}
+.btn{width:100%;padding:17px;background:linear-gradient(135deg,#c8a84b,#a07830);border:none;border-radius:3px;font-family:'Noto Serif KR',serif;font-size:17px;font-weight:700;color:#0d0a06;cursor:pointer;letter-spacing:3px;transition:all .3s;margin-top:4px}
+.btn:hover{background:linear-gradient(135deg,#dbb95c,#b08840);transform:translateY(-1px);box-shadow:0 8px 25px rgba(200,168,75,.3)}
+
+/* result */
+.result{display:none}
+.result.show{display:block;animation:fadeIn .7s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.datebar{text-align:center;font-family:'Noto Sans KR',sans-serif;font-size:11px;color:rgba(200,168,75,.55);letter-spacing:2px;margin-bottom:18px}
+
+/* section divider */
+.sec-title{text-align:center;font-family:'Noto Sans KR',sans-serif;font-size:11px;letter-spacing:4px;color:rgba(200,168,75,.6);margin:22px 0 14px;display:flex;align-items:center;gap:10px}
+.sec-title::before,.sec-title::after{content:'';flex:1;height:1px;background:rgba(200,168,75,.2)}
+
+/* 총운 카드 */
+.main-card{background:rgba(200,168,75,.06);border:1px solid rgba(200,168,75,.25);border-radius:4px;padding:26px 20px;margin-bottom:14px;text-align:center;position:relative;overflow:hidden}
+.main-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center top,rgba(200,168,75,.1),transparent 70%)}
+.res-name{font-size:13px;color:rgba(240,230,200,.55);letter-spacing:3px;margin-bottom:10px;font-family:'Noto Sans KR',sans-serif}
+.res-name strong{color:#c8a84b;font-size:17px}
+.res-days{font-size:11px;font-family:'Noto Sans KR',sans-serif;color:rgba(200,168,75,.45);letter-spacing:1px;margin-bottom:16px}
+.overall-stars{font-size:34px;letter-spacing:4px;margin-bottom:6px;filter:drop-shadow(0 0 8px rgba(200,168,75,.6))}
+.overall-word{font-size:26px;font-weight:900;color:#f0e6c8;letter-spacing:2px;margin-bottom:14px}
+.overall-msg{font-size:15px;line-height:1.85;color:rgba(240,230,200,.85);padding:0 6px}
+
+/* bio summary strip */
+.bio-strip{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
+.bio-strip-item{background:rgba(200,168,75,.05);border:1px solid rgba(200,168,75,.15);border-radius:4px;padding:12px 8px;text-align:center}
+.bsi-icon{font-size:18px;margin-bottom:4px}
+.bsi-label{font-family:'Noto Sans KR',sans-serif;font-size:10px;color:rgba(200,168,75,.65);letter-spacing:1px;margin-bottom:4px}
+.bsi-val{font-size:15px;font-weight:900}
+.bsi-word{font-family:'Noto Sans KR',sans-serif;font-size:11px;color:rgba(240,230,200,.55);margin-top:2px}
+
+/* bio detail bars */
+.bio-bars{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+.bio-bar-item{background:rgba(200,168,75,.04);border:1px solid rgba(200,168,75,.15);border-radius:4px;padding:14px 16px}
+.bbi-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.bbi-left{display:flex;align-items:center;gap:7px}
+.bbi-icon{font-size:18px}
+.bbi-name{font-family:'Noto Sans KR',sans-serif;font-size:12px;font-weight:700;color:#c8a84b;letter-spacing:1px}
+.bbi-cycle{font-family:'Noto Sans KR',sans-serif;font-size:9px;color:rgba(200,168,75,.4)}
+.bbi-val{font-size:16px;font-weight:900}
+.crit-badge{display:inline-block;font-size:9px;font-family:'Noto Sans KR',sans-serif;padding:1px 6px;border-radius:2px;margin-left:5px;font-weight:700;letter-spacing:1px;background:rgba(220,80,60,.2);color:#e08070;border:1px solid rgba(220,80,60,.3)}
+.peak-badge{background:rgba(80,180,120,.2);color:#70c890;border:1px solid rgba(80,180,120,.3)}
+.bar-bg{height:7px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden;margin-bottom:8px}
+.bar-fill{height:100%;border-radius:4px}
+.bbi-advice{font-size:12px;line-height:1.75;color:rgba(240,230,200,.7);font-family:'Noto Sans KR',sans-serif}
+
+/* cat grid (운세) */
+.cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.cat-card{background:rgba(200,168,75,.05);border:1px solid rgba(200,168,75,.15);border-radius:4px;padding:14px 12px;text-align:center}
+.cat-icon{font-size:20px;margin-bottom:5px}
+.cat-name{font-size:10px;color:rgba(200,168,75,.75);letter-spacing:2px;margin-bottom:5px;font-family:'Noto Sans KR',sans-serif}
+.cat-stars{font-size:13px;letter-spacing:2px}
+.cat-word{font-size:13px;font-weight:700;color:#f0e6c8;margin-top:3px}
+
+/* lucky */
+.lucky-box{background:rgba(200,168,75,.04);border:1px solid rgba(200,168,75,.15);border-radius:4px;padding:18px;margin-bottom:14px}
+.lucky-title{font-family:'Noto Sans KR',sans-serif;font-size:11px;letter-spacing:3px;color:#c8a84b;text-align:center;margin-bottom:14px}
+.lucky-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.lucky-item{text-align:center}
+.lucky-lbl{font-size:10px;color:rgba(200,168,75,.55);letter-spacing:1px;margin-bottom:3px;font-family:'Noto Sans KR',sans-serif}
+.lucky-val{font-size:14px;font-weight:700;color:#f0e6c8}
+
+/* final advice */
+.advice-card{background:rgba(200,168,75,.08);border:1px solid rgba(200,168,75,.3);border-left:3px solid #c8a84b;border-radius:4px;padding:18px;margin-bottom:18px}
+.advice-lbl{font-size:11px;letter-spacing:3px;color:#c8a84b;margin-bottom:9px;font-family:'Noto Sans KR',sans-serif}
+.advice-text{font-size:15px;line-height:1.9;color:#f0e6c8}
+
+/* buttons */
+.share-btn{width:100%;padding:15px;background:transparent;border:1px solid rgba(200,168,75,.4);border-radius:3px;font-family:'Noto Serif KR',serif;font-size:14px;color:#c8a84b;cursor:pointer;letter-spacing:2px;transition:all .3s;margin-bottom:10px}
+.share-btn:hover{background:rgba(200,168,75,.1)}
+.retry-btn{width:100%;padding:13px;background:transparent;border:none;font-family:'Noto Sans KR',sans-serif;font-size:12px;color:rgba(240,230,200,.3);cursor:pointer;letter-spacing:2px}
+.retry-btn:hover{color:rgba(240,230,200,.6)}
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(200,168,75,.95);color:#0d0a06;padding:11px 22px;border-radius:3px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;opacity:0;transition:all .3s;z-index:100}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="stars" id="stars"></div>
+<div class="wrap">
+  <div class="header">
+    <span class="icon">🎾</span>
+    <div class="badge">YOUNG NAM TENNIS CLUB</div>
+    <h1>오늘의<br><span>테니스 운세</span></h1>
+    <p class="subtitle">바이오리듬 기반 · 매일 새벽 기운이 바뀝니다</p>
+  </div>
+
+  <div class="card" id="inputSection">
+    <span class="card-label">✦ 정보를 입력하세요 ✦</span>
+    <div class="field">
+      <label>성 함</label>
+      <input type="text" id="nameInput" placeholder="홍 길 동" maxlength="6">
+    </div>
+    <div class="field">
+      <label>생년월일</label>
+      <input type="date" id="birthInput">
+    </div>
+    <button class="btn" onclick="go()">🔮 &nbsp; 오늘의 운세 보기</button>
+  </div>
+
+  <div class="result" id="result">
+    <div class="datebar" id="datebar"></div>
+
+    <!-- ① 총운 -->
+    <div class="main-card">
+      <div class="res-name" id="resName"></div>
+      <div class="res-days" id="resDays"></div>
+      <div class="overall-stars" id="overallStars"></div>
+      <div class="overall-word" id="overallWord"></div>
+      <div class="overall-msg" id="overallMsg"></div>
+    </div>
+
+    <!-- ② 바이오리듬 요약 strip -->
+    <div class="sec-title">바이오리듬</div>
+    <div class="bio-strip" id="bioStrip"></div>
+
+    <!-- ③ 바이오리듬 상세 -->
+    <div class="bio-bars" id="bioBars"></div>
+
+    <!-- ④ 세부 운세 -->
+    <div class="sec-title">세부 운세</div>
+    <div class="cat-grid" id="catGrid"></div>
+
+    <!-- ⑤ 행운 -->
+    <div class="lucky-box">
+      <div class="lucky-title">✦ 오늘의 행운 ✦</div>
+      <div class="lucky-grid" id="luckyGrid"></div>
+    </div>
+
+    <!-- ⑥ 오늘의 처방전 -->
+    <div class="advice-card">
+      <div class="advice-lbl">✦ 오늘의 테니스 처방전</div>
+      <div class="advice-text" id="adviceText"></div>
+    </div>
+
+    <button class="share-btn" onclick="copyResult()">📋 &nbsp; 카톡에 복사해서 공유하기</button>
+    <button class="retry-btn" onclick="reset()">↩ 다시 입력하기</button>
+  </div>
+</div>
+<div class="toast" id="toast">📋 클립보드에 복사됐습니다!</div>
+
+<script>
+// Stars
+const starsEl=document.getElementById('stars');
+for(let i=0;i<55;i++){const s=document.createElement('div');s.className='star';s.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${2+Math.random()*4}s;--o:${0.2+Math.random()*0.5};animation-delay:${Math.random()*4}s`;starsEl.appendChild(s);}
+
+const now=new Date();
+const todayStr=`${now.getFullYear()}년 ${now.getMonth()+1}월 ${now.getDate()}일 (${['일','월','화','수','목','금','토'][now.getDay()]}요일)`;
+
+// ── 바이오리듬 계산 ──────────────────────────
+function daysSince(birth){return Math.floor((now-new Date(birth))/86400000);}
+function bioVal(d,c){return Math.sin(2*Math.PI*d/c);}
+function toPct(v){return Math.round(v*100);}
+function isCrit(d,c){return Math.abs(Math.sin(2*Math.PI*d/c))<0.15;}
+function bioLevel(p){
+  if(p>=70)return{label:'최고',emoji:'🔥',cls:'peak',color:'#70c890'};
+  if(p>=30)return{label:'양호',emoji:'😊',cls:'good',color:'#a0c870'};
+  if(p>=-30)return{label:'보통',emoji:'😐',cls:'mid',color:'#c8c050'};
+  if(p>=-70)return{label:'주의',emoji:'⚠️',cls:'low',color:'#e09050'};
+  return{label:'저조',emoji:'😔',cls:'bad',color:'#e07060'};
+}
+
+// ── 운세 seeded random ────────────────────────
+function sRand(seed){let x=Math.sin(seed+1)*10000;return x-Math.floor(x);}
+function rnd(name,offset){
+  const today=now.getFullYear()*10000+(now.getMonth()+1)*100+now.getDate();
+  let h=today+offset; for(let c of name)h+=c.charCodeAt(0)*31;
+  return sRand(h);
+}
+
+// ── 데이터 ──────────────────────────────────
+const overallLevels=[
+  {stars:'★★★★★',word:'대 길 (大吉)'},
+  {stars:'★★★★☆',word:'길 (吉)'},
+  {stars:'★★★☆☆',word:'중 길 (中吉)'},
+  {stars:'★★☆☆☆',word:'소 길 (小吉)'},
+  {stars:'★☆☆☆☆',word:'평 (平)'},
+];
+
+// 총운 메시지 — 바이오리듬 수준별로 분류
+const msgs={
+  high:[
+    "바이오리듬이 정점에 올라 있습니다. 체력과 감성, 판단력이 모두 받쳐주는 완벽한 날입니다. 오늘만큼은 당신의 라켓이 천하무적입니다!",
+    "몸과 마음의 기운이 하늘을 찌릅니다. 1년에 몇 번 없는 최상의 날, 마음껏 코트를 누비십시오.",
+    "에너지가 충만한 날입니다. 발이 가볍고 눈이 밝아져 모든 공이 잘 보일 것입니다.",
+    "오늘은 하늘의 기운과 바이오리듬이 일치하는 날입니다. 코트에서 당신의 진가를 마음껏 발휘하십시오.",
+    "신체, 감성, 지성 리듬이 모두 상승 곡선입니다. 이런 날의 경기는 두고두고 기억에 남습니다.",
+  ],
+  mid:[
+    "바이오리듬이 안정적입니다. 무리하지 않고 기본기에 충실하면 좋은 결과가 따라올 것입니다.",
+    "오늘은 기복 없이 일정한 플레이가 가능한 날입니다. 안정감이 오늘의 가장 큰 무기입니다.",
+    "평온한 기운의 날입니다. 욕심 부리지 않고 자신의 테니스를 하면 충분합니다.",
+    "리듬이 안정권에 있습니다. 화려한 샷보다 실수 없는 경기가 오늘의 전략입니다.",
+    "기운이 서서히 피어오르는 날입니다. 첫 세트보다 두 번째 세트에서 진가가 나옵니다.",
+    "체력과 집중력이 균형을 이루는 날입니다. 꾸준한 플레이로 상대를 지치게 만드십시오.",
+  ],
+  low:[
+    "바이오리듬이 낮은 날이지만 걱정 마십시오. 마음을 비우면 뜻밖의 선전을 할 수 있습니다.",
+    "리듬이 낮은 날일수록 기본기가 빛납니다. 화려함보다 정확성에 집중하십시오.",
+    "오늘은 결과보다 과정에 집중하는 날입니다. 즐기는 마음이 최고의 컨디션을 만듭니다.",
+    "바이오리듬 회복 중인 날입니다. 몸을 혹사하지 말고 가벼운 마음으로 임하십시오.",
+    "낮은 리듬도 때로는 선물입니다. 이런 날을 잘 견뎌야 최고의 날이 더욱 빛납니다.",
+  ],
+  crit:[
+    "오늘은 바이오리듬 전환점입니다. 몸이 새로운 사이클로 넘어가는 날로, 예상치 못한 기복이 있을 수 있습니다. 부상 예방을 위해 준비 운동을 충분히 하십시오.",
+    "리듬의 교차점입니다. 컨디션이 오르락내리락할 수 있으니 무리하지 말고 상황을 살피며 플레이하십시오.",
+    "바이오리듬 위기일이지만 당황하지 마십시오. 판단을 서두르지 않으면 충분히 좋은 경기를 할 수 있습니다.",
+  ],
+};
+
+const physAdvices={
+  peak:["체력이 최고조입니다! 오늘은 과감하게 달리고 강하게 치십시오. 몸이 따라줄 것입니다.","신체 에너지가 넘치는 날입니다. 코트 구석구석을 뛰어다니며 공격적으로 플레이하십시오."],
+  good:["체력이 좋은 날입니다. 평소보다 조금 더 힘차게 뛰어도 무리가 없습니다.","몸 상태가 양호합니다. 스텝 워크에 집중하면 더욱 좋은 플레이가 나옵니다."],
+  mid:["체력이 평범한 날입니다. 불필요하게 힘을 빼지 말고 효율적으로 움직이십시오.","무리하지 않는 것이 오늘의 전략입니다. 기본기에 충실한 안정적인 플레이를 하십시오."],
+  low:["체력이 다소 낮은 날입니다. 짧은 랠리로 포인트를 빨리 끝내는 전략을 쓰십시오.","몸이 무거울 수 있습니다. 경기 전 충분히 워밍업하고 무릎과 어깨를 특히 잘 풀어두십시오."],
+  bad:["오늘은 체력적으로 힘든 날입니다. 무리하지 말고 가벼운 경기 위주로 즐기십시오.","체력 리듬이 바닥입니다. 부상 위험이 높으니 준비 운동을 평소보다 두 배로 하십시오."],
+};
+const emotAdvices={
+  peak:["감성이 최고조입니다. 경기 분위기를 주도하고 파트너에게 긍정 에너지를 불어넣으십시오.","기분이 최상입니다. 함께 치는 모든 분들이 오늘 당신의 밝은 에너지를 느낄 것입니다."],
+  good:["감성이 좋은 날입니다. 동료들과의 호흡이 잘 맞아 즐거운 경기가 될 것입니다.","기분이 좋으니 경기도 즐겁습니다. 웃으면서 치는 것이 오늘의 비결입니다."],
+  mid:["감성이 평범한 날입니다. 감정 기복 없이 일정하게 집중력을 유지하십시오.","오늘은 차분한 마음으로 경기에 임하십시오. 흔들리지 않는 멘탈이 강점이 됩니다."],
+  low:["감성 리듬이 낮은 날입니다. 실수해도 자책하지 말고 다음 포인트에 집중하십시오.","감정이 예민할 수 있습니다. 판정이나 실수에 쉽게 흔들리지 않도록 마음을 다잡으십시오."],
+  bad:["감성이 저조한 날입니다. 경기 결과보다 즐기는 데 초점을 맞추십시오.","기분이 가라앉을 수 있는 날입니다. 좋아하는 음악이라도 들으며 기분을 올리고 나오십시오."],
+};
+const intelAdvices={
+  peak:["지성이 최고조입니다. 상대의 패턴이 잘 읽히고 전술 판단이 빠릅니다. 두뇌 테니스를 펼치십시오.","판단력이 정점입니다. 상대의 빈틈이 잘 보이는 날이니 전술적으로 공략하십시오."],
+  good:["판단력이 좋은 날입니다. 상대의 움직임을 예측하고 한 발 앞서 준비하십시오.","집중력이 좋습니다. 상대 서브의 방향도 잘 읽힐 것입니다."],
+  mid:["판단력이 보통인 날입니다. 복잡한 전술보다 익숙한 패턴으로 단순하게 플레이하십시오.","너무 많이 생각하면 오히려 몸이 굳습니다. 본능에 맡기고 자연스럽게 치십시오."],
+  low:["집중력이 다소 떨어지는 날입니다. 포인트 사이에 심호흡으로 리셋하는 습관을 들이십시오.","판단이 느릴 수 있습니다. 빠른 공보다 안전한 코스를 선택하는 보수적인 플레이가 좋습니다."],
+  bad:["지성 리듬이 낮은 날입니다. 복잡한 전술은 잠시 잊고 기본기만으로 승부하십시오.","집중력이 흐트러지기 쉬운 날입니다. 코트 이외의 잡념을 모두 내려놓고 공만 보십시오."],
+};
+
+// 처방전 — 바이오리듬 평균 + 운세 조합
+const prescriptions=[
+  "체력과 감성이 모두 좋습니다. 오늘은 과감하게 네트 앞으로 나서 발리를 시도해 보십시오.",
+  "지성 리듬이 높습니다. 상대의 패턴을 읽고 역이용하는 두뇌 테니스가 효과적입니다.",
+  "신체 리듬에 비해 감성 리듬이 높습니다. 공격보다는 파트너와의 호흡으로 승부하십시오.",
+  "체력은 보통이나 집중력이 좋습니다. 짧고 정확한 샷으로 상대를 공략하십시오.",
+  "전반적으로 안정적인 날입니다. 화려한 샷보다 실수를 줄이는 안전한 테니스가 정답입니다.",
+  "오늘은 수비가 공격입니다. 잘 받아내는 것만으로도 상대를 무너뜨릴 수 있습니다.",
+  "바이오리듬 상 지성이 좋으니 상대의 약점을 빨리 파악하고 집중 공략하십시오.",
+  "몸 상태를 살피며 천천히 경기를 시작하십시오. 후반부에 더 좋은 플레이가 나올 것입니다.",
+  "신체 에너지가 높습니다. 발을 적극 움직여 공격적인 테니스를 펼치십시오.",
+  "감성 리듬이 좋으니 파트너와 즐겁게 치십시오. 좋은 분위기가 좋은 경기를 만듭니다.",
+  "오늘은 힘을 빼고 가볍게 치는 것이 답입니다. 여유 있는 스윙에서 강한 샷이 나옵니다.",
+  "전환점 근처의 날입니다. 무리한 플레이보다 안전한 플레이로 부상을 예방하십시오.",
+  "체력이 고점이니 긴 랠리도 두렵지 않습니다. 끈질기게 버티면 상대가 먼저 지칩니다.",
+  "오늘은 머리와 몸이 모두 준비된 날입니다. 결정적인 순간에 과감한 승부를 거십시오.",
+  "리듬이 낮은 날일수록 기본이 빛납니다. 세컨드 서브부터 차분하게 경기를 풀어나가십시오.",
+  "30년 영남테니스클럽의 기운이 오늘 당신과 함께합니다. 그 자부심을 가지고 뛰십시오.",
+  "경기 후 함께 나누는 식사가 오늘의 진짜 하이라이트입니다. 결과보다 사람을 즐기십시오.",
+  "오늘은 서브가 승부를 가릅니다. 첫 서브 성공률에 집중하십시오.",
+  "파트너를 믿고 맡기십시오. 혼자 다 하려는 욕심을 내려놓을 때 최고의 복식이 완성됩니다.",
+  "오늘은 경기보다 건강에 감사하는 날입니다. 운동할 수 있다는 것 자체가 큰 행운입니다.",
+];
+
+const catLevels=[
+  {stars:'★★★',word:'대박'},{stars:'★★★',word:'최고'},
+  {stars:'★★☆',word:'양호'},{stars:'★★☆',word:'무난'},
+  {stars:'★☆☆',word:'주의'},
+];
+const luckyColors=['빨강','파랑','노랑','초록','흰색','금색','주황','보라','하늘','핑크'];
+const luckyNums=Array.from({length:28},(_,i)=>i+1);
+const luckyShots=['크로스','다운더라인','드롭샷','로브','스매시','발리','슬라이스','탑스핀','플랫','킥서브'];
+const categories=[
+  {icon:'💫',name:'서 브 운'},{icon:'⚡',name:'포핸드운'},
+  {icon:'🌊',name:'백핸드운'},{icon:'🤝',name:'파트너운'},
+];
+
+function pickArr(arr,seed){return arr[seed%arr.length];}
+function pickR(name,offset,arr){return arr[Math.floor(rnd(name,offset)*arr.length)];}
+
+let saved=null;
+
+function go(){
+  const name=document.getElementById('nameInput').value.trim();
+  const birth=document.getElementById('birthInput').value;
+  if(!name||!birth){alert('성함과 생년월일을 모두 입력해 주세요.');return;}
+  const days=daysSince(birth);
+  if(days<0){alert('생년월일을 확인해 주세요.');return;}
+
+  // --- 바이오리듬 ---
+  const physV=bioVal(days,23), physP=toPct(physV);
+  const emotV=bioVal(days,28), emotP=toPct(emotV);
+  const intelV=bioVal(days,33), intelP=toPct(intelV);
+  const physLv=bioLevel(physP), emotLv=bioLevel(emotP), intelLv=bioLevel(intelP);
+  const physCrit=isCrit(days,23), emotCrit=isCrit(days,28), intelCrit=isCrit(days,33);
+  const critCount=[physCrit,emotCrit,intelCrit].filter(Boolean).length;
+  const bioAvg=(physP+emotP+intelP)/3;
+
+  // --- 운세 (seeded, 바이오리듬 평균이 총운 가중치에 영향) ---
+  // bioAvg를 이용해 overallIdx를 바이어스
+  const rawRnd=rnd(name,0);
+  let biasedRnd;
+  if(bioAvg>=40) biasedRnd=rawRnd*0.6;           // 바이오 높으면 좋은 운세 편향
+  else if(bioAvg<=-40) biasedRnd=rawRnd*0.4+0.6;  // 바이오 낮으면 낮은 운세 편향
+  else biasedRnd=rawRnd*0.6+0.2;                  // 보통은 중간 편향
+  const overallIdx=Math.min(4,Math.floor(biasedRnd*5));
+  const overall=overallLevels[overallIdx];
+
+  // 총운 메시지 — 바이오 수준에 따라 풀 선택
+  let msgPool;
+  if(critCount>=2) msgPool=msgs.crit;
+  else if(bioAvg>=35) msgPool=msgs.high;
+  else if(bioAvg>=-25) msgPool=msgs.mid;
+  else msgPool=msgs.low;
+  const overallMsg=pickArr(msgPool, days+name.charCodeAt(0));
+
+  // 세부 운세 (바이오리듬 수준이 각 카테고리에 반영)
+  // 서브→신체, 포핸드→신체, 백핸드→지성, 파트너→감성 영향
+  const physCatIdx=Math.min(4,Math.floor(((1-physV)/2)*3 + rnd(name,11)*2));
+  const emotCatIdx=Math.min(4,Math.floor(((1-emotV)/2)*3 + rnd(name,12)*2));
+  const intelCatIdx=Math.min(4,Math.floor(((1-intelV)/2)*3 + rnd(name,13)*2));
+  const catResults=[
+    {...categories[0], level:catLevels[Math.min(4,physCatIdx)]},
+    {...categories[1], level:catLevels[Math.min(4,Math.floor(rnd(name,10)*5))]},
+    {...categories[2], level:catLevels[Math.min(4,intelCatIdx)]},
+    {...categories[3], level:catLevels[Math.min(4,emotCatIdx)]},
+  ];
+
+  const luckyColor=pickR(name,20,luckyColors);
+  const luckyNum=pickR(name,21,luckyNums);
+  const luckyShot=pickR(name,23,luckyShots);
+
+  // 처방전 — 바이오 + 운세 조합으로 인덱스
+  const prescIdx=(days + name.charCodeAt(0) + overallIdx) % prescriptions.length;
+  const prescription=prescriptions[prescIdx];
+
+  // 나이
+  const bd=new Date(birth);
+  const age=now.getFullYear()-bd.getFullYear()-(now<new Date(now.getFullYear(),bd.getMonth(),bd.getDate())?1:0);
+
+  saved={name,age,days,physP,emotP,intelP,physLv,emotLv,intelLv,overall,overallMsg,prescription,critCount};
+
+  // ── 렌더 ──
+  document.getElementById('datebar').textContent=todayStr;
+  document.getElementById('resName').innerHTML=`<strong>${name}</strong> 님 · ${age}세`;
+  document.getElementById('resDays').textContent=`태어난 지 ${days.toLocaleString()}일 · 바이오리듬 기반 운세`;
+  document.getElementById('overallStars').textContent=overall.stars;
+  document.getElementById('overallWord').textContent=overall.word;
+  document.getElementById('overallMsg').textContent=overallMsg;
+
+  // bio strip
+  const bioData=[
+    {icon:'💪',label:'신체 리듬',val:physP,lv:physLv},
+    {icon:'❤️',label:'감성 리듬',val:emotP,lv:emotLv},
+    {icon:'🧠',label:'지성 리듬',val:intelP,lv:intelLv},
+  ];
+  document.getElementById('bioStrip').innerHTML=bioData.map(b=>`
+    <div class="bio-strip-item">
+      <div class="bsi-icon">${b.icon}</div>
+      <div class="bsi-label">${b.label}</div>
+      <div class="bsi-val" style="color:${b.lv.color}">${b.val>0?'+':''}${b.val}%</div>
+      <div class="bsi-word">${b.lv.emoji} ${b.lv.label}</div>
+    </div>`).join('');
+
+  // bio bars
+  const bioDetails=[
+    {icon:'💪',name:'신체 리듬',cycle:'23일 주기',val:physP,lv:physLv,crit:physCrit,advArr:physAdvices,color:'#e87070'},
+    {icon:'❤️',name:'감성 리듬',cycle:'28일 주기',val:emotP,lv:emotLv,crit:emotCrit,advArr:emotAdvices,color:'#70b8e8'},
+    {icon:'🧠',name:'지성 리듬',cycle:'33일 주기',val:intelP,lv:intelLv,crit:intelCrit,advArr:intelAdvices,color:'#a0e870'},
+  ];
+  document.getElementById('bioBars').innerHTML=bioDetails.map(b=>{
+    const barW=Math.round((b.val+100)/2);
+    const critHtml=b.crit?`<span class="crit-badge">전환점⚡</span>`:(b.val>=75?`<span class="crit-badge peak-badge">정점🔥</span>`:'');
+    const advPool=b.advArr[b.lv.cls]||b.advArr['mid'];
+    const adv=pickArr(advPool,days);
+    return `<div class="bio-bar-item">
+      <div class="bbi-head">
+        <div class="bbi-left">
+          <span class="bbi-icon">${b.icon}</span>
+          <div><div class="bbi-name">${b.name}${critHtml}</div><div class="bbi-cycle">${b.cycle}</div></div>
+        </div>
+        <div class="bbi-val" style="color:${b.color}">${b.val>0?'+':''}${b.val}%</div>
+      </div>
+      <div class="bar-bg"><div class="bar-fill" style="width:${barW}%;background:${b.color};opacity:.8"></div></div>
+      <div class="bbi-advice">${adv}</div>
+    </div>`;
+  }).join('');
+
+  // cat grid
+  document.getElementById('catGrid').innerHTML=catResults.map(c=>`
+    <div class="cat-card">
+      <div class="cat-icon">${c.icon}</div>
+      <div class="cat-name">${c.name}</div>
+      <div class="cat-stars">${c.level.stars}</div>
+      <div class="cat-word">${c.level.word}</div>
+    </div>`).join('');
+
+  // lucky
+  document.getElementById('luckyGrid').innerHTML=`
+    <div class="lucky-item"><div class="lucky-lbl">행운의 색</div><div class="lucky-val">${luckyColor}</div></div>
+    <div class="lucky-item"><div class="lucky-lbl">행운의 숫자</div><div class="lucky-val">${luckyNum}</div></div>
+    <div class="lucky-item"><div class="lucky-lbl">행운의 샷</div><div class="lucky-val">${luckyShot}</div></div>`;
+
+  document.getElementById('adviceText').textContent=prescription;
+
+  document.getElementById('inputSection').style.display='none';
+  const r=document.getElementById('result');
+  r.classList.add('show');
+  r.scrollIntoView({behavior:'smooth'});
+}
+
+function reset(){
+  document.getElementById('inputSection').style.display='block';
+  document.getElementById('result').classList.remove('show');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function copyResult(){
+  if(!saved)return;
+  const d=saved;
+  const lines=[
+    `🎾 영남테니스클럽 오늘의 테니스 운세 🎾`,
+    todayStr,``,
+    `【 ${d.name} 님 · ${d.age}세 · 태어난 지 ${d.days.toLocaleString()}일 】`,``,
+    `총 운: ${d.overall.stars} ${d.overall.word}`,``,
+    d.overallMsg,``,
+    `📊 바이오리듬`,
+    `💪 신체: ${d.physP>0?'+':''}${d.physP}% (${d.physLv.label})`,
+    `❤️ 감성: ${d.emotP>0?'+':''}${d.emotP}% (${d.emotLv.label})`,
+    `🧠 지성: ${d.intelP>0?'+':''}${d.intelP}% (${d.intelLv.label})`,``,
+    `💬 오늘의 처방전`,d.prescription,``,
+    `— 영남테니스클럽 (1993~)`,
+  ];
+  navigator.clipboard.writeText(lines.join('\n')).then(()=>{
+    const t=document.getElementById('toast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);
+  });
+}
+
+document.getElementById('nameInput').addEventListener('keypress',e=>{if(e.key==='Enter')document.getElementById('birthInput').focus();});
+document.getElementById('birthInput').addEventListener('keypress',e=>{if(e.key==='Enter')go();});
+</script>
+</body>
+</html>
