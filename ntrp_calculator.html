@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>내 NTRP는? - 영남테니스클럽</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0f1117;min-height:100vh;font-family:'Noto Sans KR',sans-serif;color:#f0f0f0;overflow-x:hidden}
+
+/* bg */
+.bg{position:fixed;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse at 0% 0%,rgba(100,200,100,.07) 0%,transparent 50%),
+             radial-gradient(ellipse at 100% 100%,rgba(50,150,255,.07) 0%,transparent 50%)}
+
+.wrap{position:relative;max-width:520px;margin:0 auto;padding:28px 18px 60px;z-index:1}
+
+/* header */
+.header{text-align:center;padding:20px 0 32px}
+.club-tag{display:inline-block;font-size:10px;font-weight:500;letter-spacing:3px;color:#4caf50;border:1px solid rgba(76,175,80,.4);padding:4px 14px;border-radius:20px;margin-bottom:16px}
+.header h1{font-size:28px;font-weight:900;line-height:1.2;margin-bottom:8px}
+.header h1 .accent{background:linear-gradient(135deg,#4caf50,#00bcd4);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.header p{font-size:13px;color:rgba(240,240,240,.45);letter-spacing:.5px}
+.tennis-icon{font-size:40px;margin-bottom:10px;display:block;animation:bounce 2s ease-in-out infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+
+/* progress */
+.progress-wrap{margin-bottom:24px}
+.progress-info{display:flex;justify-content:space-between;font-size:12px;color:rgba(240,240,240,.4);margin-bottom:8px}
+.progress-bar{height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#4caf50,#00bcd4);border-radius:2px;transition:width .5s ease}
+
+/* question card */
+.q-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:24px 22px;margin-bottom:16px}
+.q-num{font-size:11px;font-weight:700;letter-spacing:3px;color:#4caf50;margin-bottom:10px}
+.q-text{font-size:17px;font-weight:700;line-height:1.5;color:#f0f0f0;margin-bottom:20px}
+
+/* options */
+.options{display:flex;flex-direction:column;gap:10px}
+.opt{background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.1);border-radius:10px;padding:14px 16px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:12px;text-align:left}
+.opt:hover{border-color:rgba(76,175,80,.5);background:rgba(76,175,80,.07)}
+.opt.selected{border-color:#4caf50;background:rgba(76,175,80,.12);color:#fff}
+.opt-dot{width:10px;height:10px;border-radius:50%;border:2px solid rgba(255,255,255,.25);flex-shrink:0;transition:all .2s}
+.opt.selected .opt-dot{background:#4caf50;border-color:#4caf50;box-shadow:0 0 8px rgba(76,175,80,.6)}
+.opt-text{font-size:14px;line-height:1.5;color:rgba(240,240,240,.8)}
+.opt.selected .opt-text{color:#fff}
+
+/* nav buttons */
+.nav{display:flex;gap:10px;margin-top:16px}
+.nav-btn{flex:1;padding:14px;border:none;border-radius:10px;font-family:'Noto Sans KR',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;letter-spacing:.5px}
+.btn-prev{background:rgba(255,255,255,.06);color:rgba(240,240,240,.5);border:1px solid rgba(255,255,255,.1)}
+.btn-prev:hover{background:rgba(255,255,255,.1);color:#f0f0f0}
+.btn-next{background:linear-gradient(135deg,#4caf50,#2e7d32);color:#fff;box-shadow:0 4px 15px rgba(76,175,80,.3)}
+.btn-next:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(76,175,80,.4)}
+.btn-next:disabled{background:rgba(255,255,255,.08);color:rgba(240,240,240,.25);box-shadow:none;transform:none;cursor:not-allowed}
+
+/* result */
+.result{display:none}
+.result.show{display:block;animation:fadeIn .7s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* result main card */
+.result-main{background:linear-gradient(135deg,rgba(76,175,80,.12),rgba(0,188,212,.08));border:1px solid rgba(76,175,80,.3);border-radius:16px;padding:30px 22px;margin-bottom:14px;text-align:center;position:relative;overflow:hidden}
+.result-main::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center top,rgba(76,175,80,.1),transparent 60%)}
+.result-label{font-size:11px;font-weight:700;letter-spacing:4px;color:rgba(76,175,80,.8);margin-bottom:10px}
+.ntrp-score{font-size:72px;font-weight:900;line-height:1;background:linear-gradient(135deg,#4caf50,#00bcd4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px;text-shadow:none}
+.ntrp-label{font-size:22px;font-weight:700;color:#f0f0f0;margin-bottom:16px;letter-spacing:1px}
+.ntrp-emoji{font-size:36px;margin-bottom:12px}
+.ntrp-desc{font-size:14px;line-height:1.9;color:rgba(240,240,240,.75);padding:0 4px}
+
+/* radar / breakdown */
+.breakdown{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.breakdown-item{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px}
+.bi-icon{font-size:20px;margin-bottom:5px}
+.bi-name{font-size:10px;font-weight:700;color:rgba(240,240,240,.45);letter-spacing:2px;margin-bottom:6px}
+.bi-bar{height:6px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden;margin-bottom:5px}
+.bi-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#4caf50,#00bcd4)}
+.bi-text{font-size:12px;color:rgba(240,240,240,.65);line-height:1.5}
+
+/* next steps */
+.next-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:18px 18px;margin-bottom:14px}
+.next-title{font-size:11px;font-weight:700;letter-spacing:3px;color:rgba(0,188,212,.8);margin-bottom:14px}
+.next-list{display:flex;flex-direction:column;gap:10px}
+.next-item{display:flex;align-items:flex-start;gap:10px}
+.next-bullet{width:6px;height:6px;background:#4caf50;border-radius:50%;margin-top:6px;flex-shrink:0}
+.next-text{font-size:13px;line-height:1.7;color:rgba(240,240,240,.7)}
+
+/* compare */
+.compare-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:18px;margin-bottom:18px}
+.compare-title{font-size:11px;font-weight:700;letter-spacing:3px;color:rgba(76,175,80,.7);margin-bottom:14px}
+.ntrp-scale{display:flex;flex-direction:column;gap:6px}
+.scale-row{display:flex;align-items:center;gap:10px}
+.scale-num{font-size:13px;font-weight:700;width:32px;color:rgba(240,240,240,.4)}
+.scale-num.active{color:#4caf50}
+.scale-bar-wrap{flex:1;height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden}
+.scale-bar-fill{height:100%;border-radius:4px;background:rgba(255,255,255,.15)}
+.scale-bar-fill.active{background:linear-gradient(90deg,#4caf50,#00bcd4)}
+.scale-desc{font-size:11px;color:rgba(240,240,240,.35);width:80px;text-align:right}
+.scale-desc.active{color:rgba(76,175,80,.9)}
+
+/* buttons */
+.share-btn{width:100%;padding:15px;background:linear-gradient(135deg,#4caf50,#2e7d32);border:none;border-radius:10px;font-family:'Noto Sans KR',sans-serif;font-size:15px;font-weight:700;color:#fff;cursor:pointer;letter-spacing:1px;margin-bottom:10px;transition:all .2s;box-shadow:0 4px 15px rgba(76,175,80,.3)}
+.share-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(76,175,80,.4)}
+.retry-btn{width:100%;padding:13px;background:transparent;border:1px solid rgba(255,255,255,.1);border-radius:10px;font-family:'Noto Sans KR',sans-serif;font-size:13px;color:rgba(240,240,240,.35);cursor:pointer;letter-spacing:1px;transition:all .2s}
+.retry-btn:hover{border-color:rgba(255,255,255,.25);color:rgba(240,240,240,.6)}
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:#4caf50;color:#fff;padding:11px 24px;border-radius:8px;font-size:14px;font-weight:700;opacity:0;transition:all .3s;z-index:100}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="wrap">
+
+  <div class="header">
+    <span class="tennis-icon">🎾</span>
+    <div class="club-tag">YOUNG NAM TENNIS CLUB</div>
+    <h1>내 <span class="accent">NTRP</span>는<br>몇 레벨일까?</h1>
+    <p>12개 질문으로 나의 실력을 객관적으로 확인하세요</p>
+  </div>
+
+  <!-- Quiz -->
+  <div id="quizSection">
+    <div class="progress-wrap">
+      <div class="progress-info">
+        <span id="progressText">1 / 12</span>
+        <span id="progressPct">0%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    </div>
+    <div class="q-card">
+      <div class="q-num" id="qNum">QUESTION 01</div>
+      <div class="q-text" id="qText"></div>
+      <div class="options" id="options"></div>
+    </div>
+    <div class="nav">
+      <button class="nav-btn btn-prev" id="btnPrev" onclick="prev()">← 이전</button>
+      <button class="nav-btn btn-next" id="btnNext" onclick="next()" disabled>다음 →</button>
+    </div>
+  </div>
+
+  <!-- Result -->
+  <div class="result" id="resultSection">
+    <div class="result-main">
+      <div class="result-label">나의 NTRP 등급</div>
+      <div class="ntrp-score" id="rScore"></div>
+      <div class="ntrp-emoji" id="rEmoji"></div>
+      <div class="ntrp-label" id="rLabel"></div>
+      <div class="ntrp-desc" id="rDesc"></div>
+    </div>
+    <div class="breakdown" id="breakdown"></div>
+    <div class="next-card">
+      <div class="next-title">📋 &nbsp;이 레벨에 맞는 조언</div>
+      <div class="next-list" id="nextList"></div>
+    </div>
+    <div class="compare-card">
+      <div class="compare-title">📊 &nbsp;NTRP 전체 척도</div>
+      <div class="ntrp-scale" id="ntrpScale"></div>
+    </div>
+    <button class="share-btn" onclick="copyResult()">📋 &nbsp; 카톡에 공유하기</button>
+    <button class="retry-btn" onclick="retryQuiz()">↺ &nbsp; 다시 테스트하기</button>
+  </div>
+</div>
+<div class="toast" id="toast">📋 복사됐습니다!</div>
+
+<script>
+const questions = [
+  {
+    text: "테니스를 배운 지 얼마나 됐나요?",
+    category: "exp",
+    options: [
+      {text:"처음 시작했거나 6개월 미만", score:1},
+      {text:"6개월 ~ 2년", score:2},
+      {text:"2년 ~ 5년", score:3},
+      {text:"5년 ~ 10년", score:4},
+      {text:"10년 이상", score:5},
+    ]
+  },
+  {
+    text: "포핸드 스트로크를 치면 어떤가요?",
+    category: "forehand",
+    options: [
+      {text:"공을 맞추기만 해도 성공", score:1},
+      {text:"코트 안에는 대체로 넣지만 방향 조절은 어려움", score:2},
+      {text:"크로스/다운더라인 선택 가능, 가끔 실수", score:3},
+      {text:"스핀량과 깊이를 조절하며 안정적으로 구사", score:4},
+      {text:"위기 상황에서도 공격적 포핸드 자유자재", score:5},
+    ]
+  },
+  {
+    text: "백핸드는 어떤가요?",
+    category: "backhand",
+    options: [
+      {text:"백핸드 방향으로 오면 피하거나 실수가 잦음", score:1},
+      {text:"슬라이스로만 처리하거나 자주 네트에 걸림", score:2},
+      {text:"슬라이스와 탑스핀 모두 어느 정도 가능", score:3},
+      {text:"양손/한손 백핸드 안정적, 코스 선택 가능", score:4},
+      {text:"백핸드가 오히려 무기, 위닝샷도 가능", score:5},
+    ]
+  },
+  {
+    text: "서브는 어느 정도인가요?",
+    category: "serve",
+    options: [
+      {text:"넣기만 하면 다행인 수준", score:1},
+      {text:"더블폴트 없이 넣는 것이 우선, 방향 선택은 어려움", score:2},
+      {text:"원하는 방향으로 넣을 수 있고 스핀 서브 시도", score:3},
+      {text:"플랫/슬라이스/킥 서브 구사, 1st 서브 파워 있음", score:4},
+      {text:"서브가 무기, 에이스도 의도적으로 낼 수 있음", score:5},
+    ]
+  },
+  {
+    text: "발리(네트 플레이)는 어떤가요?",
+    category: "volley",
+    options: [
+      {text:"네트 앞에 가는 것 자체가 두려움", score:1},
+      {text:"간단한 발리는 되지만 빠른 공은 놓침", score:2},
+      {text:"포핸드 발리는 안정적, 백핸드 발리는 불안", score:3},
+      {text:"양쪽 발리 모두 안정적, 각도 발리도 가능", score:4},
+      {text:"발리가 주요 무기, 터치 발리와 하프발리도 가능", score:5},
+    ]
+  },
+  {
+    text: "상대와 몇 번 정도 랠리를 주고받을 수 있나요?",
+    category: "rally",
+    options: [
+      {text:"3~4번 이상 지속하기 어려움", score:1},
+      {text:"5~6번은 가능하지만 이후엔 실수", score:2},
+      {text:"10번 이상 안정적으로 지속 가능", score:3},
+      {text:"원하는 만큼 랠리 지속 가능, 상대 리듬 파악", score:4},
+      {text:"랠리 중 코스 변화로 상대를 무너뜨릴 수 있음", score:5},
+    ]
+  },
+  {
+    text: "발 움직임(풋워크)은 어떤가요?",
+    category: "footwork",
+    options: [
+      {text:"공을 향해 뛰는 것 자체가 아직 버거움", score:1},
+      {text:"예측 가능한 공은 따라가지만 빠른 공은 놓침", score:2},
+      {text:"대부분의 공을 따라가서 준비 자세로 칠 수 있음", score:3},
+      {text:"스플릿스텝을 자연스럽게 사용, 포지셔닝 의식", score:4},
+      {text:"발이 항상 공보다 먼저, 코트 커버리지 탁월", score:5},
+    ]
+  },
+  {
+    text: "시합(경기) 경험은 어느 정도인가요?",
+    category: "match",
+    options: [
+      {text:"시합을 해본 적이 거의 없음", score:1},
+      {text:"동호회 내에서 가끔 친선 경기", score:2},
+      {text:"동호회 대회나 클럽 대회에 출전 경험 있음", score:3},
+      {text:"지역 대회나 동호인 대회에 정기적으로 출전", score:4},
+      {text:"전국 대회 출전 경험, 입상 경험 있음", score:5},
+    ]
+  },
+  {
+    text: "시합 중 멘탈(심리)은 어떤가요?",
+    category: "mental",
+    options: [
+      {text:"시합만 시작하면 평소 실력의 절반도 못 냄", score:1},
+      {text:"긴장은 많이 하지만 어느 정도 플레이 가능", score:2},
+      {text:"경기 중반부터 긴장이 풀리며 실력 발휘 가능", score:3},
+      {text:"중요한 순간에도 평정심 유지, 루틴 사용", score:4},
+      {text:"압박 상황에서 오히려 더 집중, 역전도 잦음", score:5},
+    ]
+  },
+  {
+    text: "스핀(회전)을 어느 정도 활용하나요?",
+    category: "spin",
+    options: [
+      {text:"스핀이 뭔지는 알지만 의도적으로 사용 못 함", score:1},
+      {text:"가끔 탑스핀이 걸리지만 의도한 건 아님", score:2},
+      {text:"탑스핀을 의도적으로 사용, 슬라이스도 가능", score:3},
+      {text:"스핀량을 상황에 따라 조절, 킥 서브도 사용", score:4},
+      {text:"스핀 변화로 상대 리듬을 의도적으로 흔듦", score:5},
+    ]
+  },
+  {
+    text: "복식에서 파트너와의 전술은?",
+    category: "doubles",
+    options: [
+      {text:"복식 포메이션이나 전술을 잘 모름", score:1},
+      {text:"일반적인 포지션 정도는 알고 있음", score:2},
+      {text:"아이 포메이션, 포치 등 기본 전술 구사", score:3},
+      {text:"상황에 따라 포메이션을 바꾸고 신호 플레이도 함", score:4},
+      {text:"파트너와 즉흥적으로 전술을 맞추며 팀 플레이 주도", score:5},
+    ]
+  },
+  {
+    text: "자신의 플레이 스타일을 어떻게 보나요?",
+    category: "style",
+    options: [
+      {text:"아직 스타일이라고 부를 것이 없음", score:1},
+      {text:"일단 공을 넣는 수비 위주", score:2},
+      {text:"랠리 위주, 상대 실수를 기다리는 스타일", score:3},
+      {text:"공격과 수비를 상황에 따라 전환 가능", score:4},
+      {text:"명확한 플레이 스타일이 있고 약점을 잘 보완함", score:5},
+    ]
+  },
+];
+
+const ntrpData = [
+  {score:1.5, label:"입문자", emoji:"🌱", color:"#81c784",
+   desc:"테니스를 막 시작한 단계입니다. 공을 코트 안에 넣는 것을 익히는 것이 첫 번째 목표입니다. 처음 시작하는 것 자체가 대단한 도전입니다!",
+   advice:["포핸드 그립과 준비 자세를 먼저 익히세요","공을 어떻게 맞추느냐보다 '왜 공이 그 방향으로 갔는지' 생각하는 습관을 키우세요","코치나 선배에게 기초 레슨을 받는 것을 강력 추천드립니다","이 시기에 나쁜 버릇이 생기지 않도록 기본기에 집중하세요"]},
+  {score:2.0, label:"초급자", emoji:"🎯", color:"#aed581",
+   desc:"기본적인 폼을 익히고 공을 어느 정도 코트 안에 넣을 수 있습니다. 꾸준한 연습으로 빠르게 성장할 수 있는 단계입니다.",
+   advice:["랠리 연습을 통해 일관성을 높이는 것이 최우선 과제입니다","서브 연습에 매 세션 10~15분을 할애하세요","발 움직임(스플릿스텝)을 의식적으로 사용하기 시작하세요","백핸드 슬라이스를 먼저 익혀 두면 경기에 큰 도움이 됩니다"]},
+  {score:2.5, label:"초중급자", emoji:"⚡", color:"#fff176",
+   desc:"기본기를 갖추고 있으며 간단한 경기가 가능합니다. 이 단계에서 가장 빠른 성장을 경험할 수 있습니다.",
+   advice:["크로스/다운더라인 코스 선택 능력을 키우세요","탑스핀 포핸드를 안정적으로 구사하는 연습을 하세요","발리 연습을 시작해서 네트 앞 플레이에 익숙해지세요","동호회 대회에 도전해 보세요. 경기 경험이 실력을 급성장시킵니다"]},
+  {score:3.0, label:"중급자", emoji:"🎾", color:"#ffb74d",
+   desc:"동호회에서 활발하게 경기를 즐길 수 있는 수준입니다. 기술적 완성도를 높이면 한 단계 더 도약할 수 있습니다.",
+   advice:["두 번째 서브의 안정성을 높이는 데 집중하세요","포치와 같은 복식 전술을 공부하고 실전에서 사용해 보세요","스핀 서브(슬라이스/킥)를 배워 첫 서브가 들어가지 않을 때 대비하세요","약한 쪽(주로 백핸드)을 집중적으로 보완하세요"]},
+  {score:3.5, label:"중상급자", emoji:"💪", color:"#ff8a65",
+   desc:"대부분의 동호인 대회에서 경쟁력 있는 수준입니다. 전술적 이해와 경기 운영 능력이 강점입니다.",
+   advice:["서브앤발리, 칩앤차지 같은 적극적인 전술을 도입하세요","상대의 약점을 빠르게 파악하고 집중 공략하는 전술을 연습하세요","멘탈 관리 루틴(포인트 간 리셋 방법)을 만들어 보세요","더 상위 레벨의 선수와 경기해서 자신의 한계를 확인하세요"]},
+  {score:4.0, label:"상급자", emoji:"🏆", color:"#ef5350",
+   desc:"지역 대회에서 상위권에 드는 수준입니다. 고도의 기술과 전술적 플레이가 가능합니다.",
+   advice:["각 샷의 완성도를 더욱 높이고, 빠른 공에서도 안정적인 샷을 구사하세요","체력 훈련을 병행해서 경기 후반부 집중력 저하를 막으세요","비디오로 자신의 경기를 분석하고 약점을 보완하세요","어린 선수나 후배들을 코칭하면 자신의 테니스 이해도도 높아집니다"]},
+  {score:4.5, label:"고수", emoji:"🌟", color:"#ab47bc",
+   desc:"전국 대회에서도 경쟁력 있는 탁월한 수준입니다. 주변에서 인정받는 테니스 고수입니다.",
+   advice:["약점이 거의 없는 수준이지만 멘탈과 체력 관리에 집중하세요","전국 대회에 꾸준히 출전해서 다양한 스타일의 선수를 경험하세요","자신만의 독특한 무기(시그니처 샷)를 더욱 날카롭게 갈고닦으세요","후배들에게 멘토가 되어주세요. 가르치는 것이 최고의 복습입니다"]},
+  {score:5.0, label:"선수급", emoji:"👑", color:"#ffd700",
+   desc:"프로 수준에 근접한 엘리트 플레이어입니다. 이 수준에서 테니스를 즐기고 있다는 것 자체가 대단합니다.",
+   advice:["전국 최상위 대회 출전 및 입상에 도전하세요","코칭이나 지도자 활동으로 테니스 발전에 기여하세요","체력 관리와 부상 예방을 철저히 하세요","프로 선수들의 경기를 분석하며 더 높은 레벨을 탐구하세요"]},
+];
+
+const scaleItems = [
+  {n:'1.5', desc:'입문'},
+  {n:'2.0', desc:'초급'},
+  {n:'2.5', desc:'초중급'},
+  {n:'3.0', desc:'중급'},
+  {n:'3.5', desc:'중상급'},
+  {n:'4.0', desc:'상급'},
+  {n:'4.5', desc:'고수'},
+  {n:'5.0', desc:'선수급'},
+];
+
+const categories = {
+  exp:'경력', forehand:'포핸드', backhand:'백핸드', serve:'서브',
+  volley:'발리', rally:'랠리', footwork:'풋워크', match:'시합', mental:'멘탈', spin:'스핀', doubles:'복식', style:'스타일'
+};
+
+let current = 0;
+let answers = new Array(questions.length).fill(null);
+let finalNtrp = null;
+
+function renderQuestion() {
+  const q = questions[current];
+  document.getElementById('qNum').textContent = `QUESTION ${String(current+1).padStart(2,'0')}`;
+  document.getElementById('qText').textContent = q.text;
+  document.getElementById('progressText').textContent = `${current+1} / ${questions.length}`;
+  const pct = Math.round(current/questions.length*100);
+  document.getElementById('progressPct').textContent = pct + '%';
+  document.getElementById('progressFill').style.width = pct + '%';
+
+  const opts = document.getElementById('options');
+  opts.innerHTML = q.options.map((o,i) => `
+    <div class="opt ${answers[current]===i?'selected':''}" onclick="selectOpt(${i})">
+      <div class="opt-dot"></div>
+      <div class="opt-text">${o.text}</div>
+    </div>`).join('');
+
+  document.getElementById('btnPrev').style.visibility = current===0?'hidden':'visible';
+  document.getElementById('btnNext').disabled = answers[current]===null;
+  document.getElementById('btnNext').textContent = current===questions.length-1 ? '결과 보기 🎾' : '다음 →';
+}
+
+function selectOpt(idx) {
+  answers[current] = idx;
+  document.querySelectorAll('.opt').forEach((el,i)=>{
+    el.classList.toggle('selected', i===idx);
+  });
+  document.getElementById('btnNext').disabled = false;
+}
+
+function next() {
+  if(answers[current]===null) return;
+  if(current===questions.length-1){ showResult(); return; }
+  current++;
+  renderQuestion();
+}
+function prev() {
+  if(current===0) return;
+  current--;
+  renderQuestion();
+}
+
+function showResult() {
+  // 점수 계산
+  let total=0;
+  const catScores = {};
+  questions.forEach((q,i)=>{
+    const s = q.options[answers[i]].score;
+    total += s;
+    catScores[q.category] = s;
+  });
+  const avg = total / questions.length; // 1~5
+
+  // NTRP 매핑
+  // avg 1~5 → NTRP 1.5~5.0
+  const ntrpRaw = 1.5 + (avg-1)/(5-1)*(5.0-1.5);
+  // 0.5 단위로 반올림
+  const ntrpRounded = Math.round(ntrpRaw*2)/2;
+  const ntrpClamped = Math.min(5.0, Math.max(1.5, ntrpRounded));
+  finalNtrp = ntrpClamped;
+
+  const data = ntrpData.find(d=>d.score===ntrpClamped) || ntrpData[ntrpData.length-1];
+
+  document.getElementById('rScore').textContent = ntrpClamped.toFixed(1);
+  document.getElementById('rEmoji').textContent = data.emoji;
+  document.getElementById('rLabel').textContent = data.label;
+  document.getElementById('rDesc').textContent = data.desc;
+
+  // breakdown — 주요 4개 카테고리
+  const mainCats = ['serve','forehand','backhand','volley'];
+  const catIcons = {serve:'💫',forehand:'⚡',backhand:'🌊',volley:'🏓'};
+  const catWords = {
+    serve:['서브 불안','더블폴트 주의','방향 선택 가능','스핀 서브 구사','서브가 무기'],
+    forehand:['공 맞추기 집중','방향 연습 필요','크로스/직선 선택','스핀 컨트롤','공격적 포핸드'],
+    backhand:['백핸드 회피','슬라이스 위주','양쪽 균형','코스 선택 가능','백핸드가 무기'],
+    volley:['네트 두려움','간단한 발리만','포핸드 발리 안정','양쪽 안정적','발리가 무기'],
+  };
+  document.getElementById('breakdown').innerHTML = mainCats.map(c=>{
+    const s = catScores[c]||3;
+    const w = s/5*100;
+    return `<div class="breakdown-item">
+      <div class="bi-icon">${catIcons[c]}</div>
+      <div class="bi-name">${categories[c]}</div>
+      <div class="bi-bar"><div class="bi-fill" style="width:${w}%"></div></div>
+      <div class="bi-text">${catWords[c][s-1]}</div>
+    </div>`;
+  }).join('');
+
+  // advice
+  document.getElementById('nextList').innerHTML = data.advice.map(a=>`
+    <div class="next-item"><div class="next-bullet"></div><div class="next-text">${a}</div></div>`).join('');
+
+  // scale
+  document.getElementById('ntrpScale').innerHTML = scaleItems.map(s=>{
+    const isActive = parseFloat(s.n)===ntrpClamped;
+    const w = (parseFloat(s.n)-1.5)/(5.0-1.5)*100+15;
+    return `<div class="scale-row">
+      <div class="scale-num ${isActive?'active':''}">${s.n}</div>
+      <div class="scale-bar-wrap"><div class="scale-bar-fill ${isActive?'active':''}" style="width:${w}%"></div></div>
+      <div class="scale-desc ${isActive?'active':''}">${isActive?'← 나의 레벨':s.desc}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('quizSection').style.display='none';
+  const r=document.getElementById('resultSection');
+  r.classList.add('show');
+  r.scrollIntoView({behavior:'smooth'});
+}
+
+function retryQuiz() {
+  current=0;
+  answers=new Array(questions.length).fill(null);
+  finalNtrp=null;
+  document.getElementById('resultSection').classList.remove('show');
+  document.getElementById('quizSection').style.display='block';
+  renderQuestion();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function copyResult() {
+  if(!finalNtrp) return;
+  const data = ntrpData.find(d=>d.score===finalNtrp)||ntrpData[ntrpData.length-1];
+  const text = [
+    `🎾 영남테니스클럽 NTRP 자가진단 결과`,``,
+    `나의 NTRP 등급: ${finalNtrp.toFixed(1)} (${data.label}) ${data.emoji}`,``,
+    data.desc,``,
+    `📋 나에게 맞는 조언`,
+    ...data.advice.map(a=>`• ${a}`),``,
+    `— 영남테니스클럽 (1993~)`,
+    `테스트 해보기: https://hoons9096-cloud.github.io/Tennis-invite/ntrp_calculator.html`,
+  ].join('\n');
+  navigator.clipboard.writeText(text).then(()=>{
+    const t=document.getElementById('toast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);
+  });
+}
+
+// init
+renderQuestion();
+</script>
+</body>
+</html>
