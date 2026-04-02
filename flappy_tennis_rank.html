@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>플래피 테니스 - S.E.M.T</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{
+  background:#09090f;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+  min-height:100vh;overflow:hidden;
+  font-family:'Noto Sans KR',sans-serif;
+  user-select:none;
+}
+
+.top-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  width:100%;max-width:380px;
+  padding:10px 12px 6px;
+}
+.brand{font-size:10px;font-weight:900;letter-spacing:4px;color:#22c55e}
+.ranking-btn{
+  font-size:11px;font-weight:700;letter-spacing:1px;
+  color:#fbbf24;background:rgba(251,191,36,.1);
+  border:1px solid rgba(251,191,36,.3);border-radius:20px;
+  padding:4px 12px;cursor:pointer;transition:all .2s;
+}
+.ranking-btn:hover{background:rgba(251,191,36,.2)}
+
+#gameCanvas{
+  display:block;border-radius:16px;
+  border:1px solid rgba(255,255,255,.08);
+  cursor:pointer;touch-action:none;
+}
+
+.score-row{display:flex;gap:28px;margin-top:8px;}
+.sc{text-align:center}
+.sc-label{font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.3);margin-bottom:1px}
+.sc-val{font-size:20px;font-weight:900;color:#22c55e}
+.sc-val.best{color:#fbbf24}
+
+/* ── 이름 입력 모달 ── */
+.modal-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,.85);
+  display:flex;align-items:center;justify-content:center;z-index:20;
+}
+.modal-bg.hidden{display:none}
+.modal{
+  background:#0f1f35;border:1px solid rgba(255,255,255,.1);
+  border-radius:20px;padding:28px 24px;text-align:center;
+  width:90%;max-width:300px;animation:popIn .3s ease;
+}
+@keyframes popIn{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+.modal-emoji{font-size:48px;margin-bottom:10px}
+.modal-title{font-size:18px;font-weight:900;color:#fbbf24;margin-bottom:4px}
+.modal-score{font-size:36px;font-weight:900;color:#22c55e;margin-bottom:14px}
+.modal-input{
+  width:100%;padding:12px 14px;
+  background:rgba(255,255,255,.06);
+  border:1.5px solid rgba(34,197,94,.4);border-radius:10px;
+  font-family:'Noto Sans KR',sans-serif;font-size:18px;
+  color:#f0f0f0;text-align:center;outline:none;letter-spacing:2px;
+  margin-bottom:12px;
+}
+.modal-input::placeholder{color:rgba(240,240,240,.25);font-size:14px;letter-spacing:1px}
+.modal-input:focus{border-color:#22c55e;box-shadow:0 0 14px rgba(34,197,94,.2)}
+.modal-btn{
+  width:100%;padding:13px;border:none;border-radius:10px;
+  font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;
+  cursor:pointer;letter-spacing:1px;margin-bottom:7px;transition:all .2s;
+}
+.mbtn-main{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;box-shadow:0 4px 14px rgba(34,197,94,.35)}
+.mbtn-skip{background:rgba(255,255,255,.05);color:rgba(240,240,240,.35);border:1px solid rgba(255,255,255,.09)}
+
+/* ── 랭킹 모달 ── */
+.rank-modal{
+  background:#0f1f35;border:1px solid rgba(255,255,255,.1);
+  border-radius:20px;padding:22px 20px;
+  width:92%;max-width:340px;max-height:85vh;overflow-y:auto;
+  animation:popIn .3s ease;
+}
+.rank-title{font-size:15px;font-weight:900;color:#fbbf24;text-align:center;margin-bottom:16px;letter-spacing:1px}
+.rank-list{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.rank-item{
+  display:flex;align-items:center;gap:10px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);
+  border-radius:10px;padding:10px 14px;
+}
+.rank-item.me{border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.07)}
+.rank-num{font-size:14px;font-weight:900;width:24px;text-align:center}
+.rank-num.gold{color:#fbbf24}
+.rank-num.silver{color:#94a3b8}
+.rank-num.bronze{color:#b45309}
+.rank-name{flex:1;font-size:14px;font-weight:700;color:#f0f0f0}
+.rank-score{font-size:16px;font-weight:900;color:#22c55e}
+.rank-date{font-size:10px;color:rgba(240,240,240,.3);margin-left:4px}
+.rank-empty{text-align:center;color:rgba(240,240,240,.3);font-size:13px;padding:20px}
+.rank-close{
+  width:100%;padding:12px;border:1px solid rgba(255,255,255,.1);
+  border-radius:10px;background:transparent;
+  font-family:'Noto Sans KR',sans-serif;font-size:13px;
+  color:rgba(240,240,240,.4);cursor:pointer;letter-spacing:.5px;
+}
+.rank-close:hover{background:rgba(255,255,255,.06);color:rgba(240,240,240,.7)}
+.rank-loading{text-align:center;color:rgba(240,240,240,.35);font-size:12px;padding:20px}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="brand">S · E · M · T</div>
+  <div class="ranking-btn" onclick="showRanking()">🏆 랭킹</div>
+</div>
+
+<canvas id="gameCanvas"></canvas>
+
+<div class="score-row">
+  <div class="sc"><div class="sc-label">SCORE</div><div class="sc-val" id="scoreDisp">0</div></div>
+  <div class="sc"><div class="sc-label">BEST</div><div class="sc-val best" id="bestDisp">0</div></div>
+</div>
+
+<!-- 이름 입력 모달 -->
+<div class="modal-bg hidden" id="nameModal">
+  <div class="modal">
+    <div class="modal-emoji">🏆</div>
+    <div class="modal-title">신기록!</div>
+    <div class="modal-score" id="modalScore">0</div>
+    <input class="modal-input" id="nameInput" placeholder="이름을 입력하세요" maxlength="8">
+    <button class="modal-btn mbtn-main" onclick="submitScore()">🎾 &nbsp;랭킹에 등록하기</button>
+    <button class="modal-btn mbtn-skip" onclick="skipScore()">그냥 넘어가기</button>
+  </div>
+</div>
+
+<!-- 랭킹 모달 -->
+<div class="modal-bg hidden" id="rankModal">
+  <div class="rank-modal">
+    <div class="rank-title">🏆 &nbsp;명예의 전당</div>
+    <div class="rank-list" id="rankList"><div class="rank-loading">불러오는 중...</div></div>
+    <button class="rank-close" onclick="closeRanking()">닫기</button>
+  </div>
+</div>
+
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getDatabase, ref, push, query, orderByChild, limitToLast, get, serverTimestamp }
+  from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBLEGto1SK7JiowYJJCuBCfpBsjrkiqklM",
+  authDomain: "tennis-score-a3654.firebaseapp.com",
+  databaseURL: "https://tennis-score-a3654-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "tennis-score-a3654",
+  storageBucket: "tennis-score-a3654.firebasestorage.app",
+  messagingSenderId: "361320303748",
+  appId: "1:361320303748:web:0238102b53e7209cef86d1"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const scoresRef = ref(db, 'flappy_scores');
+
+window._firebase = { db, scoresRef, push, query, orderByChild, limitToLast, get, serverTimestamp };
+
+async function loadRanking() {
+  const rankList = document.getElementById('rankList');
+  try {
+    const q = query(scoresRef, orderByChild('score'), limitToLast(10));
+    const snap = await get(q);
+    const items = [];
+    snap.forEach(child => items.push({ id: child.key, ...child.val() }));
+    items.sort((a,b) => b.score - a.score);
+
+    if(items.length === 0) {
+      rankList.innerHTML = '<div class="rank-empty">아직 등록된 기록이 없어요<br>첫 번째 주인공이 되세요! 🎾</div>';
+      return;
+    }
+
+    const medals = ['🥇','🥈','🥉'];
+    const numCls = ['gold','silver','bronze'];
+    rankList.innerHTML = items.map((item, i) => {
+      const date = item.ts ? new Date(item.ts).toLocaleDateString('ko-KR',{month:'numeric',day:'numeric'}) : '';
+      return `<div class="rank-item">
+        <div class="rank-num ${numCls[i]||''}">${medals[i]||i+1}</div>
+        <div class="rank-name">${item.name}</div>
+        <div class="rank-score">${item.score}</div>
+        <div class="rank-date">${date}</div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    rankList.innerHTML = '<div class="rank-empty">랭킹을 불러올 수 없어요 😅</div>';
+  }
+}
+
+window._loadRanking = loadRanking;
+
+window._submitToFirebase = async function(name, score) {
+  try {
+    await push(scoresRef, {
+      name,
+      score,
+      ts: Date.now(),
+    });
+    return true;
+  } catch(e) {
+    return false;
+  }
+};
+</script>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+const W = Math.min(window.innerWidth - 16, 380);
+const H = Math.min(window.innerHeight - 130, 580);
+canvas.width = W; canvas.height = H;
+
+const GRAVITY = 0.45, JUMP = -8.5;
+const PIPE_W = 52, PIPE_GAP = H * 0.30;
+const PIPE_SPEED_INIT = 2.5;
+
+let state = 'idle';
+let score = 0;
+let best = parseInt(localStorage.getItem('flappyBest')||'0');
+let pipeSpeed = PIPE_SPEED_INIT;
+let lastPipeTime = 0;
+let flashAlpha = 0;
+let pendingNewRecord = false;
+
+const ball = { x:W*.25, y:H/2, vy:0, r:13, angle:0 };
+let pipes=[], particles=[], popups=[];
+
+function resetGame() {
+  ball.y=H/2; ball.vy=0; ball.angle=0;
+  pipes=[]; particles=[]; popups=[];
+  score=0; lastPipeTime=0;
+  pipeSpeed=PIPE_SPEED_INIT; flashAlpha=0;
+  pendingNewRecord=false;
+  updateDisp();
+}
+
+function jump() {
+  if(document.getElementById('nameModal').classList.contains('hidden')===false) return;
+  if(document.getElementById('rankModal').classList.contains('hidden')===false) return;
+  if(state==='idle'){ state='playing'; ball.vy=JUMP; return; }
+  if(state==='playing'){
+    ball.vy=JUMP;
+    for(let i=0;i<5;i++){
+      const a=Math.PI/2+(Math.random()-.5)*1.2;
+      particles.push({x:ball.x,y:ball.y+ball.r,vx:Math.cos(a)*(1+Math.random()*2),vy:Math.sin(a)*(1+Math.random()*2),life:1,r:2+Math.random()*2,color:'#d4f700'});
+    }
+    return;
+  }
+  if(state==='dead'){ state='idle'; resetGame(); }
+}
+
+canvas.addEventListener('click', jump);
+canvas.addEventListener('touchstart', e=>{ e.preventDefault(); jump(); },{passive:false});
+document.addEventListener('keydown', e=>{ if(e.code==='Space'||e.code==='ArrowUp') jump(); });
+
+function spawnPipe() {
+  const minH=H*.12, maxH=H-PIPE_GAP-minH;
+  const topH=minH+Math.random()*(maxH-minH);
+  pipes.push({x:W+PIPE_W, topH, botY:topH+PIPE_GAP, scored:false, wobble:0});
+}
+
+function spawnParticles(x,y,color,n=12){
+  for(let i=0;i<n;i++){
+    const a=Math.random()*Math.PI*2, s=2+Math.random()*4;
+    particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,r:2+Math.random()*4,color});
+  }
+}
+
+function update(ts) {
+  if(state!=='playing') return;
+  ball.vy+=GRAVITY; ball.y+=ball.vy;
+  ball.angle=Math.min(Math.PI/2,Math.max(-Math.PI/3,ball.vy*.07));
+  if(ball.y-ball.r<0){ball.y=ball.r;ball.vy=2;}
+  if(ball.y+ball.r>H){die();return;}
+  if(ts-lastPipeTime>1600){spawnPipe();lastPipeTime=ts;pipeSpeed=PIPE_SPEED_INIT+score*.12;}
+  for(let i=pipes.length-1;i>=0;i--){
+    const p=pipes[i]; p.x-=pipeSpeed;
+    if(p.wobble>0)p.wobble--;
+    if(!p.scored&&p.x+PIPE_W<ball.x){
+      p.scored=true; score++;
+      updateDisp();
+      popups.push({x:ball.x,y:ball.y-30,life:1,txt:'+1'});
+      spawnParticles(ball.x,ball.y,'#22c55e',6);
+      pipeSpeed=PIPE_SPEED_INIT+score*.12;
+    }
+    const br=ball.r-2;
+    if(ball.x+br>p.x&&ball.x-br<p.x+PIPE_W){
+      if(ball.y-br<p.topH||ball.y+br>p.botY){p.wobble=10;die();return;}
+    }
+    if(p.x+PIPE_W<-10)pipes.splice(i,1);
+  }
+  particles=particles.filter(p=>p.life>0);
+  for(const p of particles){p.x+=p.vx;p.y+=p.vy;p.vy+=.15;p.life-=.04;p.r*=.96;}
+  popups=popups.filter(p=>p.life>0);
+  for(const p of popups){p.y-=1.5;p.life-=.025;}
+  if(flashAlpha>0)flashAlpha-=.06;
+}
+
+function die() {
+  state='dead';
+  spawnParticles(ball.x,ball.y,'#ef4444',16);
+  flashAlpha=.6;
+  if(score>best){
+    best=score;
+    localStorage.setItem('flappyBest',best);
+    pendingNewRecord=true;
+    // 잠깐 후 이름 입력 모달
+    setTimeout(()=>showNameModal(score),800);
+  }
+  updateDisp();
+}
+
+function updateDisp(){
+  document.getElementById('scoreDisp').textContent=score;
+  document.getElementById('bestDisp').textContent=best;
+}
+
+// ── 이름 입력 ──
+function showNameModal(s){
+  document.getElementById('modalScore').textContent=s;
+  document.getElementById('nameInput').value='';
+  document.getElementById('nameModal').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('nameInput').focus(),300);
+}
+
+window.submitScore=async function(){
+  const name=document.getElementById('nameInput').value.trim()||'익명';
+  document.getElementById('nameModal').classList.add('hidden');
+  if(window._submitToFirebase){
+    await window._submitToFirebase(name, best);
+  }
+};
+
+window.skipScore=function(){
+  document.getElementById('nameModal').classList.add('hidden');
+};
+
+document.getElementById('nameInput').addEventListener('keypress',e=>{
+  if(e.key==='Enter') window.submitScore();
+});
+
+// ── 랭킹 ──
+window.showRanking=async function(){
+  document.getElementById('rankList').innerHTML='<div class="rank-loading">불러오는 중... 🎾</div>';
+  document.getElementById('rankModal').classList.remove('hidden');
+  if(window._loadRanking) await window._loadRanking();
+};
+
+window.closeRanking=function(){
+  document.getElementById('rankModal').classList.add('hidden');
+};
+
+// ── 그리기 ──
+function draw(ts){
+  ctx.clearRect(0,0,W,H);
+  const bg=ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#0d1a2e'); bg.addColorStop(1,'#0a2d1a');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='rgba(255,255,255,.03)'; ctx.lineWidth=1;
+  for(let x=0;x<W;x+=36){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=36){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  for(const p of pipes){
+    drawPipe(p.x,0,PIPE_W,p.topH,true,p.wobble);
+    drawPipe(p.x,p.botY,PIPE_W,H-p.botY,false,p.wobble);
+  }
+  for(const pt of particles){
+    ctx.globalAlpha=pt.life; ctx.fillStyle=pt.color;
+    ctx.beginPath(); ctx.arc(pt.x,pt.y,pt.r,0,Math.PI*2); ctx.fill();
+  }
+  ctx.globalAlpha=1;
+  if(state!=='dead'||flashAlpha<.3){
+    ctx.save(); ctx.translate(ball.x,ball.y); ctx.rotate(ball.angle);
+    drawTennisBall(0,0,ball.r); ctx.restore();
+  }
+  for(const p of popups){
+    ctx.globalAlpha=p.life; ctx.fillStyle='#22c55e';
+    ctx.font='bold 16px sans-serif'; ctx.textAlign='center';
+    ctx.fillText(p.txt,p.x,p.y);
+  }
+  ctx.globalAlpha=1;
+  if(flashAlpha>0){ctx.fillStyle=`rgba(239,68,68,${flashAlpha})`;ctx.fillRect(0,0,W,H);}
+  if(state==='playing'){
+    ctx.fillStyle='rgba(255,255,255,.9)';
+    ctx.font=`bold ${Math.min(52,W*.13)}px sans-serif`;
+    ctx.textAlign='center';
+    ctx.shadowColor='rgba(34,197,94,.5)'; ctx.shadowBlur=10;
+    ctx.fillText(score,W/2,60); ctx.shadowBlur=0;
+  }
+  if(state==='idle') drawIdle();
+  if(state==='dead') drawDead();
+}
+
+function drawPipe(x,y,w,h,isTop,wobble){
+  const wx=wobble?(Math.random()-.5)*wobble*.5:0;
+  const g=ctx.createLinearGradient(x+wx,0,x+w+wx,0);
+  g.addColorStop(0,'#15803d'); g.addColorStop(.4,'#16a34a');
+  g.addColorStop(.7,'#22c55e'); g.addColorStop(1,'#166534');
+  ctx.fillStyle=g; ctx.fillRect(x+wx,y,w,h);
+  const cH=18,cW=w+10;
+  ctx.fillStyle='#16a34a';
+  if(isTop){ctx.fillRect(x+wx-5,y+h-cH,cW,cH);}
+  else{ctx.fillRect(x+wx-5,y,cW,cH);}
+  ctx.fillStyle='rgba(255,255,255,.07)'; ctx.fillRect(x+wx+4,y,8,h);
+}
+
+function drawTennisBall(x,y,r){
+  ctx.fillStyle='rgba(0,0,0,.25)';
+  ctx.beginPath(); ctx.ellipse(x+2,y+r+2,r*.8,r*.3,0,0,Math.PI*2); ctx.fill();
+  const g=ctx.createRadialGradient(x-r*.3,y-r*.3,r*.1,x,y,r);
+  g.addColorStop(0,'#f0ff00'); g.addColorStop(.5,'#d4f700'); g.addColorStop(1,'#9ab200');
+  ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,.35)'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.arc(x,y,r*.65,-.3,Math.PI+.3); ctx.stroke();
+  ctx.beginPath(); ctx.arc(x,y,r*.65,Math.PI-.3,Math.PI*2+.3); ctx.stroke();
+  ctx.fillStyle='rgba(255,255,255,.3)';
+  ctx.beginPath(); ctx.ellipse(x-r*.25,y-r*.25,r*.3,r*.2,-Math.PI/4,0,Math.PI*2); ctx.fill();
+}
+
+function rRect(x,y,w,h,r){
+  ctx.beginPath(); ctx.moveTo(x+r,y);
+  ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
+}
+
+function drawIdle(){
+  ctx.fillStyle='rgba(9,9,15,.78)'; rRect(W/2-125,H/2-115,250,225,16); ctx.fill();
+  ctx.textAlign='center';
+  ctx.fillStyle='rgba(34,197,94,.7)'; ctx.font='bold 10px sans-serif';
+  ctx.fillText('S · E · M · T',W/2,H/2-78);
+  ctx.fillStyle='#f0f0f0'; ctx.font=`bold ${Math.min(26,W*.067)}px sans-serif`;
+  ctx.fillText('플래피 테니스',W/2,H/2-46);
+  drawTennisBall(W/2,H/2-4,18);
+  ctx.fillStyle='rgba(240,240,240,.45)'; ctx.font='12px sans-serif';
+  ctx.fillText('탭 / 클릭 / 스페이스바로 시작',W/2,H/2+44);
+  ctx.fillText('장애물을 피해 최고점을 노리세요!',W/2,H/2+62);
+  if(best>0){
+    ctx.fillStyle='#fbbf24'; ctx.font='bold 13px sans-serif';
+    ctx.fillText(`🏆 내 최고 기록: ${best}`,W/2,H/2+88);
+  }
+  ctx.fillStyle='rgba(34,197,94,.12)'; rRect(W/2-72,H/2+16,144,24,12); ctx.fill();
+  ctx.strokeStyle='rgba(34,197,94,.35)'; ctx.lineWidth=1; ctx.stroke();
+  ctx.fillStyle='#22c55e'; ctx.font='bold 12px sans-serif';
+  ctx.fillText('▶  터치해서 시작',W/2,H/2+32);
+}
+
+function drawDead(){
+  ctx.fillStyle='rgba(9,9,15,.82)'; rRect(W/2-125,H/2-125,250,250,16); ctx.fill();
+  ctx.textAlign='center';
+  const isNew=pendingNewRecord;
+  ctx.font=`${Math.min(38,W*.1)}px sans-serif`;
+  ctx.fillText(isNew?'🏆':'😅',W/2,H/2-78);
+  ctx.fillStyle=isNew?'#fbbf24':'#f0f0f0';
+  ctx.font=`bold ${Math.min(20,W*.052)}px sans-serif`;
+  ctx.fillText(isNew?'신기록!!':'게임 오버',W/2,H/2-44);
+  ctx.fillStyle='rgba(240,240,240,.55)'; ctx.font='12px sans-serif';
+  ctx.fillText('점수',W/2,H/2-16);
+  ctx.fillStyle=isNew?'#fbbf24':'#22c55e';
+  ctx.font=`bold ${Math.min(46,W*.12)}px sans-serif`;
+  ctx.fillText(score,W/2,H/2+28);
+  if(best>0&&!isNew){
+    ctx.fillStyle='rgba(251,191,36,.65)'; ctx.font='11px sans-serif';
+    ctx.fillText(`내 최고: ${best}`,W/2,H/2+50);
+  }
+  ctx.fillStyle='rgba(34,197,94,.12)'; rRect(W/2-72,H/2+68,144,28,14); ctx.fill();
+  ctx.strokeStyle='rgba(34,197,94,.4)'; ctx.lineWidth=1.5; ctx.stroke();
+  ctx.fillStyle='#22c55e'; ctx.font='bold 12px sans-serif';
+  ctx.fillText('🎾  탭하여 재시작',W/2,H/2+87);
+}
+
+function loop(ts){ update(ts); draw(ts); requestAnimationFrame(loop); }
+updateDisp();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
