@@ -142,41 +142,26 @@ body{
   </div>
 </div>
 
-<!-- Firebase -->
-<script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-import { getDatabase, ref, push, query, orderByChild, limitToLast, get, serverTimestamp }
-  from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+<!-- Firebase REST API -->
+<script>
+const DB = 'https://tennis-score-a3654-default-rtdb.asia-southeast1.firebasedatabase.app';
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBLEGto1SK7JiowYJJCuBCfpBsjrkiqklM",
-  authDomain: "tennis-score-a3654.firebaseapp.com",
-  databaseURL: "https://tennis-score-a3654-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "tennis-score-a3654",
-  storageBucket: "tennis-score-a3654.firebasestorage.app",
-  messagingSenderId: "361320303748",
-  appId: "1:361320303748:web:0238102b53e7209cef86d1"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-const scoresRef = ref(db, 'flappy_scores');
-
-window._firebase = { db, scoresRef, push, query, orderByChild, limitToLast, get, serverTimestamp };
-
-async function loadRanking() {
+window._loadRanking = async function() {
   const rankList = document.getElementById('rankList');
   try {
-    const q = query(scoresRef, orderByChild('score'), limitToLast(10));
-    const snap = await get(q);
-    const items = [];
-    snap.forEach(child => items.push({ id: child.key, ...child.val() }));
-    items.sort((a,b) => b.score - a.score);
+    const res = await fetch(`${DB}/flappy_scores.json`);
+    if(!res.ok) throw new Error('fetch failed');
+    const data = await res.json();
 
-    if(items.length === 0) {
+    if(!data) {
       rankList.innerHTML = '<div class="rank-empty">아직 등록된 기록이 없어요<br>첫 번째 주인공이 되세요! 🎾</div>';
       return;
     }
+
+    const items = Object.values(data)
+      .filter(v => v && v.score != null)
+      .sort((a,b) => b.score - a.score)
+      .slice(0, 10);
 
     const medals = ['🥇','🥈','🥉'];
     const numCls = ['gold','silver','bronze'];
@@ -184,27 +169,27 @@ async function loadRanking() {
       const date = item.ts ? new Date(item.ts).toLocaleDateString('ko-KR',{month:'numeric',day:'numeric'}) : '';
       return `<div class="rank-item">
         <div class="rank-num ${numCls[i]||''}">${medals[i]||i+1}</div>
-        <div class="rank-name">${item.name}</div>
+        <div class="rank-name">${item.name||'익명'}</div>
         <div class="rank-score">${item.score}</div>
         <div class="rank-date">${date}</div>
       </div>`;
     }).join('');
   } catch(e) {
     rankList.innerHTML = '<div class="rank-empty">랭킹을 불러올 수 없어요 😅</div>';
+    console.error(e);
   }
-}
-
-window._loadRanking = loadRanking;
+};
 
 window._submitToFirebase = async function(name, score) {
   try {
-    await push(scoresRef, {
-      name,
-      score,
-      ts: Date.now(),
+    const res = await fetch(`${DB}/flappy_scores.json`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ name, score, ts: Date.now() }),
     });
-    return true;
+    return res.ok;
   } catch(e) {
+    console.error(e);
     return false;
   }
 };
