@@ -660,7 +660,7 @@ function renderStandings(){
         html+='<div class="standings-group">'
           +'<div class="standings-group-header">'+g.name+' ('+Object.keys(teams).join(', ')+')</div>'
           +'<table class="standings-table"><thead><tr>'
-          +'<th>순위</th><th style="text-align:left">팀</th><th>승</th><th>패</th><th>득</th><th>실</th><th>득실</th><th>경기수</th>'
+          +'<th>순위</th><th style="text-align:left">팀</th><th>득실차</th><th>승</th><th>패</th><th>득</th><th>실</th><th>경기수</th>'
           +'</tr></thead><tbody>';
         
         standings.forEach(function(s,i){
@@ -668,10 +668,10 @@ function renderStandings(){
           html+='<tr class="'+qualify+'">'
             +'<td class="standings-rank">'+(i+1)+'</td>'
             +'<td class="standings-team">'+s.team+'</td>'
+            +'<td style="color:'+(s.gd>0?'#D2FF4E':s.gd<0?'#FF6B6B':'#707075')+';font-weight:700">'+(s.gd>0?'+':'')+s.gd+'</td>'
             +'<td class="standings-win">'+s.win+'</td>'
             +'<td class="standings-lose">'+s.lose+'</td>'
             +'<td>'+s.gf+'</td><td>'+s.ga+'</td>'
-            +'<td style="color:'+(s.gd>0?'#D2FF4E':s.gd<0?'#FF6B6B':'#707075')+'">'+( s.gd>0?'+':'')+s.gd+'</td>'
             +'<td>'+s.matches+'</td>'
             +'</tr>';
         });
