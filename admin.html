@@ -617,12 +617,24 @@ function calcStandings(groupTeams,results){
   });
   
   Object.values(stats).forEach(function(s){s.gd=s.gf-s.ga});
-  
+
+  // 3순위: 상대전적 (승자 승)
+  function h2hWin(tA,tB){
+    var w=0;
+    if(!results) return w;
+    Object.keys(results).forEach(function(k){
+      var r=results[k];
+      if(r.teamA===tA&&r.teamB===tB&&(r.scoreA||0)>(r.scoreB||0)) w++;
+      if(r.teamA===tB&&r.teamB===tA&&(r.scoreB||0)>(r.scoreA||0)) w++;
+    });
+    return w;
+  }
+
   var arr=Object.values(stats);
   arr.sort(function(a,b){
-    if(b.win!==a.win) return b.win-a.win;
-    if(b.gd!==a.gd) return b.gd-a.gd;
-    return b.gf-a.gf;
+    if(b.gd!==a.gd) return b.gd-a.gd;              // 1. 득실차
+    if(b.win!==a.win) return b.win-a.win;            // 2. 승 수
+    return h2hWin(b.team,a.team)-h2hWin(a.team,b.team); // 3. 상대전적
   });
   return arr;
 }
