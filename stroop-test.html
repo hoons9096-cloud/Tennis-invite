@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🎨 스트룹 테스트 - 영남테니스클럽</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Orbitron:wght@700;900&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#111;display:flex;justify-content:center;align-items:center;min-height:100dvh;font-family:'Noto Sans KR',sans-serif;overflow:hidden;touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none}
+  #app{position:relative;width:100%;max-width:420px;height:100dvh;max-height:860px;overflow-y:auto;overflow-x:hidden;background:linear-gradient(180deg,#0d0d1a 0%,#1a1a2e 50%,#0d0d1a 100%)}
+
+  .hud{position:sticky;top:0;left:0;right:0;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;z-index:10;background:rgba(13,13,26,0.95);backdrop-filter:blur(8px);border-bottom:1px solid rgba(255,255,255,0.06)}
+  .hud-item{text-align:center;flex:1}
+  .hud-label{font-size:9px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:1px}
+  .hud-value{font-family:'Orbitron',monospace;font-size:17px;font-weight:900;color:#fff}
+  .hud-value.score{color:#c8ff00}
+  .hud-value.round{color:#7fa8ff}
+  .hud-value.timer{color:#ffd700}
+
+  /* Timer bar */
+  .timer-bar-wrap{position:sticky;top:48px;left:0;right:0;height:4px;background:rgba(255,255,255,0.05);z-index:9}
+  .timer-bar{height:100%;background:linear-gradient(90deg,#c8ff00,#ffd700);transition:width 0.1s linear;border-radius:0 2px 2px 0}
+
+  /* Game area */
+  .game-area{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;min-height:calc(100dvh - 56px)}
+
+  /* Color word display */
+  .word-display{font-size:64px;font-weight:900;margin:30px 0 10px;text-align:center;line-height:1.2;transition:opacity 0.15s;min-height:80px}
+  .word-hint{font-size:12px;color:rgba(255,255,255,0.25);margin-bottom:24px}
+
+  /* Answer buttons */
+  .answer-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:320px;margin-bottom:20px}
+  .answer-btn{padding:16px 10px;border:2px solid rgba(255,255,255,0.1);border-radius:16px;font-size:18px;font-weight:900;font-family:'Noto Sans KR',sans-serif;cursor:pointer;transition:all 0.12s;text-align:center;position:relative;overflow:hidden}
+  .answer-btn:active{transform:scale(0.95)}
+  .answer-btn.correct-flash{animation:correctFlash 0.4s ease-out}
+  .answer-btn.wrong-flash{animation:wrongFlash 0.4s ease-out}
+  @keyframes correctFlash{0%{box-shadow:0 0 0 0 rgba(127,255,127,0.6)}100%{box-shadow:0 0 0 20px rgba(127,255,127,0)}}
+  @keyframes wrongFlash{0%{box-shadow:0 0 0 0 rgba(255,68,68,0.6)}100%{box-shadow:0 0 0 20px rgba(255,68,68,0)}}
+
+  /* Feedback */
+  .feedback{position:fixed;top:35%;left:50%;transform:translateX(-50%);font-family:'Orbitron',monospace;font-size:20px;font-weight:900;pointer-events:none;z-index:25;animation:fbFloat 0.6s ease-out forwards}
+  .feedback.ok{color:#7fff7f;text-shadow:0 0 15px rgba(127,255,127,0.5)}
+  .feedback.ng{color:#ff4444;text-shadow:0 0 15px rgba(255,68,68,0.5)}
+  @keyframes fbFloat{0%{opacity:1;transform:translateX(-50%) translateY(0)}100%{opacity:0;transform:translateX(-50%) translateY(-40px)}}
+
+  /* Streak */
+  .streak-bar{width:100%;max-width:320px;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+  .streak-label{font-size:10px;color:rgba(255,255,255,0.3);white-space:nowrap}
+  .streak-dots{display:flex;gap:3px;flex:1}
+  .streak-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.08);transition:all 0.2s}
+  .streak-dot.lit{background:#c8ff00;box-shadow:0 0 6px rgba(200,255,0,0.5)}
+  .streak-dot.bonus{background:#ffd700;box-shadow:0 0 10px rgba(255,215,0,0.6);transform:scale(1.3)}
+
+  /* Screens */
+  .screen-overlay{position:fixed;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:32px 24px 30px;z-index:50;background:rgba(10,10,20,0.93);backdrop-filter:blur(8px);opacity:0;pointer-events:none;transition:opacity 0.3s;overflow-y:auto}
+  .screen-overlay.visible{opacity:1;pointer-events:auto}
+  .logo-emoji{font-size:46px;margin-bottom:4px}
+  .game-title{font-family:'Orbitron',monospace;font-size:21px;font-weight:900;color:#c8ff00;text-shadow:0 0 25px rgba(200,255,0,0.3);margin-bottom:2px}
+  .game-sub{font-size:12px;color:rgba(255,255,255,0.35);margin-bottom:14px}
+
+  .name-section{width:85%;margin-bottom:12px}
+  .name-input{width:100%;padding:11px 16px;font-size:16px;font-weight:700;font-family:'Noto Sans KR',sans-serif;border:2px solid rgba(200,255,0,0.25);border-radius:14px;background:rgba(200,255,0,0.04);color:#fff;text-align:center;outline:none;transition:border-color 0.2s}
+  .name-input::placeholder{color:rgba(255,255,255,0.2)}
+  .name-input:focus{border-color:#c8ff00}
+  .name-hint{font-size:10px;color:rgba(255,255,255,0.25);margin-top:4px;text-align:center}
+
+  .demo-box{width:85%;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:16px;margin-bottom:14px;text-align:center}
+  .demo-title{font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:10px}
+  .demo-word{font-size:38px;font-weight:900;margin-bottom:6px}
+  .demo-explain{font-size:12px;color:rgba(255,255,255,0.5);line-height:1.6}
+  .demo-explain b{color:#c8ff00}
+
+  .rules{background:rgba(200,255,0,0.04);border:1px solid rgba(200,255,0,0.1);border-radius:14px;padding:12px 14px;width:85%;margin-bottom:14px;font-size:12px;color:rgba(255,255,255,0.5);line-height:1.7;text-align:left}
+  .rules b{color:#c8ff00}
+
+  .btn{background:linear-gradient(135deg,#c8ff00,#7acc00);color:#0b1a0b;border:none;padding:13px 44px;font-size:16px;font-weight:900;font-family:'Noto Sans KR',sans-serif;border-radius:50px;cursor:pointer;box-shadow:0 4px 25px rgba(200,255,0,0.25);transition:transform 0.15s}
+  .btn:active{transform:scale(0.95)}
+  .btn-row{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;justify-content:center}
+  .btn-sm{padding:11px 24px;font-size:14px}
+  .btn-kakao{background:linear-gradient(135deg,#fee500,#f0d000);color:#3c1e1e}
+
+  .result-card{background:rgba(255,255,255,0.04);border:1px solid rgba(200,255,0,0.1);border-radius:20px;padding:16px;width:90%;margin-bottom:12px;text-align:center}
+  .big-score{font-family:'Orbitron',monospace;font-size:42px;font-weight:900;color:#fff;text-shadow:0 0 25px rgba(200,255,0,0.25)}
+  .big-score small{font-size:16px;color:rgba(255,255,255,0.4)}
+  .grade{font-size:18px;margin:4px 0 8px}
+  .stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;width:100%;margin-top:10px}
+  .stat-box{background:rgba(200,255,0,0.04);border-radius:10px;padding:8px 4px;text-align:center}
+  .stat-box .val{font-family:'Orbitron',monospace;font-size:13px;font-weight:700;color:#c8ff00}
+  .stat-box .lab{font-size:8px;color:rgba(255,255,255,0.35);margin-top:2px}
+
+  .ranking-card{background:rgba(255,255,255,0.04);border:1px solid rgba(200,255,0,0.1);border-radius:20px;padding:14px;width:90%;margin-bottom:12px}
+  .ranking-title{font-size:13px;font-weight:900;color:#c8ff00;margin-bottom:8px;text-align:center}
+  .rank-row{display:flex;justify-content:space-between;align-items:center;padding:5px 4px;border-bottom:1px solid rgba(255,255,255,0.04);font-size:12px;color:rgba(255,255,255,0.65)}
+  .rank-row:last-child{border:none}
+  .rank-row.me{background:rgba(200,255,0,0.07);border-radius:8px}
+  .rank-left{display:flex;align-items:center;gap:6px}
+  .rank-medal{font-size:15px;width:20px;text-align:center}
+  .rank-num{font-family:'Orbitron',monospace;font-size:10px;color:rgba(255,255,255,0.25);width:20px;text-align:center}
+  .rank-name{font-weight:700}
+  .rank-time{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:#c8ff00}
+  .rank-date{font-size:8px;color:rgba(255,255,255,0.18);margin-left:3px}
+  .ranking-loading{text-align:center;font-size:11px;color:rgba(255,255,255,0.25);padding:10px}
+
+  /* Brain age display */
+  .brain-age{margin:8px 0 4px}
+  .brain-age-num{font-family:'Orbitron',monospace;font-size:28px;font-weight:900;color:#7fa8ff}
+  .brain-age-label{font-size:11px;color:rgba(255,255,255,0.4)}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="hud" id="hud" style="display:none">
+    <div class="hud-item"><div class="hud-label">라운드</div><div class="hud-value round" id="hudRound">1/20</div></div>
+    <div class="hud-item"><div class="hud-label">점수</div><div class="hud-value score" id="hudScore">0</div></div>
+    <div class="hud-item"><div class="hud-label">시간</div><div class="hud-value timer" id="hudTimer">30</div></div>
+  </div>
+  <div class="timer-bar-wrap" id="timerBarWrap" style="display:none"><div class="timer-bar" id="timerBar" style="width:100%"></div></div>
+
+  <div class="game-area" id="gameArea" style="display:none">
+    <div class="word-display" id="wordDisplay">-</div>
+    <div class="word-hint">↑ 글자의 <b style="color:#c8ff00">색깔</b>을 고르세요 ↑</div>
+    <div class="streak-bar">
+      <div class="streak-label">연속🔥</div>
+      <div class="streak-dots" id="streakDots"></div>
+    </div>
+    <div class="answer-grid" id="answerGrid"></div>
+  </div>
+
+  <!-- START -->
+  <div class="screen-overlay visible" id="startScreen">
+    <div class="logo-emoji">🧠</div>
+    <div class="game-title">스트룹 테스트</div>
+    <div class="game-sub">영남테니스클럽 두뇌 나이 측정</div>
+    <div class="name-section">
+      <input type="text" class="name-input" id="nameInput" placeholder="이름 입력 (예: 홍길동)" maxlength="8">
+      <div class="name-hint">랭킹에 표시될 이름이에요</div>
+    </div>
+
+    <div class="demo-box">
+      <div class="demo-title">이런 문제가 나와요</div>
+      <div class="demo-word" style="color:#4488ff">빨강</div>
+      <div class="demo-explain">
+        글자는 "빨강"이지만<br>
+        색깔은 <b>파랑</b>이에요<br>
+        → 정답: <b>파랑!</b>
+      </div>
+    </div>
+
+    <div class="ranking-card" style="width:85%">
+      <div class="ranking-title">🏆 클럽 랭킹 TOP 5</div>
+      <div id="startRankList"><div class="ranking-loading">불러오는 중...</div></div>
+    </div>
+
+    <div class="rules">
+      🎨 글자의 <b>색깔</b>을 빠르게 터치!<br>
+      ❌ 글자 내용에 속지 마세요!<br>
+      🔥 연속 정답 시 <b>콤보 보너스</b><br>
+      ⏱️ <b>30초</b> 안에 최대한 많이!<br>
+      🧠 전두엽 자극 = <b>치매 예방 최고</b>
+    </div>
+    <button class="btn" onclick="beginGame()">시작하기</button>
+  </div>
+
+  <!-- RESULT -->
+  <div class="screen-overlay" id="resultScreen">
+    <div class="logo-emoji" id="resultEmoji">🧠</div>
+    <div class="grade" id="gradeText"></div>
+    <div class="result-card">
+      <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-bottom:4px">점수</div>
+      <div class="big-score" id="finalScore">0<small>점</small></div>
+      <div class="brain-age">
+        <div class="brain-age-label">두뇌 나이</div>
+        <div class="brain-age-num" id="brainAge">--세</div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-box"><div class="val" id="statCorrect">-</div><div class="lab">정답</div></div>
+        <div class="stat-box"><div class="val" id="statWrong">-</div><div class="lab">오답</div></div>
+        <div class="stat-box"><div class="val" id="statAvg">-</div><div class="lab">평균속도</div></div>
+        <div class="stat-box"><div class="val" id="statStreak">-</div><div class="lab">최대연속</div></div>
+      </div>
+    </div>
+    <div class="ranking-card">
+      <div class="ranking-title">🏆 클럽 랭킹</div>
+      <div id="resultRankList"><div class="ranking-loading">불러오는 중...</div></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-sm" onclick="goHome()">홈으로</button>
+      <button class="btn btn-sm btn-kakao" onclick="shareResult()">카톡 공유</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script>
+var db=null,fbOK=false;
+try{firebase.initializeApp({apiKey:"AIzaSyAhJC21VhFB3girRgLgCMPW_xWp-qcy70M",authDomain:"tennis-score-a3654.firebaseapp.com",databaseURL:"https://tennis-score-a3654-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"tennis-score-a3654"});db=firebase.database();fbOK=true;}catch(e){}
+function getRef(){return fbOK?db.ref('stroop/rankings'):null;}
+
+// Colors
+var COLORS=[
+  {name:'빨강',hex:'#ff4444',bg:'rgba(255,68,68,0.12)',border:'rgba(255,68,68,0.4)'},
+  {name:'파랑',hex:'#4488ff',bg:'rgba(68,136,255,0.12)',border:'rgba(68,136,255,0.4)'},
+  {name:'초록',hex:'#44cc44',bg:'rgba(68,204,68,0.12)',border:'rgba(68,204,68,0.4)'},
+  {name:'노랑',hex:'#ffcc00',bg:'rgba(255,204,0,0.12)',border:'rgba(255,204,0,0.4)'},
+  {name:'보라',hex:'#bb66ff',bg:'rgba(187,102,255,0.12)',border:'rgba(187,102,255,0.4)'},
+  {name:'주황',hex:'#ff8833',bg:'rgba(255,136,51,0.12)',border:'rgba(255,136,51,0.4)'}
+];
+
+var GAME_TIME=30;
+var playerName='',score=0,correct=0,wrong=0,streak=0,maxStreak=0;
+var reactionTimes=[],questionTime=0;
+var gameTimer=null,timeLeft=0,currentAnswer=-1,locked=false;
+
+playerName=localStorage.getItem('stroopName')||'';
+document.getElementById('nameInput').value=playerName;
+loadRankings('startRankList');
+
+// Build answer buttons
+function buildAnswerBtns(){
+  var grid=document.getElementById('answerGrid');grid.innerHTML='';
+  COLORS.forEach(function(c,i){
+    var btn=document.createElement('button');
+    btn.className='answer-btn';
+    btn.style.background=c.bg;
+    btn.style.borderColor=c.border;
+    btn.style.color=c.hex;
+    btn.innerText=c.name;
+    btn.addEventListener('click',function(){answer(i);});
+    grid.appendChild(btn);
+  });
+}
+
+// Build streak dots
+function buildStreak(){
+  var dots=document.getElementById('streakDots');dots.innerHTML='';
+  for(var i=0;i<10;i++){var d=document.createElement('div');d.className='streak-dot';dots.appendChild(d);}
+}
+function updateStreak(){
+  var dots=document.querySelectorAll('.streak-dot');
+  dots.forEach(function(d,i){
+    d.className='streak-dot';
+    if(i<streak&&i<10) d.classList.add('lit');
+    if(i===4&&streak>=5) d.classList.add('bonus');
+    if(i===9&&streak>=10) d.classList.add('bonus');
+  });
+}
+
+function nextQuestion(){
+  if(timeLeft<=0)return;
+  // Pick word and ink color (different)
+  var wordIdx=Math.floor(Math.random()*COLORS.length);
+  var inkIdx;
+  do{inkIdx=Math.floor(Math.random()*COLORS.length);}while(inkIdx===wordIdx);
+
+  // 20% chance congruent (same word & color = easier)
+  if(Math.random()<0.2) inkIdx=wordIdx;
+
+  var display=document.getElementById('wordDisplay');
+  display.innerText=COLORS[wordIdx].name;
+  display.style.color=COLORS[inkIdx].hex;
+  display.style.opacity='1';
+  currentAnswer=inkIdx;
+  questionTime=performance.now();
+  locked=false;
+}
+
+function answer(idx){
+  if(locked||timeLeft<=0)return;
+  locked=true;
+  var rt=Math.round(performance.now()-questionTime);
+  var btns=document.querySelectorAll('.answer-btn');
+
+  if(idx===currentAnswer){
+    // Correct
+    correct++;
+    reactionTimes.push(rt);
+    streak++;
+    if(streak>maxStreak)maxStreak=streak;
+
+    var pts=10;
+    if(rt<500)pts+=5;
+    if(streak>=10)pts+=10;
+    else if(streak>=5)pts+=5;
+    score+=pts;
+
+    btns[idx].classList.add('correct-flash');
+    setTimeout(function(){btns[idx].classList.remove('correct-flash');},400);
+    showFB('+'+pts,true);
+  }else{
+    // Wrong
+    wrong++;
+    streak=0;
+    score=Math.max(0,score-5);
+    btns[idx].classList.add('wrong-flash');
+    setTimeout(function(){btns[idx].classList.remove('wrong-flash');},400);
+    // Highlight correct
+    btns[currentAnswer].style.boxShadow='0 0 15px '+COLORS[currentAnswer].hex;
+    setTimeout(function(){btns[currentAnswer].style.boxShadow='';},400);
+    showFB('✗',false);
+  }
+
+  updateStreak();
+  document.getElementById('hudScore').innerText=score;
+  document.getElementById('wordDisplay').style.opacity='0.3';
+
+  setTimeout(function(){nextQuestion();},350);
+}
+
+function showFB(txt,ok){
+  var el=document.createElement('div');
+  el.className='feedback '+(ok?'ok':'ng');
+  el.innerText=txt;
+  document.body.appendChild(el);
+  setTimeout(function(){el.remove();},600);
+}
+
+function beginGame(){
+  var ni=document.getElementById('nameInput');playerName=ni.value.trim();
+  if(!playerName){ni.style.borderColor='#ff4444';ni.focus();ni.placeholder='이름을 입력해주세요!';setTimeout(function(){ni.style.borderColor='rgba(200,255,0,0.25)';},1500);return;}
+  localStorage.setItem('stroopName',playerName);
+
+  score=0;correct=0;wrong=0;streak=0;maxStreak=0;reactionTimes=[];timeLeft=GAME_TIME;locked=true;
+
+  document.getElementById('startScreen').classList.remove('visible');
+  document.getElementById('resultScreen').classList.remove('visible');
+  document.getElementById('hud').style.display='flex';
+  document.getElementById('timerBarWrap').style.display='block';
+  document.getElementById('gameArea').style.display='flex';
+  document.getElementById('hudScore').innerText='0';
+  document.getElementById('hudRound').innerText='0';
+  document.getElementById('hudTimer').innerText=GAME_TIME;
+  document.getElementById('timerBar').style.width='100%';
+
+  buildAnswerBtns();
+  buildStreak();
+
+  // Countdown
+  var countEl=document.createElement('div');
+  countEl.style.cssText='position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:60;background:rgba(0,0,0,0.6);pointer-events:none';
+  document.body.appendChild(countEl);
+
+  var n=3;
+  function tick(){
+    if(n===0){
+      countEl.remove();
+      startTimer();
+      nextQuestion();
+      return;
+    }
+    countEl.innerHTML='<div style="font-family:Orbitron,monospace;font-size:72px;font-weight:900;color:#c8ff00;text-shadow:0 0 40px rgba(200,255,0,0.5);animation:countPop 0.6s ease-out forwards">'+n+'</div>';
+    n--;
+    setTimeout(tick,700);
+  }
+  tick();
+}
+
+function startTimer(){
+  var startT=Date.now();
+  gameTimer=setInterval(function(){
+    var passed=(Date.now()-startT)/1000;
+    timeLeft=Math.max(0,GAME_TIME-passed);
+    document.getElementById('hudTimer').innerText=Math.ceil(timeLeft);
+    document.getElementById('timerBar').style.width=(timeLeft/GAME_TIME*100)+'%';
+    document.getElementById('hudRound').innerText=correct+wrong;
+
+    if(timeLeft<=0){
+      clearInterval(gameTimer);
+      locked=true;
+      setTimeout(showResult,300);
+    }
+  },100);
+}
+
+function showResult(){
+  document.getElementById('hud').style.display='none';
+  document.getElementById('timerBarWrap').style.display='none';
+  document.getElementById('gameArea').style.display='none';
+
+  var avgRT=reactionTimes.length>0?Math.round(reactionTimes.reduce(function(a,b){return a+b;},0)/reactionTimes.length):9999;
+  var accuracy=correct+wrong>0?Math.round(correct/(correct+wrong)*100):0;
+
+  // Brain age calculation (fun metric)
+  var brainAge;
+  if(score>=250) brainAge=20;
+  else if(score>=200) brainAge=25;
+  else if(score>=150) brainAge=30;
+  else if(score>=120) brainAge=35;
+  else if(score>=90) brainAge=40;
+  else if(score>=70) brainAge=45;
+  else if(score>=50) brainAge=50;
+  else if(score>=30) brainAge=55;
+  else brainAge=60;
+
+  var grade,emoji;
+  if(score>=250){grade='⚡ 초인적 두뇌!';emoji='🏆';}
+  else if(score>=180){grade='🔥 엘리트 두뇌!';emoji='🥇';}
+  else if(score>=120){grade='💪 젊은 두뇌!';emoji='🥈';}
+  else if(score>=70){grade='👍 건강한 두뇌!';emoji='🥉';}
+  else if(score>=40){grade='🧠 꾸준히 훈련해요';emoji='🎾';}
+  else{grade='😴 오늘은 쉬는 날?';emoji='😅';}
+
+  document.getElementById('resultEmoji').innerText=emoji;
+  document.getElementById('gradeText').innerText=grade;
+  document.getElementById('finalScore').innerHTML=score+'<small>점</small>';
+  document.getElementById('brainAge').innerText=brainAge+'세';
+  document.getElementById('statCorrect').innerText=correct;
+  document.getElementById('statWrong').innerText=wrong;
+  document.getElementById('statAvg').innerText=avgRT<9999?avgRT+'ms':'-';
+  document.getElementById('statStreak').innerText=maxStreak+'연속';
+
+  saveScore(playerName,score,brainAge,correct,wrong,avgRT,maxStreak);
+  setTimeout(function(){loadRankings('resultRankList');},500);
+  document.getElementById('resultScreen').classList.add('visible');
+}
+
+function goHome(){
+  document.getElementById('resultScreen').classList.remove('visible');
+  loadRankings('startRankList');
+  document.getElementById('startScreen').classList.add('visible');
+}
+
+// Rankings
+function saveScore(name,sc,ba,cor,wr,avg,ms){
+  var key=name.replace(/[.#$/\[\]]/g,'_');
+  var entry={name:name,score:sc,brainAge:ba,correct:cor,wrong:wr,avgRT:avg,maxStreak:ms,date:new Date().toISOString()};
+  try{var lo=JSON.parse(localStorage.getItem('stroopRank')||'{}');if(!lo[key]||sc>lo[key].score)lo[key]=entry;localStorage.setItem('stroopRank',JSON.stringify(lo));}catch(e){}
+  var ref=getRef();if(!ref)return;
+  ref.child(key).once('value').then(function(s){var ex=s.val();if(!ex||sc>ex.score)ref.child(key).set(entry);}).catch(function(){});
+}
+
+function loadRankings(tid){
+  var c=document.getElementById(tid);
+  c.innerHTML='<div class="ranking-loading">불러오는 중...</div>';
+  var ref=getRef();
+  function render(entries){
+    if(!entries||entries.length===0){c.innerHTML='<div class="ranking-loading">아직 기록이 없습니다!</div>';return;}
+    entries.sort(function(a,b){return b.score-a.score;});
+    var medals=['🥇','🥈','🥉'],me=document.getElementById('nameInput').value.trim()||playerName;
+    c.innerHTML='';
+    entries.slice(0,10).forEach(function(e,i){
+      var isMe=e.name===me,row=document.createElement('div');
+      row.className='rank-row'+(isMe?' me':'');
+      var ds=e.date?new Date(e.date).toLocaleDateString('ko-KR',{month:'short',day:'numeric'}):'';
+      row.innerHTML='<div class="rank-left">'+(i<3?'<span class="rank-medal">'+medals[i]+'</span>':'<span class="rank-num">'+(i+1)+'</span>')+'<span class="rank-name">'+e.name+(isMe?' 👈':'')+'</span></div><div><span class="rank-time">'+e.score+'점</span><span class="rank-date">'+ds+'</span></div>';
+      c.appendChild(row);
+    });
+  }
+  function tryLocal(){try{render(Object.values(JSON.parse(localStorage.getItem('stroopRank')||'{}')));}catch(e){c.innerHTML='<div class="ranking-loading">오프라인 모드</div>';}}
+  if(ref){ref.orderByChild('score').limitToLast(10).once('value').then(function(s){var d=s.val();if(!d){tryLocal();return;}render(Object.values(d));}).catch(tryLocal);}else{tryLocal();}
+}
+
+function shareResult(){
+  var avgRT=reactionTimes.length>0?Math.round(reactionTimes.reduce(function(a,b){return a+b;},0)/reactionTimes.length):'---';
+  var brainAge=document.getElementById('brainAge').innerText;
+  var msg='🧠 스트룹 테스트 결과 🧠\n\n👤 '+playerName+'\n🏅 점수: '+score+'점\n🧠 두뇌나이: '+brainAge+'\n✅ 정답: '+correct+' / ❌ 오답: '+wrong+'\n⚡ 평균반응: '+avgRT+'ms\n🔥 최대연속: '+maxStreak+'연속\n\n영남테니스클럽 회원들~\n내 두뇌나이 이겨봐! 🧠\n\n▶ 도전: https://hoons9096-cloud.github.io/Tennis-invite/stroop-test.html';
+  if(navigator.share){navigator.share({title:'스트룹 테스트',text:msg}).catch(function(){});}
+  else{navigator.clipboard.writeText(msg).then(function(){alert('결과가 복사되었습니다!\n카카오톡에 붙여넣기 하세요 📋');});}
+}
+</script>
+<style>
+@keyframes countPop{0%{transform:scale(2);opacity:0}30%{transform:scale(1);opacity:1}80%{opacity:1}100%{opacity:0;transform:scale(0.8)}}
+</style>
+</body>
+</html>
