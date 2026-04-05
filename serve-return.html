@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🎾 서브 리턴! - 영남테니스클럽</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Orbitron:wght@700;900&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#0b1a0b;display:flex;justify-content:center;align-items:center;min-height:100dvh;font-family:'Noto Sans KR',sans-serif;overflow:hidden;touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none}
+  #app{position:relative;width:100%;max-width:420px;height:100dvh;max-height:820px;overflow:hidden}
+  .court{position:absolute;inset:0;background:linear-gradient(180deg,#1a3a1a 0%,#2d6b2d 30%,#358035 50%,#2d6b2d 70%,#1a3a1a 100%)}
+  .court::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent 49.5%,rgba(255,255,255,0.12) 49.5%,rgba(255,255,255,0.12) 50.5%,transparent 50.5%),linear-gradient(0deg,transparent 39%,rgba(255,255,255,0.08) 39%,rgba(255,255,255,0.08) 39.4%,transparent 39.4%),linear-gradient(0deg,transparent 60%,rgba(255,255,255,0.08) 60%,rgba(255,255,255,0.08) 60.4%,transparent 60.4%)}
+  .court::after{content:'';position:absolute;left:15%;right:15%;top:20%;bottom:20%;border:2px solid rgba(255,255,255,0.1)}
+  .net-line{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);height:3px;background:rgba(255,255,255,0.2)}
+  .hud{position:absolute;top:0;left:0;right:0;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;z-index:10;background:linear-gradient(180deg,rgba(0,0,0,0.5) 0%,transparent 100%)}
+  .hud-item{text-align:center}
+  .hud-label{font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:1px}
+  .hud-value{font-family:'Orbitron',monospace;font-size:20px;font-weight:900;color:#fff}
+  .hud-value.time{color:#ffd700}
+  .hud-value.round{color:#7fff7f}
+  .game-area{position:absolute;inset:0;z-index:5}
+  .target{position:absolute;width:72px;height:72px;border-radius:50%;cursor:pointer;transform:scale(0);transition:transform 0.12s cubic-bezier(0.34,1.56,0.64,1);z-index:20}
+  .target.active{transform:scale(1)}
+  .target.hit{transform:scale(1.4);opacity:0;transition:all 0.2s ease-out}
+  .target-ball{width:100%;height:100%;border-radius:50%;background:radial-gradient(circle at 35% 35%,#e8ff66,#c8ff00 50%,#7fa800);box-shadow:0 0 25px rgba(200,255,0,0.5),0 0 60px rgba(200,255,0,0.2),inset 0 -3px 6px rgba(0,0,0,0.2);position:relative}
+  .target-ball::before{content:'';position:absolute;top:15%;left:20%;right:20%;bottom:50%;border:2px solid rgba(255,255,255,0.35);border-radius:50%;border-bottom:none;transform:rotate(-15deg)}
+  .target-ball::after{content:'';position:absolute;top:50%;left:20%;right:20%;bottom:15%;border:2px solid rgba(255,255,255,0.35);border-radius:50%;border-top:none;transform:rotate(-15deg)}
+  .target.gold .target-ball{background:radial-gradient(circle at 35% 35%,#fff7aa,#ffd700 50%,#b8860b);box-shadow:0 0 30px rgba(255,215,0,0.6),0 0 80px rgba(255,215,0,0.25)}
+  .target.red .target-ball{background:radial-gradient(circle at 35% 35%,#ff9999,#ff4444 50%,#aa0000);box-shadow:0 0 30px rgba(255,68,68,0.6),0 0 80px rgba(255,68,68,0.25)}
+  .target-label{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:#ffd700;white-space:nowrap;text-shadow:0 0 8px rgba(255,215,0,0.6)}
+  .ripple{position:absolute;border-radius:50%;border:2px solid rgba(200,255,0,0.6);animation:rippleOut 0.5s ease-out forwards;pointer-events:none;z-index:15}
+  @keyframes rippleOut{0%{width:20px;height:20px;opacity:1;transform:translate(-50%,-50%) scale(0.5)}100%{width:120px;height:120px;opacity:0;transform:translate(-50%,-50%) scale(1)}}
+  .rt-popup{position:absolute;font-family:'Orbitron',monospace;font-size:16px;font-weight:700;pointer-events:none;z-index:25;animation:popUp 0.7s ease-out forwards}
+  .rt-popup.fast{color:#7fff7f;text-shadow:0 0 12px rgba(127,255,127,0.6)}
+  .rt-popup.medium{color:#ffd700;text-shadow:0 0 12px rgba(255,215,0,0.6)}
+  .rt-popup.slow{color:#ff8844;text-shadow:0 0 12px rgba(255,136,68,0.6)}
+  @keyframes popUp{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-50px) scale(1.2)}}
+  .false-start{position:absolute;inset:0;background:rgba(255,0,0,0.3);z-index:30;display:flex;align-items:center;justify-content:center;animation:flashRed 0.4s ease-out forwards;pointer-events:none}
+  .false-start span{font-family:'Orbitron',monospace;font-size:20px;font-weight:900;color:#ff4444;text-shadow:0 0 20px rgba(255,0,0,0.8)}
+  @keyframes flashRed{0%{opacity:1}100%{opacity:0}}
+  .countdown{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:40;pointer-events:none}
+  .countdown-num{font-family:'Orbitron',monospace;font-size:80px;font-weight:900;color:#c8ff00;text-shadow:0 0 40px rgba(200,255,0,0.5);animation:countPop 0.6s ease-out forwards}
+  @keyframes countPop{0%{transform:scale(2);opacity:0}30%{transform:scale(1);opacity:1}80%{opacity:1}100%{opacity:0;transform:scale(0.8)}}
+  .ready-text{font-family:'Orbitron',monospace;font-size:18px;color:rgba(255,255,255,0.5);margin-top:8px;text-align:center}
+  .wait-ring{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:35;pointer-events:none}
+  .wait-ring .pulse{width:100px;height:100px;border:3px solid rgba(200,255,0,0.2);border-radius:50%;animation:waitPulse 1.5s ease-in-out infinite}
+  @keyframes waitPulse{0%,100%{transform:scale(0.8);opacity:0.3}50%{transform:scale(1.2);opacity:0.6}}
+  .screen-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;z-index:50;background:rgba(5,15,5,0.88);backdrop-filter:blur(8px);padding:20px;opacity:0;pointer-events:none;transition:opacity 0.3s;overflow-y:auto;justify-content:flex-start;padding-top:40px}
+  .screen-overlay.visible{opacity:1;pointer-events:auto}
+  .logo-emoji{font-size:50px;margin-bottom:6px}
+  .game-title{font-family:'Orbitron',monospace;font-size:24px;font-weight:900;color:#c8ff00;text-shadow:0 0 30px rgba(200,255,0,0.4);margin-bottom:2px}
+  .game-sub{font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:16px}
+  .name-section{width:85%;margin-bottom:14px}
+  .name-input{width:100%;padding:12px 18px;font-size:16px;font-weight:700;font-family:'Noto Sans KR',sans-serif;border:2px solid rgba(200,255,0,0.3);border-radius:14px;background:rgba(200,255,0,0.06);color:#fff;text-align:center;outline:none;transition:border-color 0.2s}
+  .name-input::placeholder{color:rgba(255,255,255,0.25)}
+  .name-input:focus{border-color:#c8ff00}
+  .name-hint{font-size:11px;color:rgba(255,255,255,0.3);margin-top:5px;text-align:center}
+  .rules{background:rgba(200,255,0,0.06);border:1px solid rgba(200,255,0,0.12);border-radius:16px;padding:14px 16px;width:85%;margin-bottom:16px;font-size:13px;color:rgba(255,255,255,0.65);line-height:1.8;text-align:left}
+  .rules b{color:#c8ff00}
+  .btn{background:linear-gradient(135deg,#c8ff00,#7acc00);color:#0b1a0b;border:none;padding:14px 46px;font-size:16px;font-weight:900;font-family:'Noto Sans KR',sans-serif;border-radius:50px;cursor:pointer;box-shadow:0 4px 25px rgba(200,255,0,0.3);transition:transform 0.15s}
+  .btn:active{transform:scale(0.95)}
+  .btn-row{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;justify-content:center}
+  .btn-sm{padding:11px 26px;font-size:14px}
+  .btn-kakao{background:linear-gradient(135deg,#fee500,#f0d000);color:#3c1e1e}
+  .result-card{background:rgba(255,255,255,0.04);border:1px solid rgba(200,255,0,0.12);border-radius:20px;padding:18px;width:90%;margin-bottom:12px}
+  .big-time{font-family:'Orbitron',monospace;font-size:42px;font-weight:900;color:#fff;text-shadow:0 0 30px rgba(200,255,0,0.3)}
+  .big-time small{font-size:18px;color:rgba(255,255,255,0.5)}
+  .grade{font-size:20px;margin:4px 0 10px}
+  .stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;width:100%}
+  .stat-box{background:rgba(200,255,0,0.05);border-radius:12px;padding:10px 6px;text-align:center}
+  .stat-box .val{font-family:'Orbitron',monospace;font-size:14px;font-weight:700;color:#c8ff00}
+  .stat-box .lab{font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px}
+  .history-chart{width:100%;margin-top:12px;display:flex;align-items:flex-end;justify-content:center;gap:3px;height:50px}
+  .bar{width:16px;border-radius:4px 4px 0 0;position:relative}
+  .bar .bar-label{position:absolute;top:-14px;left:50%;transform:translateX(-50%);font-family:'Orbitron',monospace;font-size:7px;color:rgba(255,255,255,0.5);white-space:nowrap}
+  .ranking-card{background:rgba(255,255,255,0.04);border:1px solid rgba(200,255,0,0.12);border-radius:20px;padding:16px 16px;width:90%;margin-bottom:14px}
+  .ranking-title{font-size:14px;font-weight:900;color:#c8ff00;margin-bottom:10px;text-align:center}
+  .rank-row{display:flex;justify-content:space-between;align-items:center;padding:7px 4px;border-bottom:1px solid rgba(255,255,255,0.05);font-size:13px;color:rgba(255,255,255,0.75)}
+  .rank-row:last-child{border:none}
+  .rank-row.me{background:rgba(200,255,0,0.08);border-radius:8px;border-bottom:1px solid rgba(200,255,0,0.1)}
+  .rank-left{display:flex;align-items:center;gap:8px}
+  .rank-medal{font-size:18px;width:24px;text-align:center}
+  .rank-num{font-family:'Orbitron',monospace;font-size:12px;color:rgba(255,255,255,0.35);width:24px;text-align:center}
+  .rank-name{font-weight:700}
+  .rank-time{font-family:'Orbitron',monospace;font-size:13px;font-weight:700;color:#c8ff00}
+  .rank-date{font-size:10px;color:rgba(255,255,255,0.25);margin-left:4px}
+  .ranking-loading{text-align:center;font-size:12px;color:rgba(255,255,255,0.3);padding:14px}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="court"><div class="net-line"></div></div>
+  <div class="hud" id="hud" style="display:none;">
+    <div class="hud-item"><div class="hud-label">라운드</div><div class="hud-value round" id="hudRound">1/15</div></div>
+    <div class="hud-item"><div class="hud-label">평균</div><div class="hud-value time" id="hudAvg">---</div></div>
+    <div class="hud-item"><div class="hud-label">최고</div><div class="hud-value" id="hudBest">---</div></div>
+  </div>
+  <div class="game-area" id="gameArea"></div>
+
+  <!-- START -->
+  <div class="screen-overlay visible" id="startScreen">
+    <div class="logo-emoji">🎾</div>
+    <div class="game-title">서브 리턴!</div>
+    <div class="game-sub">영남테니스클럽 반응속도 테스트</div>
+    <div class="name-section">
+      <input type="text" class="name-input" id="nameInput" placeholder="이름 입력 (예: 홍길동)" maxlength="8">
+      <div class="name-hint">랭킹에 표시될 이름이에요</div>
+    </div>
+    <div class="ranking-card" style="width:85%">
+      <div class="ranking-title">🏆 클럽 랭킹 TOP 5</div>
+      <div id="startRankList"><div class="ranking-loading">불러오는 중...</div></div>
+    </div>
+    <div class="rules">
+      🟢 테니스공이 나타나면 <b>최대한 빨리</b> 터치!<br>
+      🟡 <b>골드볼</b> — 보너스 ×2<br>
+      🔴 <b>레드볼</b> — 누르면 감점! 참으세요<br>
+      ⏱️ 총 <b>15라운드</b>, 평균 반응속도 측정
+    </div>
+    <button class="btn" onclick="beginGame()">시작하기</button>
+  </div>
+
+  <!-- RESULT -->
+  <div class="screen-overlay" id="resultScreen">
+    <div class="logo-emoji" id="resultEmoji">🎾</div>
+    <div class="grade" id="gradeText"></div>
+    <div class="result-card">
+      <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:4px;">평균 반응속도</div>
+      <div class="big-time" id="avgResult">---<small>ms</small></div>
+      <div class="stats-grid" style="margin-top:12px;">
+        <div class="stat-box"><div class="val" id="statBest">-</div><div class="lab">최고</div></div>
+        <div class="stat-box"><div class="val" id="statHit">-</div><div class="lab">적중</div></div>
+        <div class="stat-box"><div class="val" id="statPenalty">-</div><div class="lab">감점</div></div>
+      </div>
+      <div class="history-chart" id="historyChart"></div>
+    </div>
+    <div class="ranking-card">
+      <div class="ranking-title">🏆 클럽 랭킹</div>
+      <div id="resultRankList"><div class="ranking-loading">불러오는 중...</div></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-sm" onclick="beginGame()">다시하기</button>
+      <button class="btn btn-sm btn-kakao" onclick="shareResult()">카톡 공유</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script>
+// ─── FIREBASE ───
+firebase.initializeApp({
+  apiKey:"AIzaSyAhJC21VhFB3girRgLgCMPW_xWp-qcy70M",
+  authDomain:"tennis-score-a3654.firebaseapp.com",
+  databaseURL:"https://tennis-score-a3654-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:"tennis-score-a3654",
+  storageBucket:"tennis-score-a3654.appspot.com"
+});
+const db=firebase.database();
+const rankRef=db.ref('serve-return/rankings');
+
+// ─── CONST ───
+const TOTAL=15, gameArea=document.getElementById('gameArea'), hud=document.getElementById('hud');
+let state='idle',round=0,results=[],penalties=0,ballTime=0,curTarget=null,waitTm=null,missTm=null;
+let playerName=localStorage.getItem('serveReturnName')||'';
+document.getElementById('nameInput').value=playerName;
+loadRankings('startRankList');
+
+// ─── FIREBASE RANKING ───
+function saveScore(name,avg,best,hits){
+  const key=name.replace(/[.#$/\[\]]/g,'_');
+  const entry={name,avg,best,hits,total:TOTAL,date:new Date().toISOString()};
+  rankRef.child(key).once('value').then(s=>{
+    const ex=s.val();
+    if(!ex||avg<ex.avg) rankRef.child(key).set(entry);
+  }).catch(()=>rankRef.child(key).set(entry));
+}
+
+function loadRankings(tid){
+  const c=document.getElementById(tid);
+  c.innerHTML='<div class="ranking-loading">불러오는 중...</div>';
+  rankRef.orderByChild('avg').limitToFirst(10).once('value').then(s=>{
+    const d=s.val();
+    if(!d){c.innerHTML='<div class="ranking-loading">아직 기록이 없습니다. 첫 번째 도전자가 되세요!</div>';return;}
+    const entries=Object.values(d).sort((a,b)=>a.avg-b.avg);
+    const medals=['🥇','🥈','🥉'];
+    const me=document.getElementById('nameInput').value.trim()||playerName;
+    c.innerHTML='';
+    entries.forEach((e,i)=>{
+      const isMe=e.name===me;
+      const row=document.createElement('div');
+      row.className='rank-row'+(isMe?' me':'');
+      const ds=e.date?new Date(e.date).toLocaleDateString('ko-KR',{month:'short',day:'numeric'}):'';
+      row.innerHTML=`<div class="rank-left">${i<3?`<span class="rank-medal">${medals[i]}</span>`:`<span class="rank-num">${i+1}</span>`}<span class="rank-name">${e.name}${isMe?' 👈':''}</span></div><div><span class="rank-time">${e.avg}ms</span><span class="rank-date">${ds}</span></div>`;
+      c.appendChild(row);
+    });
+  }).catch(()=>{c.innerHTML='<div class="ranking-loading">오프라인 모드</div>';});
+}
+
+// ─── INPUT ───
+gameArea.addEventListener('pointerdown',e=>{e.preventDefault();if(state==='waiting')falseStart();});
+
+function beginGame(){
+  const ni=document.getElementById('nameInput');
+  playerName=ni.value.trim();
+  if(!playerName){ni.style.borderColor='#ff4444';ni.focus();ni.placeholder='이름을 입력해주세요!';setTimeout(()=>{ni.style.borderColor='rgba(200,255,0,0.3)';},1500);return;}
+  localStorage.setItem('serveReturnName',playerName);
+  document.getElementById('startScreen').classList.remove('visible');
+  document.getElementById('resultScreen').classList.remove('visible');
+  round=0;results=[];penalties=0;
+  hud.style.display='flex';updateHUD();countdown(3);
+}
+
+function countdown(n){
+  if(n===0){startRound();return;}
+  const el=document.createElement('div');el.className='countdown';
+  el.innerHTML=`<div><div class="countdown-num">${n}</div><div class="ready-text">준비하세요</div></div>`;
+  gameArea.appendChild(el);
+  setTimeout(()=>{el.remove();countdown(n-1);},700);
+}
+
+function startRound(){
+  round++;updateHUD();
+  if(round>TOTAL){showResult();return;}
+  state='waiting';
+  const p=document.createElement('div');p.className='wait-ring';p.id='waitPulse';
+  p.innerHTML='<div class="pulse"></div>';gameArea.appendChild(p);
+  const delay=800+Math.random()*2200;
+  waitTm=setTimeout(()=>{const pp=document.getElementById('waitPulse');if(pp)pp.remove();spawnTarget();},delay);
+}
+
+function spawnTarget(){
+  state='active';
+  const r=Math.random();let type='normal';
+  if(r<0.13)type='red';else if(r<0.26)type='gold';
+  const aw=gameArea.clientWidth,ah=gameArea.clientHeight,m=60;
+  const x=m+Math.random()*(aw-m*2-72),y=m+60+Math.random()*(ah-m*2-72-120);
+  const t=document.createElement('div');t.className=`target ${type}`;
+  t.style.left=x+'px';t.style.top=y+'px';t.dataset.type=type;
+  let lb='';
+  if(type==='gold')lb='<div class="target-label">BONUS ×2</div>';
+  if(type==='red')lb='<div class="target-label" style="color:#ff4444">TRAP!</div>';
+  t.innerHTML=`${lb}<div class="target-ball"></div>`;
+  t.addEventListener('pointerdown',e=>{e.stopPropagation();hitTarget(t);});
+  gameArea.appendChild(t);curTarget=t;ballTime=performance.now();
+  t.offsetHeight;t.classList.add('active');
+  missTm=setTimeout(()=>{if(state==='active')missTarget();},2000);
+}
+
+function hitTarget(t){
+  if(state!=='active')return;clearTimeout(missTm);
+  const rt=Math.round(performance.now()-ballTime),type=t.dataset.type;
+  const rc=t.getBoundingClientRect(),ar=gameArea.getBoundingClientRect();
+  const cx=rc.left-ar.left+rc.width/2,cy=rc.top-ar.top+rc.height/2;
+  const rp=document.createElement('div');rp.className='ripple';rp.style.left=cx+'px';rp.style.top=cy+'px';
+  gameArea.appendChild(rp);setTimeout(()=>rp.remove(),500);
+  if(type==='red'){
+    penalties++;t.classList.add('hit');showPopup(cx,cy,'감점!','slow');flashFS('TRAP! 🔴');
+    setTimeout(()=>{t.remove();curTarget=null;state='idle';setTimeout(startRound,600);},250);return;
+  }
+  let drt=rt;if(type==='gold')drt=Math.round(rt*0.5);
+  results.push(drt);
+  let g='slow';if(rt<250)g='fast';else if(rt<400)g='medium';
+  const lb=type==='gold'?`${rt}→${drt}ms ★`:`${rt}ms`;
+  showPopup(cx,cy,lb,g);
+  t.classList.add('hit');
+  setTimeout(()=>{t.remove();curTarget=null;state='idle';updateHUD();setTimeout(startRound,400);},200);
+}
+
+function missTarget(){
+  if(!curTarget)return;results.push(2000);curTarget.classList.remove('active');
+  setTimeout(()=>{if(curTarget)curTarget.remove();curTarget=null;state='idle';updateHUD();
+    const p=document.createElement('div');p.className='rt-popup slow';p.style.left='50%';p.style.top='45%';p.style.transform='translateX(-50%)';p.innerText='MISS!';
+    gameArea.appendChild(p);setTimeout(()=>p.remove(),700);setTimeout(startRound,400);
+  },150);
+}
+
+function falseStart(){
+  clearTimeout(waitTm);const p=document.getElementById('waitPulse');if(p)p.remove();
+  penalties++;flashFS('너무 빨라요! ⚡');state='idle';setTimeout(startRound,800);
+}
+
+function flashFS(txt){
+  const el=document.createElement('div');el.className='false-start';el.innerHTML=`<span>${txt}</span>`;
+  gameArea.appendChild(el);setTimeout(()=>el.remove(),500);
+}
+
+function showPopup(x,y,txt,g){
+  const p=document.createElement('div');p.className=`rt-popup ${g}`;p.style.left=x+'px';p.style.top=(y-40)+'px';p.style.transform='translateX(-50%)';p.innerText=txt;
+  gameArea.appendChild(p);setTimeout(()=>p.remove(),700);
+}
+
+function updateHUD(){
+  document.getElementById('hudRound').innerText=`${Math.min(round,TOTAL)}/${TOTAL}`;
+  if(results.length>0){
+    const v=results.filter(r=>r<2000);
+    const avg=v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length):'---';
+    const best=v.length?Math.min(...v):'---';
+    document.getElementById('hudAvg').innerText=avg==='---'?avg:avg+'ms';
+    document.getElementById('hudBest').innerText=best==='---'?best:best+'ms';
+  }
+}
+
+function showResult(){
+  hud.style.display='none';state='result';
+  const v=results.filter(r=>r<2000);
+  const avg=v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length):9999;
+  const best=v.length?Math.min(...v):9999;
+  let grade,emoji;
+  if(avg<200){grade='⚡ 프로 선수급!';emoji='🏆';}
+  else if(avg<280){grade='🔥 엘리트 반사신경!';emoji='🥇';}
+  else if(avg<350){grade='💪 빠른 편이에요!';emoji='🥈';}
+  else if(avg<450){grade='👍 평균 수준이에요';emoji='🥉';}
+  else if(avg<600){grade='🐢 조금 느려요~';emoji='🎾';}
+  else{grade='😴 눈 좀 깜빡이셨나요?';emoji='😅';}
+
+  document.getElementById('resultEmoji').innerText=emoji;
+  document.getElementById('gradeText').innerText=grade;
+  document.getElementById('avgResult').innerHTML=`${avg}<small>ms</small>`;
+  document.getElementById('statBest').innerText=best<9999?best+'ms':'-';
+  document.getElementById('statHit').innerText=`${v.length}/${TOTAL}`;
+  document.getElementById('statPenalty').innerText=penalties>0?`-${penalties}`:'0';
+
+  const ch=document.getElementById('historyChart');ch.innerHTML='';
+  const mx=Math.max(...results,500);
+  results.forEach(rt=>{
+    const bar=document.createElement('div');bar.className='bar';
+    const h=Math.max(4,(Math.min(rt,800)/mx)*50);bar.style.height=h+'px';
+    let col;if(rt>=2000)col='rgba(255,68,68,0.6)';else if(rt<250)col='rgba(127,255,127,0.7)';else if(rt<400)col='rgba(255,215,0,0.7)';else col='rgba(255,136,68,0.7)';
+    bar.style.background=col;
+    const lb=document.createElement('div');lb.className='bar-label';lb.innerText=rt>=2000?'X':rt;
+    bar.appendChild(lb);ch.appendChild(bar);
+  });
+
+  if(v.length>0)saveScore(playerName,avg,best,v.length);
+  setTimeout(()=>loadRankings('resultRankList'),500);
+  document.getElementById('resultScreen').classList.add('visible');
+}
+
+function shareResult(){
+  const v=results.filter(r=>r<2000);
+  const avg=v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length):'---';
+  const best=v.length?Math.min(...v):'---';
+  let grade;
+  if(avg<200)grade='⚡ 프로 선수급!';else if(avg<280)grade='🔥 엘리트 반사신경!';
+  else if(avg<350)grade='💪 빠른 편이에요!';else if(avg<450)grade='👍 평균 수준';
+  else if(avg<600)grade='🐢 조금 느려요~';else grade='😴 졸았나...?';
+
+  const msg=`🎾 서브 리턴! 반응속도 테스트 🎾\n\n👤 ${playerName}\n⏱ 평균: ${avg}ms\n⚡ 최고: ${best}ms\n🎯 적중: ${v.length}/${TOTAL}\n${grade}\n\n영남테니스클럽 회원들~\n내 반응속도 이겨봐! 😎\n\n▶ 도전: https://hoons9096-cloud.github.io/Tennis-invite/serve-return.html`;
+
+  if(navigator.share){navigator.share({title:'서브 리턴!',text:msg}).catch(()=>{});}
+  else{navigator.clipboard.writeText(msg).then(()=>{alert('결과가 복사되었습니다!\n카카오톡에 붙여넣기 하세요 📋');});}
+}
+</script>
+</body>
+</html>
