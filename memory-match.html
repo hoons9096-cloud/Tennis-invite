@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🃏 기억력 매치! - 영남테니스클럽</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Orbitron:wght@700;900&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#0c1e0c;display:flex;justify-content:center;align-items:center;min-height:100dvh;font-family:'Noto Sans KR',sans-serif;overflow:hidden;touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none}
+  #app{position:relative;width:100%;max-width:420px;height:100dvh;max-height:860px;overflow-y:auto;overflow-x:hidden;background:linear-gradient(180deg,#0c1e0c 0%,#153015 50%,#0c1e0c 100%)}
+  .hud{position:sticky;top:0;left:0;right:0;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;z-index:10;background:rgba(12,30,12,0.95);backdrop-filter:blur(8px);border-bottom:1px solid rgba(200,255,0,0.1)}
+  .hud-item{text-align:center;flex:1}
+  .hud-label{font-size:9px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:1px}
+  .hud-value{font-family:'Orbitron',monospace;font-size:18px;font-weight:900;color:#fff}
+  .hud-value.time{color:#ffd700}
+  .hud-value.moves{color:#c8ff00}
+  .hud-value.pairs{color:#7fff7f}
+  .card-grid{display:grid;gap:8px;padding:14px;max-width:380px;margin:0 auto}
+  .card{aspect-ratio:3/4;perspective:800px;cursor:pointer}
+  .card-inner{position:relative;width:100%;height:100%;transition:transform 0.4s cubic-bezier(0.4,0,0.2,1);transform-style:preserve-3d}
+  .card.flipped .card-inner,.card.matched .card-inner{transform:rotateY(180deg)}
+  .card.matched{animation:matchPop 0.4s ease-out}
+  @keyframes matchPop{0%{transform:scale(1)}50%{transform:scale(1.08)}100%{transform:scale(1)}}
+  .card-face{position:absolute;inset:0;border-radius:12px;backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .card-front{background:linear-gradient(145deg,rgba(200,255,0,0.08),rgba(200,255,0,0.02));border:2px solid rgba(200,255,0,0.2);box-shadow:0 2px 12px rgba(0,0,0,0.3)}
+  .card-front::after{content:'🎾';font-size:22px;opacity:0.35}
+  .card-back{transform:rotateY(180deg);background:linear-gradient(145deg,rgba(255,255,255,0.1),rgba(255,255,255,0.03));border:2px solid rgba(200,255,0,0.35);box-shadow:0 2px 15px rgba(200,255,0,0.1)}
+  .card.matched .card-back{border-color:rgba(127,255,127,0.5);box-shadow:0 0 20px rgba(127,255,127,0.15)}
+  .card-emoji{font-size:34px;line-height:1}
+  .card-label{font-size:8px;color:rgba(255,255,255,0.35);margin-top:4px;font-weight:700}
+  .screen-overlay{position:fixed;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:36px;z-index:50;background:rgba(8,20,8,0.92);backdrop-filter:blur(8px);padding-left:24px;padding-right:24px;padding-bottom:30px;opacity:0;pointer-events:none;transition:opacity 0.3s;overflow-y:auto}
+  .screen-overlay.visible{opacity:1;pointer-events:auto}
+  .logo-emoji{font-size:46px;margin-bottom:4px}
+  .game-title{font-family:'Orbitron',monospace;font-size:22px;font-weight:900;color:#c8ff00;text-shadow:0 0 25px rgba(200,255,0,0.4);margin-bottom:2px}
+  .game-sub{font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:14px}
+  .name-section{width:85%;margin-bottom:12px}
+  .name-input{width:100%;padding:11px 16px;font-size:16px;font-weight:700;font-family:'Noto Sans KR',sans-serif;border:2px solid rgba(200,255,0,0.3);border-radius:14px;background:rgba(200,255,0,0.06);color:#fff;text-align:center;outline:none;transition:border-color 0.2s}
+  .name-input::placeholder{color:rgba(255,255,255,0.25)}
+  .name-input:focus{border-color:#c8ff00}
+  .name-hint{font-size:10px;color:rgba(255,255,255,0.3);margin-top:4px;text-align:center}
+  .diff-section{width:85%;margin-bottom:14px}
+  .diff-title{font-size:11px;color:rgba(255,255,255,0.45);margin-bottom:8px;text-align:center}
+  .diff-btns{display:flex;gap:8px;justify-content:center}
+  .diff-btn{flex:1;padding:10px 6px;border:2px solid rgba(200,255,0,0.15);border-radius:12px;background:rgba(200,255,0,0.04);color:rgba(255,255,255,0.6);font-size:12px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer;text-align:center;transition:all 0.2s}
+  .diff-btn.selected{border-color:#c8ff00;background:rgba(200,255,0,0.12);color:#c8ff00}
+  .diff-btn:active{transform:scale(0.96)}
+  .diff-btn div:first-child{font-size:18px;margin-bottom:1px}
+  .diff-btn div:last-child{font-size:9px;opacity:0.6}
+  .rules{background:rgba(200,255,0,0.06);border:1px solid rgba(200,255,0,0.12);border-radius:14px;padding:12px 14px;width:85%;margin-bottom:14px;font-size:12px;color:rgba(255,255,255,0.55);line-height:1.7;text-align:left}
+  .rules b{color:#c8ff00}
+  .btn{background:linear-gradient(135deg,#c8ff00,#7acc00);color:#0b1a0b;border:none;padding:13px 44px;font-size:16px;font-weight:900;font-family:'Noto Sans KR',sans-serif;border-radius:50px;cursor:pointer;box-shadow:0 4px 25px rgba(200,255,0,0.3);transition:transform 0.15s}
+  .btn:active{transform:scale(0.95)}
+  .btn-row{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;justify-content:center}
+  .btn-sm{padding:11px 24px;font-size:14px}
+  .btn-kakao{background:linear-gradient(135deg,#fee500,#f0d000);color:#3c1e1e}
+  .result-card{background:rgba(255,255,255,0.04);border:1px solid rgba(200,255,0,0.12);border-radius:20px;padding:16px;width:90%;margin-bottom:12px;text-align:center}
+  .big-time{font-family:'Orbitron',monospace;font-size:40px;font-weight:900;color:#fff;text-shadow:0 0 25px rgba(200,255,0,0.3)}
+  .big-time small{font-size:16px;color:rgba(255,255,255,0.5)}
+  .grade{font-size:18px;margin:4px 0 8px}
+  .stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;width:100%;margin-top:10px}
+  .stat-box{background:rgba(200,255,0,0.05);border-radius:12px;padding:9px 4px;text-align:center}
+  .stat-box .val{font-family:'Orbitron',monospace;font-size:13px;font-weight:700;color:#c8ff00}
+  .stat-box .lab{font-size:9px;color:rgba(255,255,255,0.4);margin-top:2px}
+  .ranking-card{background:rgba(255,255,255,0.04);border:1px solid rgba(200,255,0,0.12);border-radius:20px;padding:14px;width:90%;margin-bottom:12px}
+  .ranking-title{font-size:13px;font-weight:900;color:#c8ff00;margin-bottom:8px;text-align:center}
+  .rank-row{display:flex;justify-content:space-between;align-items:center;padding:6px 4px;border-bottom:1px solid rgba(255,255,255,0.05);font-size:12px;color:rgba(255,255,255,0.7)}
+  .rank-row:last-child{border:none}
+  .rank-row.me{background:rgba(200,255,0,0.08);border-radius:8px}
+  .rank-left{display:flex;align-items:center;gap:6px}
+  .rank-medal{font-size:16px;width:22px;text-align:center}
+  .rank-num{font-family:'Orbitron',monospace;font-size:10px;color:rgba(255,255,255,0.3);width:22px;text-align:center}
+  .rank-name{font-weight:700}
+  .rank-time{font-family:'Orbitron',monospace;font-size:12px;font-weight:700;color:#c8ff00}
+  .rank-date{font-size:9px;color:rgba(255,255,255,0.2);margin-left:3px}
+  .ranking-loading{text-align:center;font-size:11px;color:rgba(255,255,255,0.3);padding:10px}
+  .match-flash{position:fixed;inset:0;background:rgba(200,255,0,0.08);z-index:30;pointer-events:none;animation:mflash 0.3s ease-out forwards}
+  @keyframes mflash{0%{opacity:1}100%{opacity:0}}
+  .combo-float{position:fixed;left:50%;top:40%;transform:translateX(-50%);font-family:'Orbitron',monospace;font-size:18px;font-weight:900;color:#ffd700;text-shadow:0 0 15px rgba(255,215,0,0.6);z-index:35;pointer-events:none;animation:cfloat 0.8s ease-out forwards}
+  @keyframes cfloat{0%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}100%{opacity:0;transform:translateX(-50%) translateY(-50px) scale(1.3)}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="hud" id="hud" style="display:none">
+    <div class="hud-item"><div class="hud-label">시간</div><div class="hud-value time" id="hudTime">0:00</div></div>
+    <div class="hud-item"><div class="hud-label">시도</div><div class="hud-value moves" id="hudMoves">0</div></div>
+    <div class="hud-item"><div class="hud-label">짝</div><div class="hud-value pairs" id="hudPairs">0/8</div></div>
+  </div>
+  <div class="card-grid" id="cardGrid"></div>
+
+  <div class="screen-overlay visible" id="startScreen">
+    <div class="logo-emoji">🃏</div>
+    <div class="game-title">기억력 매치!</div>
+    <div class="game-sub">영남테니스클럽 두뇌 트레이닝</div>
+    <div class="name-section">
+      <input type="text" class="name-input" id="nameInput" placeholder="이름 입력 (예: 홍길동)" maxlength="8">
+      <div class="name-hint">랭킹에 표시될 이름이에요</div>
+    </div>
+    <div class="diff-section">
+      <div class="diff-title">난이도 선택</div>
+      <div class="diff-btns">
+        <button class="diff-btn" data-diff="easy" onclick="selectDiff('easy')"><div>😊</div><div>쉬움</div><div>4×3</div></button>
+        <button class="diff-btn selected" data-diff="normal" onclick="selectDiff('normal')"><div>💪</div><div>보통</div><div>4×4</div></button>
+        <button class="diff-btn" data-diff="hard" onclick="selectDiff('hard')"><div>🔥</div><div>어려움</div><div>4×5</div></button>
+      </div>
+    </div>
+    <div class="ranking-card" style="width:85%">
+      <div class="ranking-title">🏆 클럽 랭킹 TOP 5</div>
+      <div id="startRankList"><div class="ranking-loading">불러오는 중...</div></div>
+    </div>
+    <div class="rules">
+      🃏 카드를 뒤집어 <b>같은 짝</b>을 찾으세요<br>
+      ⏱️ <b>빠른 시간 + 적은 시도</b> = 높은 점수<br>
+      🔥 연속 매치 시 <b>콤보 보너스!</b><br>
+      🧠 기억력 훈련에 <b>최고!</b>
+    </div>
+    <button class="btn" onclick="beginGame()">시작하기</button>
+  </div>
+
+  <div class="screen-overlay" id="resultScreen">
+    <div class="logo-emoji" id="resultEmoji">🎉</div>
+    <div class="grade" id="gradeText"></div>
+    <div class="result-card">
+      <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:4px;">점수</div>
+      <div class="big-time" id="finalScore">0<small>점</small></div>
+      <div class="stats-grid">
+        <div class="stat-box"><div class="val" id="statTime">-</div><div class="lab">시간</div></div>
+        <div class="stat-box"><div class="val" id="statMoves">-</div><div class="lab">시도</div></div>
+        <div class="stat-box"><div class="val" id="statCombo">-</div><div class="lab">최대콤보</div></div>
+      </div>
+    </div>
+    <div class="ranking-card">
+      <div class="ranking-title">🏆 클럽 랭킹</div>
+      <div id="resultRankList"><div class="ranking-loading">불러오는 중...</div></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-sm" onclick="goHome()">홈으로</button>
+      <button class="btn btn-sm btn-kakao" onclick="shareResult()">카톡 공유</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script>
+var db=null,fbOK=false;
+try{
+  firebase.initializeApp({apiKey:"AIzaSyAhJC21VhFB3girRgLgCMPW_xWp-qcy70M",authDomain:"tennis-score-a3654.firebaseapp.com",databaseURL:"https://tennis-score-a3654-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"tennis-score-a3654",storageBucket:"tennis-score-a3654.appspot.com"});
+  db=firebase.database();fbOK=true;
+}catch(e){}
+function getRankRef(d){return fbOK?db.ref('memory-match/rankings/'+d):null;}
+
+var ITEMS=[
+  {emoji:'🎾',label:'테니스공'},{emoji:'🏸',label:'라켓'},{emoji:'👟',label:'테니스화'},
+  {emoji:'🧢',label:'모자'},{emoji:'💪',label:'손목밴드'},{emoji:'🏆',label:'트로피'},
+  {emoji:'🥇',label:'금메달'},{emoji:'⭐',label:'스타'},{emoji:'🔥',label:'파이어'},
+  {emoji:'🎯',label:'에이스'}
+];
+var difficulty='normal',cards=[],flipped=[],matched=[];
+var moves=0,combo=0,maxCombo=0,pairsFound=0,totalPairs=0;
+var timer=null,startTime=0,elapsed=0,playerName='',locked=false;
+var DCFG={easy:{cols:4,rows:3,pairs:6},normal:{cols:4,rows:4,pairs:8},hard:{cols:4,rows:5,pairs:10}};
+
+playerName=localStorage.getItem('memoryMatchName')||'';
+document.getElementById('nameInput').value=playerName;
+
+function selectDiff(d){
+  difficulty=d;
+  document.querySelectorAll('.diff-btn').forEach(function(b){b.classList.toggle('selected',b.dataset.diff===d);});
+  loadRankings('startRankList');
+}
+
+function saveScore(name,score,time,mv,diff){
+  var key=name.replace(/[.#$/\[\]]/g,'_');
+  var entry={name:name,score:score,time:time,moves:mv,diff:diff,date:new Date().toISOString()};
+  try{var lo=JSON.parse(localStorage.getItem('memoryRank_'+diff)||'{}');if(!lo[key]||score>lo[key].score)lo[key]=entry;localStorage.setItem('memoryRank_'+diff,JSON.stringify(lo));}catch(e){}
+  var ref=getRankRef(diff);if(!ref)return;
+  ref.child(key).once('value').then(function(s){var ex=s.val();if(!ex||score>ex.score)ref.child(key).set(entry);}).catch(function(){});
+}
+
+function loadRankings(tid){
+  var c=document.getElementById(tid);
+  c.innerHTML='<div class="ranking-loading">불러오는 중...</div>';
+  var ref=getRankRef(difficulty);
+  function render(entries){
+    if(!entries||entries.length===0){c.innerHTML='<div class="ranking-loading">아직 기록이 없습니다!</div>';return;}
+    entries.sort(function(a,b){return b.score-a.score;});
+    var medals=['🥇','🥈','🥉'],me=document.getElementById('nameInput').value.trim()||playerName;
+    c.innerHTML='';
+    entries.slice(0,10).forEach(function(e,i){
+      var isMe=e.name===me,row=document.createElement('div');
+      row.className='rank-row'+(isMe?' me':'');
+      var ds=e.date?new Date(e.date).toLocaleDateString('ko-KR',{month:'short',day:'numeric'}):'';
+      row.innerHTML='<div class="rank-left">'+(i<3?'<span class="rank-medal">'+medals[i]+'</span>':'<span class="rank-num">'+(i+1)+'</span>')+'<span class="rank-name">'+e.name+(isMe?' 👈':'')+'</span></div><div><span class="rank-time">'+e.score+'점</span><span class="rank-date">'+ds+'</span></div>';
+      c.appendChild(row);
+    });
+  }
+  function tryLocal(){try{render(Object.values(JSON.parse(localStorage.getItem('memoryRank_'+difficulty)||'{}')));}catch(e){c.innerHTML='<div class="ranking-loading">오프라인 모드</div>';}}
+  if(ref){ref.orderByChild('score').limitToLast(10).once('value').then(function(s){var d=s.val();if(!d){tryLocal();return;}render(Object.values(d));}).catch(tryLocal);}else{tryLocal();}
+}
+loadRankings('startRankList');
+
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+
+function beginGame(){
+  var ni=document.getElementById('nameInput');playerName=ni.value.trim();
+  if(!playerName){ni.style.borderColor='#ff4444';ni.focus();ni.placeholder='이름을 입력해주세요!';setTimeout(function(){ni.style.borderColor='rgba(200,255,0,0.3)';},1500);return;}
+  localStorage.setItem('memoryMatchName',playerName);
+  var cfg=DCFG[difficulty];totalPairs=cfg.pairs;
+  var items=shuffle(ITEMS.slice()).slice(0,totalPairs);
+  var pairs=items.concat(items.slice());cards=shuffle(pairs);
+  flipped=[];matched=[];moves=0;combo=0;maxCombo=0;pairsFound=0;elapsed=0;locked=false;
+  document.getElementById('startScreen').classList.remove('visible');
+  document.getElementById('resultScreen').classList.remove('visible');
+  document.getElementById('hud').style.display='flex';
+  updateHUD();renderCards(cfg);
+  // Preview
+  var allC=document.querySelectorAll('.card');
+  allC.forEach(function(c){c.classList.add('flipped');});
+  locked=true;
+  setTimeout(function(){
+    allC.forEach(function(c){c.classList.remove('flipped');});
+    locked=false;startTime=Date.now();
+    timer=setInterval(function(){elapsed=Math.floor((Date.now()-startTime)/1000);document.getElementById('hudTime').innerText=formatTime(elapsed);},200);
+  },1500);
+}
+
+function renderCards(cfg){
+  var grid=document.getElementById('cardGrid');
+  grid.style.gridTemplateColumns='repeat('+cfg.cols+',1fr)';grid.innerHTML='';
+  cards.forEach(function(item,i){
+    var card=document.createElement('div');card.className='card';card.dataset.idx=i;
+    card.innerHTML='<div class="card-inner"><div class="card-face card-front"></div><div class="card-face card-back"><span class="card-emoji">'+item.emoji+'</span><div class="card-label">'+item.label+'</div></div></div>';
+    card.addEventListener('click',function(){flipCard(i);});
+    grid.appendChild(card);
+  });
+}
+
+function flipCard(idx){
+  if(locked)return;
+  var cardEl=document.querySelectorAll('.card')[idx];
+  if(!cardEl||cardEl.classList.contains('flipped')||cardEl.classList.contains('matched'))return;
+  cardEl.classList.add('flipped');flipped.push(idx);
+  if(flipped.length===2){
+    moves++;locked=true;
+    var a=flipped[0],b=flipped[1];
+    if(cards[a].emoji===cards[b].emoji){
+      combo++;if(combo>maxCombo)maxCombo=combo;pairsFound++;
+      setTimeout(function(){
+        document.querySelectorAll('.card')[a].classList.add('matched');
+        document.querySelectorAll('.card')[b].classList.add('matched');
+        var fl=document.createElement('div');fl.className='match-flash';document.body.appendChild(fl);setTimeout(function(){fl.remove();},300);
+        if(combo>=2){var ct=document.createElement('div');ct.className='combo-float';ct.innerText=combo>=4?combo+'x COMBO! 🔥🔥':combo>=3?combo+'x COMBO! 🔥':combo+'x COMBO!';document.body.appendChild(ct);setTimeout(function(){ct.remove();},800);}
+        flipped=[];locked=false;updateHUD();
+        if(pairsFound===totalPairs){clearInterval(timer);setTimeout(showResult,500);}
+      },300);
+    }else{
+      combo=0;
+      setTimeout(function(){
+        document.querySelectorAll('.card')[a].classList.remove('flipped');
+        document.querySelectorAll('.card')[b].classList.remove('flipped');
+        flipped=[];locked=false;
+      },700);
+    }
+    updateHUD();
+  }
+}
+
+function updateHUD(){document.getElementById('hudMoves').innerText=moves;document.getElementById('hudPairs').innerText=pairsFound+'/'+totalPairs;}
+function formatTime(s){return Math.floor(s/60)+':'+(s%60).toString().padStart(2,'0');}
+
+function calcScore(time,mv,pairs,mc){
+  var ts=Math.max(0,Math.round(pairs*100-time*2));
+  var ms=Math.max(0,Math.round((pairs*3-mv)*15));
+  var cb=mc*20;
+  var dm=difficulty==='easy'?0.8:difficulty==='hard'?1.3:1.0;
+  return Math.round((ts+ms+cb)*dm);
+}
+
+function showResult(){
+  document.getElementById('hud').style.display='none';
+  var score=calcScore(elapsed,moves,totalPairs,maxCombo);
+  var grade,emoji;
+  if(score>=800){grade='🧠 천재급 기억력!';emoji='🏆';}
+  else if(score>=600){grade='🔥 뛰어난 기억력!';emoji='🥇';}
+  else if(score>=400){grade='💪 좋은 기억력!';emoji='🥈';}
+  else if(score>=200){grade='👍 괜찮아요!';emoji='🥉';}
+  else{grade='🤔 다시 도전!';emoji='💪';}
+  document.getElementById('resultEmoji').innerText=emoji;
+  document.getElementById('gradeText').innerText=grade;
+  document.getElementById('finalScore').innerHTML=score+'<small>점</small>';
+  document.getElementById('statTime').innerText=formatTime(elapsed);
+  document.getElementById('statMoves').innerText=moves+'회';
+  document.getElementById('statCombo').innerText=maxCombo+'x';
+  saveScore(playerName,score,elapsed,moves,difficulty);
+  setTimeout(function(){loadRankings('resultRankList');},500);
+  document.getElementById('resultScreen').classList.add('visible');
+}
+
+function goHome(){
+  document.getElementById('resultScreen').classList.remove('visible');
+  document.getElementById('cardGrid').innerHTML='';
+  loadRankings('startRankList');
+  document.getElementById('startScreen').classList.add('visible');
+}
+
+function shareResult(){
+  var score=calcScore(elapsed,moves,totalPairs,maxCombo);
+  var dl=difficulty==='easy'?'쉬움':difficulty==='hard'?'어려움':'보통';
+  var msg='🃏 테니스 기억력 매치! 🃏\n\n👤 '+playerName+'\n🏅 점수: '+score+'점 ('+dl+')\n⏱ 시간: '+formatTime(elapsed)+'\n🃏 시도: '+moves+'회\n🔥 최대콤보: '+maxCombo+'x\n\n영남테니스클럽 회원들~\n내 기억력 이겨봐! 🧠\n\n▶ 도전: https://hoons9096-cloud.github.io/Tennis-invite/memory-match.html';
+  if(navigator.share){navigator.share({title:'기억력 매치!',text:msg}).catch(function(){});}
+  else{navigator.clipboard.writeText(msg).then(function(){alert('결과가 복사되었습니다!\n카카오톡에 붙여넣기 하세요 📋');});}
+}
+</script>
+</body>
+</html>
