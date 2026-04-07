@@ -256,6 +256,7 @@ var teamsRef = db.ref('teams');
 
 var events = ['남복','혼복','여복'];
 var allTeams = []; // populated from Firebase
+var teamGroups = {}; // {팀명: 'A' or 'B'}
 var completedSlots = {}; // {court1: [1,3], court2: [2]} - 완료된 슬롯 추적
 var latestCourtsData = null; // 마지막 코트 데이터 캐시
 
@@ -336,16 +337,19 @@ function teamSelectOptions(selectedValue){
 teamsRef.on('value',function(snap){
   var data = snap.val();
   allTeams = [];
+  teamGroups = {};
   var displayHtml = '';
   if(data){
     if(data.A){
       var aTeams = Object.values(data.A);
       allTeams = allTeams.concat(aTeams);
+      aTeams.forEach(function(t){ teamGroups[t]='A'; });
       displayHtml += '<span style="color:#D2FF4E;font-weight:700">A조:</span> '+aTeams.join(', ')+'<br>';
     }
     if(data.B){
       var bTeams = Object.values(data.B);
       allTeams = allTeams.concat(bTeams);
+      bTeams.forEach(function(t){ teamGroups[t]='B'; });
       displayHtml += '<span style="color:#D2FF4E;font-weight:700">B조:</span> '+bTeams.join(', ');
     }
   }
@@ -399,6 +403,22 @@ function resetAll(){
   toast('전체 리셋 완료');
 }
 
+function validateAndUpdate(courtId, field, value, selectEl){
+  courtsRef.child(courtId).once('value',function(snap){
+    var d=snap.val()||{};
+    var otherTeam = field==='teamA' ? d.teamB : d.teamA;
+    if(value && otherTeam && value===otherTeam){
+      toast('⚠️ 같은 팀은 선택할 수 없습니다');
+      selectEl.value=''; return;
+    }
+    if(value && otherTeam && teamGroups[value] && teamGroups[otherTeam] && teamGroups[value]!==teamGroups[otherTeam]){
+      toast('⚠️ 다른 조 팀과는 경기할 수 없습니다 ('+teamGroups[value]+'조 vs '+teamGroups[otherTeam]+'조)');
+      selectEl.value=''; return;
+    }
+    updateCourt(courtId, field, value);
+  });
+}
+
 function updateCourt(courtId, field, value){
   courtsRef.child(courtId).child(field).set(value);
 }
@@ -418,6 +438,18 @@ function startMatch(courtId){
       toast('이미 진행 중인 경기입니다');
       return;
     }
+    if(!d.teamA||!d.teamB){
+      toast('⚠️ 두 팀을 모두 선택해주세요');
+      return;
+    }
+    if(d.teamA===d.teamB){
+      toast('⚠️ 같은 팀끼리는 경기할 수 없습니다');
+      return;
+    }
+    if(teamGroups[d.teamA]&&teamGroups[d.teamB]&&teamGroups[d.teamA]!==teamGroups[d.teamB]){
+      toast('⚠️ 다른 조 팀과는 경기할 수 없습니다 ('+teamGroups[d.teamA]+'조 vs '+teamGroups[d.teamB]+'조)');
+      return;
+    }
     courtsRef.child(courtId).update({status:'live',scoreA:0,scoreB:0});
     toast('경기 시작!');
   });
@@ -427,6 +459,18 @@ function finishMatch(courtId){
   courtsRef.child(courtId).once('value',function(snap){
     var d=snap.val();
     if(!d) return;
+    if(!d.teamA||!d.teamB){
+      toast('⚠️ 두 팀을 모두 선택해주세요');
+      return;
+    }
+    if(d.teamA===d.teamB){
+      toast('⚠️ 같은 팀끼리는 저장할 수 없습니다');
+      return;
+    }
+    if(teamGroups[d.teamA]&&teamGroups[d.teamB]&&teamGroups[d.teamA]!==teamGroups[d.teamB]){
+      toast('⚠️ 다른 조 팀 결과는 저장할 수 없습니다 ('+teamGroups[d.teamA]+'조 vs '+teamGroups[d.teamB]+'조)');
+      return;
+    }
     var tA=d.teamA, tB=d.teamB, grp=d.group, cName=d.name;
 
     // 이미 저장된 결과가 있는지 확인
@@ -516,7 +560,7 @@ function renderCourt(courtId, data){
     +'<div class="court-body">'
     // Team A
     +'<div class="team-row">'
-    +'<select class="team-name-input" onchange="updateCourt(\''+courtId+'\',\'teamA\',this.value)">'
+    +'<select class="team-name-input" onchange="validateAndUpdate(\''+courtId+'\',\'teamA\',this.value,this)">'
     +teamSelectOptions(data.teamA)
     +'</select>'
     +'<div class="score-controls">'
@@ -528,7 +572,7 @@ function renderCourt(courtId, data){
     +'<div class="vs-divider">VS</div>'
     // Team B
     +'<div class="team-row">'
-    +'<select class="team-name-input" onchange="updateCourt(\''+courtId+'\',\'teamB\',this.value)">'
+    +'<select class="team-name-input" onchange="validateAndUpdate(\''+courtId+'\',\'teamB\',this.value,this)">'
     +teamSelectOptions(data.teamB)
     +'</select>'
     +'<div class="score-controls">'
