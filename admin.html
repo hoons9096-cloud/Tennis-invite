@@ -450,6 +450,37 @@ function startMatch(courtId){
       toast('⚠️ 다른 조 팀과는 경기할 수 없습니다 ('+teamGroups[d.teamA]+'조 vs '+teamGroups[d.teamB]+'조)');
       return;
     }
+    // 이미 완료된 조합인지 확인
+    var matchedSlot=null;
+    for(var s=1;s<=8;s++){
+      var sd=SLOTS[s]&&SLOTS[s].courts[courtId];
+      if(!sd) continue;
+      var tm=(sd.teamA===d.teamA&&sd.teamB===d.teamB)||(sd.teamA===d.teamB&&sd.teamB===d.teamA);
+      var gm=(!sd.group||sd.group===d.group);
+      if(tm&&gm&&(completedSlots[courtId]||[]).indexOf(s)!==-1){
+        matchedSlot=s; break;
+      }
+    }
+    if(matchedSlot){
+      var slot=SLOTS[matchedSlot];
+      if(!confirm('⚠️ 이 경기는 슬롯 '+matchedSlot+' ('+slot.time+')에서 이미 완료된 기록이 있습니다.\n기존 결과를 삭제하고 다시 시작하시겠습니까?')) return;
+      // 기존 결과 삭제
+      var cName=d.name, tA=d.teamA, tB=d.teamB, grp=d.group;
+      resultsRef.once('value',function(rsnap){
+        var rdata=rsnap.val()||{};
+        Object.keys(rdata).forEach(function(key){
+          var r=rdata[key];
+          if(r.court===cName){
+            var tm=(r.teamA===tA&&r.teamB===tB)||(r.teamA===tB&&r.teamB===tA);
+            var gm=(!grp||grp===r.group);
+            if(tm&&gm) resultsRef.child(key).remove();
+          }
+        });
+        courtsRef.child(courtId).update({status:'live',scoreA:0,scoreB:0});
+        toast('기존 결과 삭제 후 경기 시작!');
+      });
+      return;
+    }
     courtsRef.child(courtId).update({status:'live',scoreA:0,scoreB:0});
     toast('경기 시작!');
   });
