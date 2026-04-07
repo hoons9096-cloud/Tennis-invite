@@ -853,30 +853,44 @@ function applySlotToCourt(courtId, num){
 }
 
 function _doApplySlot(courtId, num, c, slot, isDone){
+  var courtName=courtId.replace('court','코트 ');
+  var tA=findTeam(c.teamA), tB=findTeam(c.teamB);
+
   if(isDone){
-    if(!confirm('슬롯 '+num+' ('+slot.time+') 기존 결과를 수정하시겠습니까?\n기존 결과가 삭제되고 코트에 다시 세팅됩니다.')) return;
-    // 기존 결과 찾아서 삭제
-    var courtName=courtId.replace('court','코트 ');
-    var tA=findTeam(c.teamA), tB=findTeam(c.teamB);
+    // 기존 결과 점수 먼저 조회 후 확인창에 표시
     resultsRef.once('value',function(snap){
       var data=snap.val()||{};
+      var existingKey=null, existingScore='';
       Object.keys(data).forEach(function(key){
         var r=data[key];
         if(r.court===courtName){
           var tm=(r.teamA===tA&&r.teamB===tB)||(r.teamA===tB&&r.teamB===tA);
           var gm=(!c.group||c.group===r.group);
-          if(tm&&gm) resultsRef.child(key).remove();
+          if(tm&&gm){ existingKey=key; existingScore=r.teamA+' '+r.scoreA+' : '+r.scoreB+' '+r.teamB; }
         }
       });
-    });
-  }
 
-  courtsRef.child(courtId).update({
-    teamA: findTeam(c.teamA), teamB: findTeam(c.teamB),
-    event: c.event, group: c.group,
-    scoreA: 0, scoreB: 0, status: 'waiting'
-  });
-  toast(courtId.replace('court','코트 ')+' → 슬롯 '+num+' ('+slot.time+') 세팅 완료!');
+      var msg='슬롯 '+num+' ('+slot.time+') 기존 결과를 수정하시겠습니까?\n\n'
+        +'📋 기존 결과: '+(existingScore||'정보 없음')+'\n\n'
+        +'확인 시 기존 결과가 삭제되고 코트가 다시 세팅됩니다.';
+
+      if(!confirm(msg)) return;
+
+      if(existingKey) resultsRef.child(existingKey).remove();
+
+      courtsRef.child(courtId).update({
+        teamA:tA, teamB:tB, event:c.event, group:c.group,
+        scoreA:0, scoreB:0, status:'waiting'
+      });
+      toast(courtName+' → 슬롯 '+num+' ('+slot.time+') 재세팅 완료!');
+    });
+  } else {
+    courtsRef.child(courtId).update({
+      teamA:tA, teamB:tB, event:c.event, group:c.group,
+      scoreA:0, scoreB:0, status:'waiting'
+    });
+    toast(courtName+' → 슬롯 '+num+' ('+slot.time+') 세팅 완료!');
+  }
 }
 
 // Init schedule grid based on courts count
