@@ -16,8 +16,8 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
 .header p{font-size:11px;color:#707075;margin-top:2px}
 
 /* Tabs */
-.tabs{display:flex;justify-content:center;gap:4px;padding:12px 16px;background:#0C0C0E;position:sticky;top:62px;z-index:99}
-.tab{padding:8px 24px;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid #2A2A30;color:#707075;transition:all .2s;background:transparent}
+.tabs{display:flex;justify-content:center;gap:4px;padding:12px 16px;background:#0C0C0E;position:sticky;top:62px;z-index:99;flex-wrap:wrap}
+.tab{padding:8px 18px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid #2A2A30;color:#707075;transition:all .2s;background:transparent;white-space:nowrap}
 .tab.active{background:#D2FF4E;color:#0C0C0E;border-color:#D2FF4E}
 
 .container{max-width:900px;margin:0 auto;padding:16px}
@@ -57,27 +57,14 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
 .result-score{font-family:'Bebas Neue',sans-serif;font-size:20px;color:#FFFFFF}
 .result-winner{color:#D2FF4E;font-weight:700}
 
-/* Empty state */
 .empty{text-align:center;padding:60px 20px;color:#707075}
 .empty-icon{font-size:40px;margin-bottom:12px;display:block}
 .empty-text{font-size:14px}
 
-/* Auto refresh indicator */
 .refresh-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#D2FF4E;margin-right:6px;animation:pulse 2s infinite}
 
-/* Hide sections */
 .section{display:none}
 .section.active{display:block}
-
-/* Schedule display */
-.next-banner{background:#1A2A10;border:1px solid #2A3A18;border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
-.next-label{font-size:11px;font-weight:700;color:#D2FF4E;letter-spacing:2px}
-.next-value{font-size:14px;font-weight:800;color:#E8E8E8}
-.next-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-bottom:20px}
-.next-card{background:#151518;border:1px solid #2A2A30;border-radius:10px;padding:12px;text-align:center}
-.next-court{font-size:11px;font-weight:800;color:#D2FF4E;margin-bottom:6px}
-.next-teams{font-size:13px;font-weight:700;color:#E8E8E8;margin-bottom:2px}
-.next-meta{font-size:10px;color:#707075}
 
 /* Standings */
 .st-group{background:#151518;border:1px solid #2A2A30;border-radius:12px;margin-bottom:16px;overflow:hidden}
@@ -89,6 +76,71 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
 .st-rank{font-weight:900;color:#D2FF4E;font-size:15px}
 .st-team{font-weight:700;color:#E8E8E8;text-align:left!important}
 .st-qualify{background:rgba(210,255,78,.04)!important}
+
+/* ===== 세부일정 탭 ===== */
+.sch-card{background:#151518;border:1px solid #2A2A30;border-radius:14px;overflow:hidden;margin-bottom:8px}
+.sch-row{display:flex;align-items:stretch;border-bottom:1px solid #1C1C20}
+.sch-row:last-child{border-bottom:none}
+.sch-time{min-width:110px;padding:14px 16px;font-size:13px;font-weight:900;color:#D2FF4E;background:#1C1C20;display:flex;align-items:center;flex-shrink:0}
+.sch-content{padding:12px 16px;flex:1}
+.sch-title{font-size:14px;font-weight:800;color:#E8E8E8;margin-bottom:3px}
+.sch-desc{font-size:12px;color:#707075;line-height:1.5}
+.sch-note{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;margin-top:5px}
+.note-green{background:rgba(210,255,78,.12);color:#D2FF4E}
+.note-orange{background:rgba(255,160,60,.12);color:#FFa03C}
+.note-gray{background:rgba(112,112,117,.15);color:#909095}
+.note-purple{background:rgba(180,100,255,.15);color:#C878FF}
+
+/* ===== 대진표 탭 ===== */
+.bracket-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.bracket-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.b-pill{background:#1C1C20;border:1px solid #2A2A30;border-radius:99px;padding:5px 12px;font-size:11px;font-weight:700;color:#707075}
+.b-legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+.b-legend-label{font-size:11px;font-weight:700;color:#505055}
+.b-legend-item{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700}
+.b-dot{width:8px;height:8px;border-radius:50%}
+.b-table{width:100%;border-collapse:collapse;min-width:700px}
+.b-table th{background:#1C1C20;font-size:10px;font-weight:700;color:#505055;padding:10px 10px;text-align:left;border-bottom:1px solid #2A2A30;white-space:nowrap}
+.b-table th:first-child{width:70px;text-align:center}
+.b-table tbody tr{border-bottom:1px solid #1C1C20}
+.b-table tbody tr:last-child{border-bottom:none}
+.b-table td{padding:10px 8px;vertical-align:middle;min-width:155px;border-right:1px solid #1C1C20}
+.b-table td:last-child{border-right:none}
+.b-time{font-size:13px;font-weight:900;color:#D2FF4E;background:#1C1C20!important;border-right:1px solid #2A2A30!important;text-align:center;white-space:nowrap;min-width:70px!important}
+.cell-a{background:#0e1a2e}
+.cell-b{background:#1e120a}
+.cell-empty{background:#111114;text-align:center;color:#2A2A30;font-size:18px}
+.b-match{display:flex;flex-direction:column;gap:4px}
+.b-badge{display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;width:fit-content}
+.badge-a{background:#1a2e4a;color:#60a5fa}
+.badge-b{background:#2e1a08;color:#fb923c}
+.b-teams{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:700}
+.b-vs{font-size:10px;color:#2A2A30;font-weight:400}
+.t-영남A{color:#60a5fa}
+.t-아테사{color:#c084fc}
+.t-일심{color:#22d3ee}
+.t-SEMT{color:#4ade80}
+.t-영남B{color:#fb923c}
+.t-영남C{color:#f472b6}
+.t-오구회{color:#facc15}
+.t-팝테니스{color:#86efac}
+
+/* ===== 로컬룰 탭 ===== */
+.rule-section{background:#151518;border:1px solid #2A2A30;border-radius:14px;overflow:hidden;margin-bottom:10px}
+.rule-hdr{background:#1C1C20;padding:12px 16px;display:flex;align-items:center;gap:10px}
+.rule-num{width:24px;height:24px;border-radius:6px;background:#D2FF4E;color:#0C0C0E;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.rule-title{font-size:13px;font-weight:800;color:#E8E8E8}
+.rule-body{padding:12px 16px}
+.rule-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #1C1C20;font-size:13px;line-height:1.65;align-items:flex-start}
+.rule-item:last-child{border-bottom:none;padding-bottom:0}
+.rule-dot{width:5px;height:5px;border-radius:50%;background:#D2FF4E;flex-shrink:0;margin-top:7px}
+.rule-text{color:#B0B0B8;flex:1}
+.rule-text strong{color:#E8E8E8;font-weight:700}
+.rule-highlight{background:#1A2A10;border:1px solid #2A3818;border-radius:8px;padding:10px 14px;margin:6px 0;font-size:12.5px;color:#D2FF4E;font-weight:700;display:flex;align-items:center;gap:8px}
+.rule-warning{background:#2A1A08;border:1px solid #3A2810;border-radius:8px;padding:10px 14px;margin:6px 0;font-size:12.5px;color:#FFa03C;font-weight:700;display:flex;align-items:center;gap:8px}
+.rule-sub{margin-top:8px;padding-left:2px}
+.rule-sub-item{display:flex;gap:8px;padding:5px 0;font-size:12px;color:#707075;align-items:flex-start}
+.rule-sub-num{width:18px;height:18px;border-radius:50%;background:#1C2A1C;color:#D2FF4E;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
 </style>
 </head>
 <body>
@@ -102,11 +154,14 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
   <div class="tab active" onclick="showTab('live',this)">실시간 스코어</div>
   <div class="tab" onclick="showTab('standings',this)">순위표</div>
   <div class="tab" onclick="showTab('results',this)">경기 결과</div>
+  <div class="tab" onclick="showTab('schedule',this)">세부 일정</div>
+  <div class="tab" onclick="showTab('bracket',this)">대진표</div>
+  <div class="tab" onclick="showTab('rules',this)">로컬 룰</div>
 </div>
 
 <div class="container">
 
-  <!-- Live Scores -->
+  <!-- 실시간 스코어 -->
   <div class="section active" id="sec-live">
     <div class="section-title">LIVE COURTS</div>
     <div class="live-courts" id="liveCourts">
@@ -114,8 +169,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
     </div>
   </div>
 
-  
-  <!-- Standings -->
+  <!-- 순위표 -->
   <div class="section" id="sec-standings">
     <div class="section-title">조별 순위표</div>
     <div id="standingsDisplay">
@@ -123,12 +177,209 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
     </div>
   </div>
 
-  <!-- Results -->
+  <!-- 경기 결과 -->
   <div class="section" id="sec-results">
     <div class="section-title">경기 결과</div>
     <div id="resultsArea">
       <div class="empty"><span class="empty-icon">📋</span><div class="empty-text">아직 완료된 경기가 없습니다</div></div>
     </div>
+  </div>
+
+  <!-- 세부 일정 -->
+  <div class="section" id="sec-schedule">
+    <div class="section-title">세부 일정</div>
+    <div class="sch-card">
+      <div class="sch-row">
+        <div class="sch-time">07:40 – 08:00</div>
+        <div class="sch-content">
+          <div class="sch-title">선수 집합 · 개회식</div>
+          <div class="sch-desc">참가 클럽 도착 확인 및 코트 배정</div>
+          <span class="sch-note note-gray">본부석</span>
+        </div>
+      </div>
+      <div class="sch-row">
+        <div class="sch-time">08:00 – 11:30</div>
+        <div class="sch-content">
+          <div class="sch-title">예선 풀리그</div>
+          <div class="sch-desc">A, B조 조별 리그 진행</div>
+          <span class="sch-note note-green">A·B조</span>
+          <span class="sch-note note-gray" style="margin-left:4px">1~5번 코트</span>
+        </div>
+      </div>
+      <div class="sch-row">
+        <div class="sch-time">11:30 – 13:00</div>
+        <div class="sch-content">
+          <div class="sch-title">본선 토너먼트</div>
+          <div class="sch-desc">준결승 및 결승전 진행</div>
+          <span class="sch-note note-green">메인 코트</span>
+        </div>
+      </div>
+      <div class="sch-row">
+        <div class="sch-time">13:00 – 13:20</div>
+        <div class="sch-content">
+          <div class="sch-title">이벤트 게임</div>
+          <div class="sch-desc">탈락 팀 포함 전 회원 대상 간단한 게임</div>
+        </div>
+      </div>
+      <div class="sch-row">
+        <div class="sch-time">13:10 – 13:20</div>
+        <div class="sch-content">
+          <div class="sch-title">행운권 추첨</div>
+          <div class="sch-desc">경품 추첨 및 깜짝 이벤트</div>
+          <span class="sch-note note-orange">전원 참여</span>
+        </div>
+      </div>
+      <div class="sch-row">
+        <div class="sch-time">13:20 – 13:30</div>
+        <div class="sch-content">
+          <div class="sch-title">시상 및 폐회</div>
+          <div class="sch-desc">성적 발표, 시상 및 기념 촬영</div>
+          <span class="sch-note note-purple">대회 종료</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 대진표 -->
+  <div class="section" id="sec-bracket">
+    <div class="section-title">대진표 #1</div>
+    <div class="bracket-meta">
+      <span class="b-pill">⏰ 08:00 시작</span>
+      <span class="b-pill">🎾 총 36경기 · 8슬롯</span>
+      <span class="b-pill">📍 코트 가동률 90%</span>
+    </div>
+    <div class="b-legend">
+      <span class="b-legend-label">클럽:</span>
+      <span class="b-legend-item"><span class="b-dot" style="background:#60a5fa"></span><span style="color:#60a5fa">영남A</span></span>
+      <span class="b-legend-item"><span class="b-dot" style="background:#c084fc"></span><span style="color:#c084fc">아테사</span></span>
+      <span class="b-legend-item"><span class="b-dot" style="background:#22d3ee"></span><span style="color:#22d3ee">일심</span></span>
+      <span class="b-legend-item"><span class="b-dot" style="background:#4ade80"></span><span style="color:#4ade80">SEMT</span></span>
+      <span class="b-legend-item"><span class="b-dot" style="background:#fb923c"></span><span style="color:#fb923c">영남B</span></span>
+      <span class="b-legend-item"><span class="b-dot" style="background:#f472b6"></span><span style="color:#f472b6">영남C</span></span>
+      <span class="b-legend-item"><span class="b-dot" style="background:#facc15"></span><span style="color:#facc15">오구회</span></span>
+      <span class="b-legend-item"><span class="b-dot" style="background:#86efac"></span><span style="color:#86efac">팝테니스</span></span>
+    </div>
+    <div class="bracket-scroll">
+      <table class="b-table">
+        <thead>
+          <tr><th>시간</th><th>1번코트</th><th>2번코트</th><th>3번코트</th><th>4번코트</th><th>5번코트</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="b-time">08:00</td>
+            <td class="cell-a"><div class="b-match"><span class="b-badge badge-a">A조 2조</span><div class="b-teams"><span class="t-아테사">아테사</span><span class="b-vs">vs</span><span class="t-일심">일심</span></div></div></td>
+            <td class="cell-a"><div class="b-match"><span class="b-badge badge-a">A조 3조</span><div class="b-teams"><span class="t-영남A">영남A</span><span class="b-vs">vs</span><span class="t-SEMT">SEMT</span></div></div></td>
+            <td class="cell-a"><div class="b-match"><span class="b-badge badge-a">A조 3조</span><div class="b-teams"><span class="t-아테사">아테사</span><span class="b-vs">vs</span><span class="t-일심">일심</span></div></div></td>
+            <td class="cell-b"><div class="b-match"><span class="b-badge badge-b">B조 3조</span><div class="b-teams"><span class="t-영남B">영남B</span><span class="b-vs">vs</span><span class="t-오구회">오구회</span></div></div></td>
+            <td class="cell-b"><div class="b-match"><span class="b-badge badge-b">B조 2조</span><div class="b-teams"><span class="t-팝테니스">팝테니스</span><span class="b-vs">vs</span><span class="t-영남C">영남C</span></div></div></td>
+          </tr>
+          <tr>
+            <td class="b-time">08:30</td>
+            <td class="cell-a"><div class="b-match"><span class="b-badge badge-a">A조 2조</span><div class="b-teams"><span class="t-영남A">영남A</span><span class="b-vs">vs</span><span class="t-SEMT">SEMT</span></div></div></td>
+            <td class="cell-a"><div class="b-match"><span class="b-badge badge-a">A조 1조</span><div class="b-teams"><span class="t-영남A">영남A</span><span class="b-vs">vs</span><span class="t-SEMT">SEMT</span></div></div></td>
+            <td class="cell-b"><div class="b-match"><span class="b-badge badge-b">B조 3조</span><div class="b-teams"><span class="t-팝테니스">팝테니스</span><span class="b-vs">vs</span><span class="t-영남C">영남C</span></div></div></td>
+            <td class="cell-b"><div class="b-match"><span class="b-badge badge-b">B조 1조</span><div class="b-teams"><span class="t-영남C">영남C</span><span class="b-vs">vs</span><span class="t-오구회">오구회</span></div></div></td>
+            <td class="cell-b"><div class="b-match"><span class="b-badge badge-b">B조 1조</span><div class="b-teams"><span class="t-영남B">영남B</span><span class="b-vs">vs</span><span class="t-팝테니스">팝테니스</span></div></div></td>
+          </tr>
+          <tr>
+            <td class="b-time">09:00</td>
+            <td class="cell-a"><div class="b-match"><span class="b-badge badge-a">A조 1조</span><div class="b-teams"><span class="t-아테사">아테사</span><span class="b-vs">vs</span><span class="t-일심">일심</span></div></div></td>
+            <td class="cell-a"><div class="b-match"><span class="b-badge badge-a">A조 2조</span><div class="b-teams"><span class="t-영남A">영남A</span><span class="b-vs">vs</span><span class="t-일심">일심</span></div></div></td>
+            <td class="cell-a"><div class="b-match"><span class="b-badge badge-a">A조 3조</span><div class="b-teams"><span class="t-영남A">영남A</span><span class="b-vs">vs</span><span class="t-아테사">아테사</span></div></div></td>
+            <td class="cell-b"><div class="b-match"><span class="b-badge badge-b">B조 2조</span><div class="b-teams"><span class="t-영남B">영남B</span><span class="b-vs">vs</span><span class="t-오구회">오구회</span></div></div></td>
+            <td class="cell-b"><div class="b-match"><span class="b-badge badge-b">B조 1조</span><div class="b-teams"><span class="t-영남B">영남B</span><span class="b-vs">vs</span><span class="t-오구회">오구회</span></div></div></td>
+          </tr>
+          <tr>
+            <td class="b-time">09:30</td>
+            <td class="cell-a"><div class="b-match"><span class="b-badge badge-a">A조 2조</span><div class="b-teams"><span class="t-SEMT">SEMT</span><span class="b-vs">vs</span><span class="t-아테사">아테사</span></div></div></td>
+            <td class="cell-a"><div class="b-match"><span class="b-badge badge-a">A조 3조</span><div class="b-teams"><span class="t-일심">일심</span><span class="b-vs">vs</span><span class="t-SEMT">SEMT</span></div></div></td>
+            <td class="cell-b"><div class="b-match"><span class="b-badge badge-b">B조 1조</span><div class="b-teams"><span class="t-팝테니스">팝테니스</span><span class="b-vs">vs</span><span class="t-영남C">영남C</span></div></div></td>
+            <td class="cell-b"><div class="b-match"><span class="b-badge badge-b">B조 3조</span><div class="b-teams"><span class="t-영남B">영남B</span><span class="b-vs">vs</span><span class="t-팝테니스">팝테니스</span></div></div></td>
+            <td class="cell-b"><div class="b-match"><span class="b-badge badge-b">B조 3조</span><div class="b-teams"><span class="t-영남C">영남C</span><span class="b-vs">vs</span><span class="t-오구회">오구회</span></div></div></td>
+          </tr>
+          <tr>
+            <td class="b-time">10:00</td>
+            <td class="cell-a"><div class="b-match"><span class="b-badge badge-a">A조 1조</span><div class="b-teams"><span class="t-영남A">영남A</span><span class="b-vs">vs</span><span class="t-아테사">아테사</span></div></div></td>
+            <td class="cell-a"><div class="b-match"><span class="b-badge badge-a">A조 1조</span><div class="b-teams"><span class="t-일심">일심</span><span class="b-vs">vs</span><span class="t-SEMT">SEMT</span></div></div></td>
+            <td class="cell-a"><div class="b-match"><span class="b-badge badge-a">A조 3조</span><div class="b-teams"><span class="t-영남A">영남A</span><span class="b-vs">vs</span><span class="t-일심">일심</span></div></div></td>
+            <td class="cell-b"><div class="b-match"><span class="b-badge badge-b">B조 2조</span><div class="b-teams"><span class="t-오구회">오구회</span><span class="b-vs">vs</span><span class="t-팝테니스">팝테니스</span></div></div></td>
+            <td class="cell-b"><div class="b-match"><span class="b-badge badge-b">B조 2조</span><div class="b-teams"><span class="t-영남B">영남B</span><span class="b-vs">vs</span><span class="t-영남C">영남C</span></div></div></td>
+          </tr>
+          <tr>
+            <td class="b-time">10:30</td>
+            <td class="cell-a"><div class="b-match"><span class="b-badge badge-a">A조 3조</span><div class="b-teams"><span class="t-SEMT">SEMT</span><span class="b-vs">vs</span><span class="t-아테사">아테사</span></div></div></td>
+            <td class="cell-a"><div class="b-match"><span class="b-badge badge-a">A조 1조</span><div class="b-teams"><span class="t-SEMT">SEMT</span><span class="b-vs">vs</span><span class="t-아테사">아테사</span></div></div></td>
+            <td class="cell-b"><div class="b-match"><span class="b-badge badge-b">B조 3조</span><div class="b-teams"><span class="t-영남B">영남B</span><span class="b-vs">vs</span><span class="t-영남C">영남C</span></div></div></td>
+            <td class="cell-b"><div class="b-match"><span class="b-badge badge-b">B조 1조</span><div class="b-teams"><span class="t-오구회">오구회</span><span class="b-vs">vs</span><span class="t-팝테니스">팝테니스</span></div></div></td>
+            <td class="cell-b"><div class="b-match"><span class="b-badge badge-b">B조 3조</span><div class="b-teams"><span class="t-오구회">오구회</span><span class="b-vs">vs</span><span class="t-팝테니스">팝테니스</span></div></div></td>
+          </tr>
+          <tr>
+            <td class="b-time">11:00</td>
+            <td class="cell-a"><div class="b-match"><span class="b-badge badge-a">A조 1조</span><div class="b-teams"><span class="t-영남A">영남A</span><span class="b-vs">vs</span><span class="t-일심">일심</span></div></div></td>
+            <td class="cell-a"><div class="b-match"><span class="b-badge badge-a">A조 2조</span><div class="b-teams"><span class="t-영남A">영남A</span><span class="b-vs">vs</span><span class="t-아테사">아테사</span></div></div></td>
+            <td class="cell-a"><div class="b-match"><span class="b-badge badge-a">A조 2조</span><div class="b-teams"><span class="t-일심">일심</span><span class="b-vs">vs</span><span class="t-SEMT">SEMT</span></div></div></td>
+            <td class="cell-b"><div class="b-match"><span class="b-badge badge-b">B조 1조</span><div class="b-teams"><span class="t-영남B">영남B</span><span class="b-vs">vs</span><span class="t-영남C">영남C</span></div></div></td>
+            <td class="cell-b"><div class="b-match"><span class="b-badge badge-b">B조 2조</span><div class="b-teams"><span class="t-영남C">영남C</span><span class="b-vs">vs</span><span class="t-오구회">오구회</span></div></div></td>
+          </tr>
+          <tr>
+            <td class="b-time">11:30</td>
+            <td class="cell-b"><div class="b-match"><span class="b-badge badge-b">B조 2조</span><div class="b-teams"><span class="t-영남B">영남B</span><span class="b-vs">vs</span><span class="t-팝테니스">팝테니스</span></div></div></td>
+            <td class="cell-empty">—</td><td class="cell-empty">—</td><td class="cell-empty">—</td><td class="cell-empty">—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 로컬 룰 -->
+  <div class="section" id="sec-rules">
+    <div class="section-title">로컬 룰</div>
+
+    <div class="rule-section">
+      <div class="rule-hdr"><div class="rule-num">1</div><div class="rule-title">대회 규모 및 대진</div></div>
+      <div class="rule-body">
+        <div class="rule-item"><div class="rule-dot"></div><div class="rule-text"><strong>참가 팀:</strong> 총 6개 클럽, 8개 팀 (영남 3팀 포함)</div></div>
+        <div class="rule-item"><div class="rule-dot"></div><div class="rule-text"><strong>조 편성:</strong> 2개 조(A, B조) 편성, 각 조 4팀씩 배치</div></div>
+      </div>
+    </div>
+
+    <div class="rule-section">
+      <div class="rule-hdr"><div class="rule-num">2</div><div class="rule-title">경기 진행 방식</div></div>
+      <div class="rule-body">
+        <div class="rule-item"><div class="rule-dot"></div><div class="rule-text"><strong>예선:</strong> 조별 풀리그(Full League) 진행</div></div>
+        <div class="rule-item"><div class="rule-dot"></div><div class="rule-text"><strong>본선:</strong> 각 조 1·2위 팀(총 4팀) 준결승 및 결승 토너먼트 진행</div></div>
+      </div>
+    </div>
+
+    <div class="rule-section">
+      <div class="rule-hdr"><div class="rule-num">3</div><div class="rule-title">경기 규칙 및 순위 산정</div></div>
+      <div class="rule-body">
+        <div class="rule-highlight">🎾 전 경기 6게임제 (노애드) · 5:5 시 타이브레이크 없이 종료</div>
+        <div class="rule-item" style="border:none;padding-bottom:4px;margin-top:8px"><div class="rule-dot"></div><div class="rule-text"><strong>예선 순위 결정 우선순위</strong></div></div>
+        <div class="rule-sub">
+          <div class="rule-sub-item"><div class="rule-sub-num">1</div><div>전체 경기 총 득실 게임 수 (득실차)</div></div>
+          <div class="rule-sub-item"><div class="rule-sub-num">2</div><div>전체 경기 승패 (승점)</div></div>
+          <div class="rule-sub-item"><div class="rule-sub-num">3</div><div>승자 승 (동률 시 해당 팀 간 승부 결과)</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rule-section">
+      <div class="rule-hdr"><div class="rule-num">4</div><div class="rule-title">심판 및 매너</div></div>
+      <div class="rule-body">
+        <div class="rule-item"><div class="rule-dot"></div><div class="rule-text"><strong>셀프 저지:</strong> 기본 셀프 저지 진행. 판정 시비 발생 시 라인 심판 배정 요청 가능 (운영위 즉시 배정)</div></div>
+        <div class="rule-item"><div class="rule-dot"></div><div class="rule-text"><strong>경기 매너:</strong> 각 클럽 대표로 참가하시는 만큼 상호 존중과 페어플레이 부탁드립니다.</div></div>
+      </div>
+    </div>
+
+    <div class="rule-section">
+      <div class="rule-hdr"><div class="rule-num">5</div><div class="rule-title">기타 추가 사항</div></div>
+      <div class="rule-body">
+        <div class="rule-item"><div class="rule-dot"></div><div class="rule-text"><strong>워밍업:</strong> 연습구(랠리)는 3분 이내로 제한</div></div>
+        <div class="rule-warning">🎁 준비물: 클럽별 음료 및 간식 지참 · 주최측 제공: 떡 1박스, 생수 1박스</div>
+      </div>
+    </div>
+
   </div>
 
 </div>
@@ -156,15 +407,10 @@ function showTab(tab,el){
   document.getElementById('sec-'+tab).classList.add('active');
 }
 
-// Live courts
 db.ref('courts').on('value',function(snap){
   var data=snap.val();
   var container=document.getElementById('liveCourts');
-  if(!data){
-    container.innerHTML='<div class="empty"><span class="empty-icon">🎾</span><div class="empty-text">아직 경기가 시작되지 않았습니다</div></div>';
-    return;
-  }
-  
+  if(!data){container.innerHTML='<div class="empty"><span class="empty-icon">🎾</span><div class="empty-text">아직 경기가 시작되지 않았습니다</div></div>';return;}
   var html='';
   Object.keys(data).sort().forEach(function(key){
     var d=data[key];
@@ -172,12 +418,9 @@ db.ref('courts').on('value',function(snap){
     var statusText=d.status==='live'?'● LIVE':d.status==='done'?'종료':'대기';
     var isWinnerA=d.status==='done'&&d.scoreA>d.scoreB;
     var isWinnerB=d.status==='done'&&d.scoreB>d.scoreA;
-    
     html+='<div class="live-card '+(d.status==='live'?'active':d.status==='done'?'done':'')+'">'
-      +'<div class="live-header">'
-      +'<span class="live-court-name">'+d.name+'</span>'
-      +'<div><span class="live-event">'+(d.event||'')+'</span> <span class="live-status '+statusClass+'">'+statusText+'</span></div>'
-      +'</div>'
+      +'<div class="live-header"><span class="live-court-name">'+d.name+'</span>'
+      +'<div><span class="live-event">'+(d.event||'')+'</span> <span class="live-status '+statusClass+'">'+statusText+'</span></div></div>'
       +'<div class="live-body">'
       +'<div class="live-team"><span class="live-team-name '+(isWinnerA?'winner':'')+'">'+(d.teamA||'—')+'</span><span class="live-score '+(isWinnerA?'winner':'')+'">'+(d.scoreA||0)+'</span></div>'
       +'<div class="live-vs">VS</div>'
@@ -188,85 +431,29 @@ db.ref('courts').on('value',function(snap){
   container.innerHTML=html;
 });
 
-// Results
 db.ref('results').orderByChild('timestamp').on('value',function(snap){
   var data=snap.val();
   var area=document.getElementById('resultsArea');
-  if(!data){
-    area.innerHTML='<div class="empty"><span class="empty-icon">📋</span><div class="empty-text">아직 완료된 경기가 없습니다</div></div>';
-    return;
-  }
-  
-  // Convert to array and sort by timestamp desc
+  if(!data){area.innerHTML='<div class="empty"><span class="empty-icon">📋</span><div class="empty-text">아직 완료된 경기가 없습니다</div></div>';return;}
   var results=[];
   Object.keys(data).forEach(function(key){results.push(data[key])});
   results.sort(function(a,b){return(b.timestamp||0)-(a.timestamp||0)});
-  
-  var html='<table class="results-table"><thead><tr>'
-    +'<th>시간</th><th>코트</th><th>종목</th><th>팀 A</th><th>스코어</th><th>팀 B</th><th>조</th>'
-    +'</tr></thead><tbody>';
-  
+  var html='<table class="results-table"><thead><tr><th>시간</th><th>코트</th><th>종목</th><th>팀 A</th><th>스코어</th><th>팀 B</th><th>조</th></tr></thead><tbody>';
   results.forEach(function(r){
-    var winA=r.scoreA>r.scoreB;
-    var winB=r.scoreB>r.scoreA;
-    html+='<tr>'
-      +'<td>'+(r.time||'')+'</td>'
-      +'<td>'+(r.court||'')+'</td>'
-      +'<td>'+(r.event||'')+'</td>'
+    var winA=r.scoreA>r.scoreB,winB=r.scoreB>r.scoreA;
+    html+='<tr><td>'+(r.time||'')+'</td><td>'+(r.court||'')+'</td><td>'+(r.event||'')+'</td>'
       +'<td class="'+(winA?'result-winner':'')+'">'+(r.teamA||'')+'</td>'
       +'<td><span class="result-score">'+(r.scoreA||0)+' : '+(r.scoreB||0)+'</span></td>'
       +'<td class="'+(winB?'result-winner':'')+'">'+(r.teamB||'')+'</td>'
-      +'<td>'+(r.group||'')+'</td>'
-      +'</tr>';
+      +'<td>'+(r.group||'')+'</td></tr>';
   });
-  
   html+='</tbody></table>';
   area.innerHTML=html;
 });
 
-// Schedule display
-db.ref('schedule').on('value',function(snap){
-  var data=snap.val();
-  var container=document.getElementById('schedDisplay');
-  if(!data){
-    container.innerHTML='<div class="empty"><span class="empty-icon">📋</span><div class="empty-text">아직 배정 정보가 없습니다</div></div>';
-    return;
-  }
-  var meta=data.meta||{};
-  var next=data.next||{};
-  
-  var html='';
-  if(meta.currentRound||meta.nextRound){
-    html+='<div class="next-banner">';
-    if(meta.currentRound) html+='<div><div class="next-label">현재</div><div class="next-value">'+meta.currentRound+'</div></div>';
-    if(meta.nextRound) html+='<div><div class="next-label">다음</div><div class="next-value">'+meta.nextRound+'</div></div>';
-    html+='</div>';
-  }
-  
-  var keys=Object.keys(next).sort();
-  if(keys.length>0){
-    html+='<div class="next-grid">';
-    keys.forEach(function(key){
-      var c=next[key];
-      html+='<div class="next-card">'
-        +'<div class="next-court">'+key.replace('court','코트 ')+'</div>'
-        +'<div class="next-teams">'+(c.teamA||'?')+' vs '+(c.teamB||'?')+'</div>'
-        +'<div class="next-meta">'+(c.event||'')+' · '+(c.group||'')+'</div>'
-        +'</div>';
-    });
-    html+='</div>';
-  } else {
-    html+='<div class="empty"><span class="empty-icon">📋</span><div class="empty-text">다음 타임 배정 대기 중</div></div>';
-  }
-  container.innerHTML=html;
-});
-
-// Standings
 function calcStandings(groupTeams,results){
   var stats={};
-  Object.keys(groupTeams).forEach(function(t){
-    stats[t]={team:t,win:0,lose:0,gf:0,ga:0,gd:0,matches:0};
-  });
+  Object.keys(groupTeams).forEach(function(t){stats[t]={team:t,win:0,lose:0,gf:0,ga:0,gd:0,matches:0}});
   if(!results) return Object.values(stats);
   Object.keys(results).forEach(function(key){
     var r=results[key];
@@ -279,8 +466,6 @@ function calcStandings(groupTeams,results){
     else if(sB>sA){stats[tB].win++;stats[tA].lose++}
   });
   Object.values(stats).forEach(function(s){s.gd=s.gf-s.ga});
-
-  // 3순위: 상대전적 (승자 승)
   function h2hWin(tA,tB){
     var w=0;
     if(!results) return w;
@@ -291,12 +476,11 @@ function calcStandings(groupTeams,results){
     });
     return w;
   }
-
   var arr=Object.values(stats);
   arr.sort(function(a,b){
-    if(b.gd!==a.gd) return b.gd-a.gd;              // 1. 득실차
-    if(b.win!==a.win) return b.win-a.win;            // 2. 승 수
-    return h2hWin(b.team,a.team)-h2hWin(a.team,b.team); // 3. 상대전적
+    if(b.gd!==a.gd) return b.gd-a.gd;
+    if(b.win!==a.win) return b.win-a.win;
+    return h2hWin(b.team,a.team)-h2hWin(a.team,b.team);
   });
   return arr;
 }
@@ -305,10 +489,7 @@ function renderPublicStandings(){
   db.ref('groups').once('value',function(gsnap){
     var groups=gsnap.val();
     var container=document.getElementById('standingsDisplay');
-    if(!groups){
-      container.innerHTML='<div class="empty"><span class="empty-icon">🏆</span><div class="empty-text">아직 순위 정보가 없습니다</div></div>';
-      return;
-    }
+    if(!groups){container.innerHTML='<div class="empty"><span class="empty-icon">🏆</span><div class="empty-text">아직 순위 정보가 없습니다</div></div>';return;}
     db.ref('results').once('value',function(rsnap){
       var allResults=rsnap.val()||{};
       var html='';
@@ -318,19 +499,13 @@ function renderPublicStandings(){
         var teams=g.teams||{};
         var standings=calcStandings(teams,allResults);
         html+='<div class="st-group"><div class="st-group-hdr">'+g.name+'</div>'
-          +'<table class="st-tbl"><thead><tr>'
-          +'<th>순위</th><th style="text-align:left">팀</th><th>득실차</th><th>승</th><th>패</th><th>득</th><th>실</th><th>경기</th>'
-          +'</tr></thead><tbody>';
+          +'<table class="st-tbl"><thead><tr><th>순위</th><th style="text-align:left">팀</th><th>득실차</th><th>승</th><th>패</th><th>득</th><th>실</th><th>경기</th></tr></thead><tbody>';
         standings.forEach(function(s,i){
           var q=i<2?'st-qualify':'';
-          html+='<tr class="'+q+'">'
-            +'<td class="st-rank">'+(i+1)+'</td>'
-            +'<td class="st-team">'+s.team+'</td>'
+          html+='<tr class="'+q+'"><td class="st-rank">'+(i+1)+'</td><td class="st-team">'+s.team+'</td>'
             +'<td style="color:'+(s.gd>0?'#D2FF4E':s.gd<0?'#FF6B6B':'#707075')+';font-weight:700">'+(s.gd>0?'+':'')+s.gd+'</td>'
-            +'<td style="color:#D2FF4E;font-weight:700">'+s.win+'</td>'
-            +'<td style="color:#FF6B6B;font-weight:700">'+s.lose+'</td>'
-            +'<td>'+s.gf+'</td><td>'+s.ga+'</td>'
-            +'<td>'+s.matches+'</td></tr>';
+            +'<td style="color:#D2FF4E;font-weight:700">'+s.win+'</td><td style="color:#FF6B6B;font-weight:700">'+s.lose+'</td>'
+            +'<td>'+s.gf+'</td><td>'+s.ga+'</td><td>'+s.matches+'</td></tr>';
         });
         html+='</tbody></table></div>';
       });
