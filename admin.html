@@ -188,6 +188,22 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
         <button class="setup-btn" onclick="resetAll()">전체 리셋</button>
       </div>
     </div>
+
+    <div class="setup-section">
+      <div class="setup-title">슬롯 자동 배정</div>
+      <p style="font-size:12px;color:#707075;margin-bottom:12px">슬롯 번호를 누르면 해당 시간대 5코트 팀이 자동 세팅됩니다</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="setup-btn slot-btn" id="slotBtn1" onclick="applySlot(1,this)">슬롯 1<br><span style="font-size:10px;color:#707075">08:00</span></button>
+        <button class="setup-btn slot-btn" id="slotBtn2" onclick="applySlot(2,this)">슬롯 2<br><span style="font-size:10px;color:#707075">08:30</span></button>
+        <button class="setup-btn slot-btn" id="slotBtn3" onclick="applySlot(3,this)">슬롯 3<br><span style="font-size:10px;color:#707075">09:00</span></button>
+        <button class="setup-btn slot-btn" id="slotBtn4" onclick="applySlot(4,this)">슬롯 4<br><span style="font-size:10px;color:#707075">09:30</span></button>
+        <button class="setup-btn slot-btn" id="slotBtn5" onclick="applySlot(5,this)">슬롯 5<br><span style="font-size:10px;color:#707075">10:00</span></button>
+        <button class="setup-btn slot-btn" id="slotBtn6" onclick="applySlot(6,this)">슬롯 6<br><span style="font-size:10px;color:#707075">10:30</span></button>
+        <button class="setup-btn slot-btn" id="slotBtn7" onclick="applySlot(7,this)">슬롯 7<br><span style="font-size:10px;color:#707075">11:00</span></button>
+        <button class="setup-btn slot-btn" id="slotBtn8" onclick="applySlot(8,this)">슬롯 8<br><span style="font-size:10px;color:#707075">11:30</span></button>
+      </div>
+    </div>
+
     <div class="courts" id="courts"></div>
   </div>
 
@@ -685,6 +701,89 @@ function renderStandings(){
 
 // Auto-refresh standings when results change
 resultsRef.on('value',function(){renderStandings()});
+
+
+// ============ SLOT AUTO-ASSIGN ============
+var SLOTS = {
+  1: { time:'08:00', courts:{
+    court1:{teamA:'아테사',teamB:'일심',event:'혼복',group:'A조 2조'},
+    court2:{teamA:'영남A',teamB:'SEMT',event:'혼복',group:'A조 3조'},
+    court3:{teamA:'아테사',teamB:'일심',event:'혼복',group:'A조 3조'},
+    court4:{teamA:'영남B',teamB:'오구회',event:'혼복',group:'B조 3조'},
+    court5:{teamA:'팝테니스',teamB:'영남C',event:'혼복',group:'B조 2조'}
+  }},
+  2: { time:'08:30', courts:{
+    court1:{teamA:'영남A',teamB:'SEMT',event:'혼복',group:'A조 2조'},
+    court2:{teamA:'영남A',teamB:'SEMT',event:'혼복',group:'A조 1조'},
+    court3:{teamA:'팝테니스',teamB:'영남C',event:'혼복',group:'B조 3조'},
+    court4:{teamA:'영남C',teamB:'오구회',event:'혼복',group:'B조 1조'},
+    court5:{teamA:'영남B',teamB:'팝테니스',event:'혼복',group:'B조 1조'}
+  }},
+  3: { time:'09:00', courts:{
+    court1:{teamA:'아테사',teamB:'일심',event:'혼복',group:'A조 1조'},
+    court2:{teamA:'영남A',teamB:'일심',event:'혼복',group:'A조 2조'},
+    court3:{teamA:'영남A',teamB:'아테사',event:'혼복',group:'A조 3조'},
+    court4:{teamA:'영남B',teamB:'오구회',event:'혼복',group:'B조 2조'},
+    court5:{teamA:'영남B',teamB:'오구회',event:'혼복',group:'B조 1조'}
+  }},
+  4: { time:'09:30', courts:{
+    court1:{teamA:'SEMT',teamB:'아테사',event:'혼복',group:'A조 2조'},
+    court2:{teamA:'일심',teamB:'SEMT',event:'혼복',group:'A조 3조'},
+    court3:{teamA:'팝테니스',teamB:'영남C',event:'혼복',group:'B조 1조'},
+    court4:{teamA:'영남B',teamB:'팝테니스',event:'혼복',group:'B조 3조'},
+    court5:{teamA:'영남C',teamB:'오구회',event:'혼복',group:'B조 3조'}
+  }},
+  5: { time:'10:00', courts:{
+    court1:{teamA:'영남A',teamB:'아테사',event:'혼복',group:'A조 1조'},
+    court2:{teamA:'일심',teamB:'SEMT',event:'혼복',group:'A조 1조'},
+    court3:{teamA:'영남A',teamB:'일심',event:'혼복',group:'A조 3조'},
+    court4:{teamA:'오구회',teamB:'팝테니스',event:'혼복',group:'B조 2조'},
+    court5:{teamA:'영남B',teamB:'영남C',event:'혼복',group:'B조 2조'}
+  }},
+  6: { time:'10:30', courts:{
+    court1:{teamA:'SEMT',teamB:'아테사',event:'혼복',group:'A조 3조'},
+    court2:{teamA:'SEMT',teamB:'아테사',event:'혼복',group:'A조 1조'},
+    court3:{teamA:'영남B',teamB:'영남C',event:'혼복',group:'B조 3조'},
+    court4:{teamA:'오구회',teamB:'팝테니스',event:'혼복',group:'B조 1조'},
+    court5:{teamA:'오구회',teamB:'팝테니스',event:'혼복',group:'B조 3조'}
+  }},
+  7: { time:'11:00', courts:{
+    court1:{teamA:'영남A',teamB:'일심',event:'혼복',group:'A조 1조'},
+    court2:{teamA:'영남A',teamB:'아테사',event:'혼복',group:'A조 2조'},
+    court3:{teamA:'일심',teamB:'SEMT',event:'혼복',group:'A조 2조'},
+    court4:{teamA:'영남B',teamB:'영남C',event:'혼복',group:'B조 1조'},
+    court5:{teamA:'영남C',teamB:'오구회',event:'혼복',group:'B조 2조'}
+  }},
+  8: { time:'11:30', courts:{
+    court1:{teamA:'영남B',teamB:'팝테니스',event:'혼복',group:'B조 2조'},
+    court2:{teamA:'',teamB:'',event:'혼복',group:''},
+    court3:{teamA:'',teamB:'',event:'혼복',group:''},
+    court4:{teamA:'',teamB:'',event:'혼복',group:''},
+    court5:{teamA:'',teamB:'',event:'혼복',group:''}
+  }}
+};
+
+function applySlot(num, btn){
+  var slot = SLOTS[num];
+  if(!slot) return;
+  if(!confirm('슬롯 '+num+' ('+slot.time+') 을 5개 코트에 적용하시겠습니까?')) return;
+  document.querySelectorAll('.slot-btn').forEach(function(b){
+    b.style.background='';b.style.color='';b.style.borderColor='';
+  });
+  btn.style.background='#1A3A10';btn.style.color='#D2FF4E';btn.style.borderColor='#2A4A18';
+  var updates={};
+  Object.keys(slot.courts).forEach(function(courtKey){
+    var c=slot.courts[courtKey];
+    updates[courtKey]={
+      name: courtKey.replace('court','코트 '),
+      teamA: c.teamA, teamB: c.teamB,
+      event: c.event, group: c.group,
+      scoreA: 0, scoreB: 0, status: 'waiting'
+    };
+  });
+  courtsRef.set(updates);
+  toast('슬롯 '+num+' ('+slot.time+') 배정 완료!');
+}
 
 // Init schedule grid based on courts count
 courtsRef.once('value',function(snap){
