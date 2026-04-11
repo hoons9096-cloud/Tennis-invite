@@ -1383,21 +1383,23 @@ function brApplySlot(time) {
 
 // 대진표 데이터를 SLOTS 형식으로 변환하여 코트 슬롯 버튼과 연동
 function brUpdateSlots(d) {
+  function toArr(v){
+    if(!v) return [];
+    if(Array.isArray(v)) return v;
+    return Object.keys(v).sort(function(a,b){return Number(a)-Number(b);}).map(function(k){return v[k];});
+  }
+  var slots = toArr(d.slots);
   var newSlots = {};
-  d.slots.forEach(function(m) {
+  slots.forEach(function(m) {
     var slotNum = m.slot;
-    var courtKey = m.court.replace('번코트','').replace('코트','').trim();
-    courtKey = 'court' + parseInt(courtKey);
+    var courtKey = 'court' + parseInt((m.court||'').replace('번코트','').replace('코트','').trim());
     if (!newSlots[slotNum]) newSlots[slotNum] = { time: m.time, courts: {} };
     newSlots[slotNum].courts[courtKey] = {
-      teamA: m.club1,
-      teamB: m.club2,
-      event: '남복',
-      group: m.group + ' ' + m.ttype
+      teamA: m.club1, teamB: m.club2,
+      event: '남복', group: (m.group||'') + ' ' + (m.ttype||'')
     };
   });
   SLOTS = newSlots;
-  // 코트 카드 슬롯 버튼 색상 갱신
   if (latestCourtsData) renderAllCourts(latestCourtsData);
 }
 
@@ -1790,68 +1792,78 @@ function brLoadSchedule(id){
   if(!entry){brShowMsg('저장 데이터를 찾을 수 없습니다.','err');return;}
   var sd=entry.data;
 
-  // ⚠️ 확인 메시지
   var msg='⚠️ "'+entry.name+'" 대진표를 불러오시겠습니까?\n\n'
     +'이 작업은 다음을 모두 초기화합니다:\n'
     +'  · 코트 관리 ('+sd.nCourts+'코트로 재설정)\n'
     +'  · 코트별 슬롯 배정\n'
     +'  · 경기 결과 (전체 삭제)\n'
+    +'  · 순위표\n'
     +'  · 스코어보드 대진표\n\n'
     +'⚠️ 삭제된 경기 결과는 복구할 수 없습니다.\n'
     +'계속하시겠습니까?';
   if(!confirm(msg)) return;
 
-  // 설정값 복원
-  document.getElementById('br-nCourts').value=sd.nCourts;
-  document.getElementById('br-nTeams').value=sd.nTeams;
-  document.getElementById('br-startT').value=sd.startT;
-  document.getElementById('br-slotM').value=sd.slotM;
-  document.getElementById('br-nClubs').value=sd.gds[0].clubs.length;
+  // toArr 헬퍼 (localStorage/Firebase 어느 쪽이든 배열로 변환)
+  function toArr(v){
+    if(!v) return [];
+    if(Array.isArray(v)) return v;
+    return Object.keys(v).sort(function(a,b){return Number(a)-Number(b);}).map(function(k){return v[k];});
+  }
+
+  // gds 정규화
+  var gds = toArr(sd.gds).map(function(gd, gi){
+    return { name: gd.name, key: gd.key||(gi===0?'A':'B'), clubs: toArr(gd.clubs) };
+  });
+  var slots = toArr(sd.slots);
+  sd.gds = gds; sd.slots = slots;
+
+  // UI 설정값 복원
+  document.getElementById('br-nCourts').value = sd.nCourts;
+  document.getElementById('br-nTeams').value  = sd.nTeams;
+  document.getElementById('br-startT').value  = sd.startT;
+  document.getElementById('br-slotM').value   = sd.slotM;
+  document.getElementById('br-nClubs').value  = gds[0].clubs.length;
   brBuildUI();
   ['A','B'].forEach(function(g,gi){
     var inputs=document.getElementById('br-c'+g).querySelectorAll('input');
-    sd.gds[gi].clubs.forEach(function(cl,ci){if(inputs[ci])inputs[ci].value=cl.name;});
+    if(gds[gi]) gds[gi].clubs.forEach(function(cl,ci){ if(inputs[ci]) inputs[ci].value=cl.name; });
   });
+
   sd.ver=BR_HISTORY.length+1; sd.savedName=entry.name;
   BR_HISTORY.push(sd); BR_CUR=BR_HISTORY.length-1;
-  brRenderTabs(); brRenderResult(sd);
+  brRenderTabs(); brRenderResult(sd); // → brUpdateSlots(sd) 호출 → SLOTS 즉시 갱신
   document.getElementById('br-savePanel').style.display='none';
 
-  // Firebase 게시 → bracket.on() 이 SLOTS + 상태바 자동 갱신
+  // 1. Firebase bracket 게시
   brPublishSilent(sd);
 
-  // 경기 결과 초기화
+  // 2. 경기 결과 초기화
   resultsRef.remove();
 
-  // groups + teams 노드 업데이트 → 순위표 자동 갱신
-  var groupsData = {}, teamsData = {A:{}, B:{}};
-  sd.gds.forEach(function(gd, gi) {
-    var gKey = gd.key || (gi===0?'A':'B');
-    var teamsObj = {};
-    gd.clubs.forEach(function(cl, ci) {
-      teamsObj[cl.name] = cl.name;
-      teamsData[gKey][ci] = cl.name;
-    });
-    groupsData[gKey] = { name: gd.name, teams: teamsObj };
+  // 3. groups + teams 업데이트 → 순위표 갱신
+  var groupsData={}, teamsData={A:{},B:{}};
+  gds.forEach(function(gd,gi){
+    var gKey=gd.key;
+    var teamsObj={};
+    gd.clubs.forEach(function(cl,ci){ teamsObj[cl.name]=cl.name; teamsData[gKey][ci]=cl.name; });
+    groupsData[gKey]={name:gd.name, teams:teamsObj};
   });
-  db.ref('groups').set(groupsData);
+  db.ref('groups').set(groupsData, function(){ renderStandings(); });
   db.ref('teams').set(teamsData);
 
-  // 코트 초기화 (대기 상태로 nCourts만큼)
+  // 4. 코트 초기화 → courtsRef.on() 발화 → renderAllCourts → 슬롯 버튼 표시
   var courtData={};
   for(var i=1;i<=parseInt(sd.nCourts);i++){
-    courtData['court'+i]={
-      name:'코트 '+i,
-      teamA:'',teamB:'',
-      scoreA:0,scoreB:0,
-      event:'남복',group:'',
-      status:'waiting'
-    };
+    courtData['court'+i]={name:'코트 '+i,teamA:'',teamB:'',scoreA:0,scoreB:0,event:'남복',group:'',status:'waiting'};
   }
-  courtsRef.set(courtData);
+  courtsRef.set(courtData, function(){
+    // 코트 렌더 완료 후 completedSlots 재계산 (결과 삭제 후이므로 빈값)
+    completedSlots = {};
+    if(latestCourtsData) renderAllCourts(latestCourtsData);
+  });
 
-  brShowMsg('"'+entry.name+'" 불러오기 완료! 코트가 '+sd.nCourts+'개로 초기화되었습니다.','ok');
-  toast('"'+entry.name+'" 불러오기 완료 — 코트 '+sd.nCourts+'개 초기화');
+  brShowMsg('"'+entry.name+'" 불러오기 완료! 코트 '+sd.nCourts+'개 · 순위표 초기화됨','ok');
+  toast('"'+entry.name+'" 불러오기 완료');
 }
 function brDeleteSchedule(id){
   brSetSaved(brGetSaved().filter(function(e){return e.id!==id;}));
