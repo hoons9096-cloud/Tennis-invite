@@ -1043,6 +1043,36 @@ db.ref('bracket').on('value', function(snap) {
     };
   });
   SLOTS = newSlots;
+  // 코트 수가 다르면 자동 동기화 (경기 중인 코트는 건드리지 않음)
+  var newN = parseInt(d.nCourts) || 5;
+  courtsRef.once('value', function(csnap) {
+    var cur = csnap.val() || {};
+    var curN = Object.keys(cur).length;
+    if (curN !== newN) {
+      // 부족한 코트 추가
+      for (var i = curN + 1; i <= newN; i++) {
+        var key = 'court' + i;
+        if (!cur[key]) {
+          courtsRef.child(key).set({
+            name: '코트 ' + i,
+            teamA: '', teamB: '',
+            scoreA: 0, scoreB: 0,
+            event: '남복', group: '',
+            status: 'waiting'
+          });
+        }
+      }
+      // 남는 코트 제거 (대기 상태인 것만)
+      for (var i = newN + 1; i <= curN; i++) {
+        var key = 'court' + i;
+        if (cur[key] && cur[key].status === 'waiting' && !cur[key].teamA && !cur[key].teamB) {
+          courtsRef.child(key).remove();
+        }
+      }
+      toast('코트 수 ' + curN + ' → ' + newN + '으로 자동 조정됨');
+    }
+    renderScheduleGrid(newN);
+  });
   // SLOTS가 갱신되었으니 completedSlots도 다시 계산
   resultsRef.once('value', function(rsnap) {
     completedSlots = buildCompletedSlots(rsnap.val());
