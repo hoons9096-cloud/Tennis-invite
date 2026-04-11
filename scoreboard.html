@@ -243,7 +243,10 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
   <!-- 대진표 -->
   <div class="section" id="sec-bracket">
     <div id="bracketDisplay">
-      <div class="empty"><span class="empty-icon">📋</span><div class="empty-text">아직 게시된 대진표가 없습니다</div></div>
+      <div class="empty"><span class="empty-icon">⏳</span><div class="empty-text">로딩 중...</div></div>
+    </div>
+    <div style="text-align:center;margin-top:12px">
+      <button onclick="loadBracketNow()" style="background:#1C1C20;border:1px solid #2A2A30;color:#D2FF4E;padding:8px 20px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">🔄 대진표 새로고침</button>
     </div>
   </div>
 
@@ -449,40 +452,55 @@ function toArr(v){
   return Object.keys(v).sort(function(a,b){return Number(a)-Number(b);}).map(function(k){return v[k];});
 }
 
+function loadBracketNow(){
+  var disp=document.getElementById('bracketDisplay');
+  disp.innerHTML='<div class="empty"><span class="empty-icon">⏳</span><div class="empty-text">불러오는 중...</div></div>';
+  db.ref('bracket').once('value',function(snap){
+    console.log('[bracket] exists:',snap.exists(),'val keys:',snap.val()?Object.keys(snap.val()):[]);
+    var d=snap.val();
+    if(!d){
+      disp.innerHTML='<div class="empty"><span class="empty-icon">📋</span><div class="empty-text">Firebase에 대진표 데이터가 없습니다<br><small style="font-size:11px;display:block;margin-top:6px">admin에서 대진표를 생성하면 자동으로 여기에 표시됩니다</small></div></div>';
+      return;
+    }
+    renderBracket(d);
+  },function(err){
+    console.error('[bracket error]',err);
+    disp.innerHTML='<div class="empty"><span class="empty-icon">⚠️</span><div class="empty-text">Firebase 읽기 오류: '+err.message+'</div></div>';
+  });
+}
+
 function renderBracket(d){
+  var disp=document.getElementById('bracketDisplay');
   try {
+    console.log('[renderBracket] slots type:',typeof d.slots,'nCourts:',d.nCourts);
     var slots=toArr(d.slots);
+    console.log('[renderBracket] slots.length:',slots.length,'first:',slots[0]);
     var gds=toArr(d.gds).map(function(gd){
       return {name:gd.name,key:gd.key,clubs:toArr(gd.clubs)};
     });
-
-    // 색상 맵
+    if(!slots.length){
+      disp.innerHTML='<div class="empty"><span class="empty-icon">⚠️</span><div class="empty-text">슬롯 데이터 없음</div></div>';
+      return;
+    }
     brColorMap={};
     gds.forEach(function(gd,gi){
       var pal=gi===0?BR_COLORS_A:BR_COLORS_B;
-      gd.clubs.forEach(function(cl,ci){ brColorMap[cl.name]=pal[ci%pal.length]; });
+      gd.clubs.forEach(function(cl,ci){brColorMap[cl.name]=pal[ci%pal.length];});
     });
-
-    // 슬롯→코트 그리드
-    var grid={}, times=[];
+    var grid={},times=[];
     slots.forEach(function(m){
       if(!grid[m.time]){grid[m.time]={};times.push(m.time);}
       grid[m.time][m.court]=m;
     });
     times=times.filter(function(v,i,a){return a.indexOf(v)===i;}).sort();
-
-    var nC=d.nCourts||5;
+    var nC=parseInt(d.nCourts)||5;
     var courts=[];
     for(var c=1;c<=nC;c++) courts.push(c+'번코트');
-
-    // 범례
     var leg='<div class="b-legend"><span class="b-legend-label">클럽:</span>';
     Object.keys(brColorMap).forEach(function(n){
       leg+='<span class="b-legend-item"><span class="b-dot" style="background:'+brColorMap[n]+'"></span><span style="color:'+brColorMap[n]+'">'+n+'</span></span>';
     });
     leg+='</div>';
-
-    // 테이블
     var th='<tr><th>시간</th>'+courts.map(function(c){return'<th>'+c+'</th>';}).join('')+'</tr>';
     var tb=times.map(function(t){
       var cells=courts.map(function(c){
@@ -491,40 +509,29 @@ function renderBracket(d){
         var isA=m.gk==='A';
         var c1=brColorMap[m.club1]||'#E8E8E8';
         var c2=brColorMap[m.club2]||'#E8E8E8';
-        var grp=m.group+' '+m.ttype;
+        var grp=(m.group||'')+(m.ttype?' '+m.ttype:'');
         return'<td class="'+(isA?'cell-a':'cell-b')+'">'
-          +'<div class="b-match" data-ta="'+m.club1+'" data-tb="'+m.club2+'" data-group="'+grp+'">'
+          +'<div class="b-match" data-ta="'+m.club1+'" data-tb="'+m.club2+'">'
           +'<span class="b-badge '+(isA?'badge-a':'badge-b')+'">'+grp+'</span>'
-          +'<div class="b-teams">'
-          +'<span style="color:'+c1+';font-weight:700">'+m.club1+'</span>'
-          +'<span class="b-vs">vs</span>'
-          +'<span style="color:'+c2+';font-weight:700">'+m.club2+'</span>'
-          +'</div>'
-          +'<div class="b-result"></div>'
-          +'</div></td>';
+          +'<div class="b-teams"><span style="color:'+c1+';font-weight:700">'+m.club1+'</span>'
+          +'<span class="b-vs">vs</span><span style="color:'+c2+';font-weight:700">'+m.club2+'</span></div>'
+          +'<div class="b-result"></div></div></td>';
       }).join('');
       return'<tr><td class="b-time">'+t+'</td>'+cells+'</tr>';
     }).join('');
-
-    var maxC=d.numSlots*nC;
+    var maxC=(d.numSlots||times.length)*nC;
     var util=maxC>0?Math.round(slots.length/maxC*100):0;
-
-    var html='<div class="section-title">대진표 #'+d.ver+'</div>'
+    disp.innerHTML='<div class="section-title">대진표 #'+(d.ver||1)+'</div>'
       +'<div class="bracket-meta">'
-      +'<span class="b-pill">⏰ '+d.startT+' 시작</span>'
-      +'<span class="b-pill">🎾 총 '+slots.length+'경기 · '+d.numSlots+'슬롯</span>'
-      +'<span class="b-pill">📍 가동률 '+util+'%</span>'
+      +'<span class="b-pill">⏰ '+(d.startT||'')+'</span>'
+      +'<span class="b-pill">🎾 '+slots.length+'경기 · '+(d.numSlots||times.length)+'슬롯</span>'
+      +'<span class="b-pill">📍 '+util+'% 가동</span>'
       +'</div>'+leg
       +'<div class="bracket-scroll"><table class="b-table"><thead>'+th+'</thead><tbody>'+tb+'</tbody></table></div>';
-
-    document.getElementById('bracketDisplay').innerHTML=html;
-
-    // 결과 점수 오버레이
-    db.ref('results').once('value',function(snap){ applyBracketScores(snap.val()||{}); });
-  } catch(e) {
-    document.getElementById('bracketDisplay').innerHTML=
-      '<div class="empty"><span class="empty-icon">⚠️</span><div class="empty-text">대진표 렌더링 오류: '+e.message+'</div></div>';
-    console.error('renderBracket error:', e);
+    db.ref('results').once('value',function(s){applyBracketScores(s.val()||{});});
+  } catch(e){
+    console.error('[renderBracket error]',e);
+    disp.innerHTML='<div class="empty"><span class="empty-icon">⚠️</span><div class="empty-text">오류: '+e.message+'</div></div>';
   }
 }
 
@@ -536,31 +543,19 @@ function applyBracketScores(data){
       var ta=cell.dataset.ta,tb=cell.dataset.tb;
       if(!ta) return;
       function sim(a,b){return a===b||a.indexOf(b)!==-1||b.indexOf(a)!==-1;}
-      var match=(sim(ta,r.teamA||'')&&sim(tb,r.teamB||''))||(sim(ta,r.teamB||'')&&sim(tb,r.teamA||''));
-      if(match){
-        var el=cell.querySelector('.b-result');
-        if(el){
-          var sA=sim(ta,r.teamA||'')?r.scoreA:r.scoreB;
-          var sB=sim(ta,r.teamA||'')?r.scoreB:r.scoreA;
-          el.textContent=sA+' : '+sB;
-          el.classList.add('done');
-        }
-      }
+      var ok=(sim(ta,r.teamA||'')&&sim(tb,r.teamB||''))||(sim(ta,r.teamB||'')&&sim(tb,r.teamA||''));
+      if(ok){var el=cell.querySelector('.b-result');if(el){var sA=sim(ta,r.teamA||'')?r.scoreA:r.scoreB;el.textContent=sA+' : '+(sim(ta,r.teamA||'')?r.scoreB:r.scoreA);el.classList.add('done');}}
     });
   });
 }
 
 db.ref('bracket').on('value',function(snap){
+  console.log('[bracket on] fired, exists:',snap.exists());
   var d=snap.val();
-  if(!d){
-    document.getElementById('bracketDisplay').innerHTML=
-      '<div class="empty"><span class="empty-icon">📋</span><div class="empty-text">아직 게시된 대진표가 없습니다<br><small style="font-size:11px;margin-top:6px;display:block">관리자 페이지에서 대진표 생성 후 자동으로 표시됩니다</small></div></div>';
-    return;
-  }
+  if(!d){loadBracketNow();return;}
   renderBracket(d);
 });
-
-db.ref('results').on('value',function(snap){ applyBracketScores(snap.val()||{}); });
+db.ref('results').on('value',function(snap){applyBracketScores(snap.val()||{});});
 
 </script>
 </body>
