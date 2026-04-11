@@ -1064,19 +1064,23 @@ function _doApplySlot(courtId, num, c, slot, isDone){
 
 // 스코어보드에 대진표 자동 게시 (조용히)
 function brPublishSilent(d) {
-  var slotsObj = {}, gdsObj = {};
-  d.slots.forEach(function(m, i) { slotsObj[i] = m; });
-  d.gds.forEach(function(gd, gi) {
-    var clubsObj = {};
-    gd.clubs.forEach(function(cl, ci) { clubsObj[ci] = cl; });
-    gdsObj[gi] = { name: gd.name, key: gd.key, clubs: clubsObj };
-  });
-  db.ref('bracket').set({
-    ver: d.ver, startT: d.startT, slotM: d.slotM,
-    numSlots: d.numSlots, nCourts: d.nCourts,
-    slots: slotsObj, gds: gdsObj,
-    publishedAt: firebase.database.ServerValue.TIMESTAMP
-  });
+  try {
+    db.ref('bracket').set({
+      ver: d.ver,
+      startT: d.startT,
+      slotM: d.slotM,
+      numSlots: d.numSlots,
+      nCourts: d.nCourts,
+      slots: d.slots,
+      gds: d.gds,
+      publishedAt: Date.now()
+    }, function(err){
+      if(err) { console.error('bracket 게시 실패:', err); toast('게시 실패: '+err.message); }
+      else { console.log('bracket 게시 성공, slots:', d.slots.length); }
+    });
+  } catch(e) {
+    console.error('brPublishSilent 오류:', e);
+  }
 }
 
 // 스코어보드에 대진표 게시 (확인 포함)
