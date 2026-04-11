@@ -869,7 +869,7 @@ function renderScheduleGrid(numCourts){
         +'<input class="sched-input" placeholder="조/라운드" value="'+(c.group||'')+'" onchange="updateScheduleCourt('+i+',\'group\',this.value)">'
         +'</div>';
     }
-    document.getElementById('schedGrid').innerHTML=html;
+    var sg=document.getElementById('schedGrid'); if(sg) sg.innerHTML=html;
   });
 }
 
@@ -1556,7 +1556,6 @@ courtsRef.once('value',function(snap){
   var n=data?Object.keys(data).length:5;
   renderScheduleGrid(n);
 });
-</script>
 
 // Results management
 function saveResult(key){
