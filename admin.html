@@ -1043,7 +1043,11 @@ db.ref('bracket').on('value', function(snap) {
     };
   });
   SLOTS = newSlots;
-  if (latestCourtsData) renderAllCourts(latestCourtsData);
+  // SLOTS가 갱신되었으니 completedSlots도 다시 계산
+  resultsRef.once('value', function(rsnap) {
+    completedSlots = buildCompletedSlots(rsnap.val());
+    if (latestCourtsData) renderAllCourts(latestCourtsData);
+  });
 });
 
 
