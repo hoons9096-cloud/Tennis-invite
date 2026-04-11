@@ -996,11 +996,36 @@ resultsRef.on('value',function(){renderStandings()});
 // ============ SLOT AUTO-ASSIGN ============
 var SLOTS = {}; // 대진표 생성/불러오기 시 자동 업데이트됨
 
-// 페이지 로드 시 Firebase bracket에서 SLOTS 복원
-db.ref('bracket').once('value', function(snap) {
+// Firebase bracket 실시간 감지 → SLOTS 자동 동기화
+// (다른 어드민/탭에서 대진표 변경 시 이 창도 즉시 반영)
+// bracket 실시간 리스너 — SLOTS 동기화 + 상태 표시 통합
+db.ref('bracket').on('value', function(snap) {
   var d = snap.val();
-  if (!d || !d.slots) return;
-  // brUpdateSlots와 동일한 변환 로직
+
+  // 1. 상태 표시 업데이트
+  var el  = document.getElementById('bracketStatusText');
+  var el2 = document.getElementById('courtBracketInfoText');
+  if (!d) {
+    if(el) { el.style.color='#707075'; el.textContent='없음 (대진표를 생성하면 자동 게시됩니다)'; }
+    if(el2){ el2.style.color='#707075'; el2.textContent='없음'; }
+    return;
+  }
+  var slotCount = d.slots ? Object.keys(d.slots).length : 0;
+  var t = new Date(d.publishedAt);
+  var timeStr = t.getHours().toString().padStart(2,'0') + ':' + t.getMinutes().toString().padStart(2,'0');
+  var nameLabel = d.savedName
+    ? '<strong style="color:#D2FF4E">'+d.savedName+'</strong> <span style="color:#505055">(#'+(d.ver||'?')+')</span>'
+    : '<strong style="color:#D2FF4E">대진표 #'+(d.ver||'?')+'</strong>';
+  var infoHtml = nameLabel
+    + ' &nbsp;·&nbsp; ' + (d.startT||'') + ' 시작'
+    + ' &nbsp;·&nbsp; ' + slotCount + '경기'
+    + ' &nbsp;·&nbsp; ' + (d.nCourts||5) + '코트'
+    + ' &nbsp;·&nbsp; <span style="color:#505055">게시: ' + timeStr + '</span>';
+  if(el) { el.style.color='#D2FF4E'; el.innerHTML=infoHtml; }
+  if(el2){ el2.style.color='#D2FF4E'; el2.innerHTML=infoHtml; }
+
+  // 2. SLOTS 실시간 동기화
+  if (!d.slots) return;
   function toArr(v){
     if(!v) return [];
     if(Array.isArray(v)) return v;
@@ -1018,34 +1043,9 @@ db.ref('bracket').once('value', function(snap) {
     };
   });
   SLOTS = newSlots;
-  console.log('SLOTS 복원 완료:', Object.keys(SLOTS).length, '슬롯');
   if (latestCourtsData) renderAllCourts(latestCourtsData);
 });
 
-// 현재 게시 중인 대진표 상태 표시
-db.ref('bracket').on('value', function(snap) {
-  var el = document.getElementById('bracketStatusText');
-  var el2 = document.getElementById('courtBracketInfoText');
-  var d = snap.val();
-  if (!d) {
-    if(el){ el.style.color='#707075'; el.textContent='없음 (대진표를 생성하면 자동 게시됩니다)'; }
-    if(el2){ el2.style.color='#707075'; el2.textContent='없음'; }
-    return;
-  }
-  var slots = d.slots ? Object.keys(d.slots).length : 0;
-  var t = new Date(d.publishedAt);
-  var timeStr = t.getHours().toString().padStart(2,'0') + ':' + t.getMinutes().toString().padStart(2,'0');
-  var nameLabel = d.savedName
-    ? '<strong style="color:#D2FF4E">'+d.savedName+'</strong> <span style="color:#505055">(#'+(d.ver||'?')+')</span>'
-    : '<strong style="color:#D2FF4E">대진표 #'+(d.ver||'?')+'</strong>';
-  var infoHtml = nameLabel
-    + ' &nbsp;·&nbsp; ' + (d.startT||'') + ' 시작'
-    + ' &nbsp;·&nbsp; ' + slots + '경기'
-    + ' &nbsp;·&nbsp; ' + (d.nCourts||5) + '코트'
-    + ' &nbsp;·&nbsp; <span style="color:#505055">게시: ' + timeStr + '</span>';
-  if(el){ el.style.color='#D2FF4E'; el.innerHTML=infoHtml; }
-  if(el2){ el2.style.color='#D2FF4E'; el2.innerHTML=infoHtml; }
-});
 
 // 팀명 퍼지 매칭: 슬롯 데이터 팀명과 등록 팀명이 약간 다를 경우 대응
 function findTeam(name){
