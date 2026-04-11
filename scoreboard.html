@@ -326,6 +326,7 @@ function showTab(tab,el){
   document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active')});
   if(el) el.classList.add('active');
   document.getElementById('sec-'+tab).classList.add('active');
+  if(tab==='bracket') loadBracketNow();
 }
 
 
@@ -445,6 +446,7 @@ db.ref('groups').on('value',function(){renderPublicStandings()});
 var BR_COLORS_A=['#4f9cf9','#a78bfa','#38bdf8','#34d399','#fb923c','#818cf8','#f0abfc','#67e8f9'];
 var BR_COLORS_B=['#f9634f','#f472b6','#facc15','#e879f9','#84cc16','#fb7185','#fbbf24','#4ade80'];
 var brColorMap={};
+var brLoaded=false;
 
 function toArr(v){
   if(!v) return [];
@@ -454,27 +456,29 @@ function toArr(v){
 
 function loadBracketNow(){
   var disp=document.getElementById('bracketDisplay');
+  if(!disp) return;
   disp.innerHTML='<div class="empty"><span class="empty-icon">⏳</span><div class="empty-text">불러오는 중...</div></div>';
-  db.ref('bracket').once('value',function(snap){
-    console.log('[bracket] exists:',snap.exists(),'val keys:',snap.val()?Object.keys(snap.val()):[]);
-    var d=snap.val();
-    if(!d){
-      disp.innerHTML='<div class="empty"><span class="empty-icon">📋</span><div class="empty-text">Firebase에 대진표 데이터가 없습니다<br><small style="font-size:11px;display:block;margin-top:6px">admin에서 대진표를 생성하면 자동으로 여기에 표시됩니다</small></div></div>';
-      return;
-    }
-    renderBracket(d);
-  },function(err){
-    console.error('[bracket error]',err);
-    disp.innerHTML='<div class="empty"><span class="empty-icon">⚠️</span><div class="empty-text">Firebase 읽기 오류: '+err.message+'</div></div>';
-  });
+  
+  try {
+    db.ref('bracket').once('value').then(function(snap){
+      if(!snap.exists()){
+        disp.innerHTML='<div class="empty"><span class="empty-icon">📋</span><div class="empty-text">아직 게시된 대진표가 없습니다<br><small style="font-size:11px;display:block;margin-top:6px;opacity:.7">관리자 페이지에서 대진표를 생성하면 자동으로 표시됩니다</small></div></div>';
+        return;
+      }
+      renderBracket(snap.val());
+      brLoaded=true;
+    }).catch(function(err){
+      disp.innerHTML='<div class="empty"><span class="empty-icon">⚠️</span><div class="empty-text">오류: '+err.message+'</div></div>';
+    });
+  } catch(e){
+    disp.innerHTML='<div class="empty"><span class="empty-icon">⚠️</span><div class="empty-text">오류: '+e.message+'</div></div>';
+  }
 }
 
 function renderBracket(d){
   var disp=document.getElementById('bracketDisplay');
-  try {
-    console.log('[renderBracket] slots type:',typeof d.slots,'nCourts:',d.nCourts);
+  try{
     var slots=toArr(d.slots);
-    console.log('[renderBracket] slots.length:',slots.length,'first:',slots[0]);
     var gds=toArr(d.gds).map(function(gd){
       return {name:gd.name,key:gd.key,clubs:toArr(gd.clubs)};
     });
@@ -498,7 +502,8 @@ function renderBracket(d){
     for(var c=1;c<=nC;c++) courts.push(c+'번코트');
     var leg='<div class="b-legend"><span class="b-legend-label">클럽:</span>';
     Object.keys(brColorMap).forEach(function(n){
-      leg+='<span class="b-legend-item"><span class="b-dot" style="background:'+brColorMap[n]+'"></span><span style="color:'+brColorMap[n]+'">'+n+'</span></span>';
+      var col=brColorMap[n];
+      leg+='<span class="b-legend-item"><span class="b-dot" style="background:'+col+'"></span><span style="color:'+col+'">'+n+'</span></span>';
     });
     leg+='</div>';
     var th='<tr><th>시간</th>'+courts.map(function(c){return'<th>'+c+'</th>';}).join('')+'</tr>';
@@ -514,8 +519,10 @@ function renderBracket(d){
           +'<div class="b-match" data-ta="'+m.club1+'" data-tb="'+m.club2+'">'
           +'<span class="b-badge '+(isA?'badge-a':'badge-b')+'">'+grp+'</span>'
           +'<div class="b-teams"><span style="color:'+c1+';font-weight:700">'+m.club1+'</span>'
-          +'<span class="b-vs">vs</span><span style="color:'+c2+';font-weight:700">'+m.club2+'</span></div>'
-          +'<div class="b-result"></div></div></td>';
+          +'<span class="b-vs">vs</span>'
+          +'<span style="color:'+c2+';font-weight:700">'+m.club2+'</span></div>'
+          +'<div class="b-result"></div>'
+          +'</div></td>';
       }).join('');
       return'<tr><td class="b-time">'+t+'</td>'+cells+'</tr>';
     }).join('');
@@ -528,10 +535,9 @@ function renderBracket(d){
       +'<span class="b-pill">📍 '+util+'% 가동</span>'
       +'</div>'+leg
       +'<div class="bracket-scroll"><table class="b-table"><thead>'+th+'</thead><tbody>'+tb+'</tbody></table></div>';
-    db.ref('results').once('value',function(s){applyBracketScores(s.val()||{});});
-  } catch(e){
-    console.error('[renderBracket error]',e);
-    disp.innerHTML='<div class="empty"><span class="empty-icon">⚠️</span><div class="empty-text">오류: '+e.message+'</div></div>';
+    db.ref('results').once('value').then(function(s){applyBracketScores(s.val()||{});});
+  }catch(e){
+    disp.innerHTML='<div class="empty"><span class="empty-icon">⚠️</span><div class="empty-text">렌더링 오류: '+e.message+'</div></div>';
   }
 }
 
@@ -544,18 +550,21 @@ function applyBracketScores(data){
       if(!ta) return;
       function sim(a,b){return a===b||a.indexOf(b)!==-1||b.indexOf(a)!==-1;}
       var ok=(sim(ta,r.teamA||'')&&sim(tb,r.teamB||''))||(sim(ta,r.teamB||'')&&sim(tb,r.teamA||''));
-      if(ok){var el=cell.querySelector('.b-result');if(el){var sA=sim(ta,r.teamA||'')?r.scoreA:r.scoreB;el.textContent=sA+' : '+(sim(ta,r.teamA||'')?r.scoreB:r.scoreA);el.classList.add('done');}}
+      if(ok){
+        var el=cell.querySelector('.b-result');
+        if(el){
+          el.textContent=(sim(ta,r.teamA||'')?r.scoreA:r.scoreB)+' : '+(sim(ta,r.teamA||'')?r.scoreB:r.scoreA);
+          el.classList.add('done');
+        }
+      }
     });
   });
 }
 
-db.ref('bracket').on('value',function(snap){
-  console.log('[bracket on] fired, exists:',snap.exists());
-  var d=snap.val();
-  if(!d){loadBracketNow();return;}
-  renderBracket(d);
+// 결과 업데이트 시 대진표 점수 갱신
+db.ref('results').on('value',function(snap){
+  if(brLoaded) applyBracketScores(snap.val()||{});
 });
-db.ref('results').on('value',function(snap){applyBracketScores(snap.val()||{});});
 
 </script>
 </body>
