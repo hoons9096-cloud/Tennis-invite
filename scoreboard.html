@@ -516,7 +516,7 @@ function renderBracket(d){
         var c2=brColorMap[m.club2]||'#E8E8E8';
         var grp=(m.group||'')+(m.ttype?' '+m.ttype:'');
         return'<td class="'+(isA?'cell-a':'cell-b')+'">'
-          +'<div class="b-match" data-ta="'+m.club1+'" data-tb="'+m.club2+'">'
+          +'<div class="b-match" data-ta="'+m.club1+'" data-tb="'+m.club2+'" data-group="'+grp+'">'
           +'<span class="b-badge '+(isA?'badge-a':'badge-b')+'">'+grp+'</span>'
           +'<div class="b-teams"><span style="color:'+c1+';font-weight:700">'+m.club1+'</span>'
           +'<span class="b-vs">vs</span>'
@@ -545,15 +545,20 @@ function applyBracketScores(data){
   document.querySelectorAll('.b-result').forEach(function(el){el.classList.remove('done');el.textContent='';});
   Object.keys(data).forEach(function(key){
     var r=data[key];
+    var rGroup=(r.group||'').trim();
     document.querySelectorAll('.b-match').forEach(function(cell){
-      var ta=cell.dataset.ta,tb=cell.dataset.tb;
+      var ta=cell.dataset.ta, tb=cell.dataset.tb, grp=(cell.dataset.group||'').trim();
       if(!ta) return;
       function sim(a,b){return a===b||a.indexOf(b)!==-1||b.indexOf(a)!==-1;}
-      var ok=(sim(ta,r.teamA||'')&&sim(tb,r.teamB||''))||(sim(ta,r.teamB||'')&&sim(tb,r.teamA||''));
-      if(ok){
+      var teamOk=(sim(ta,r.teamA||'')&&sim(tb,r.teamB||''))||(sim(ta,r.teamB||'')&&sim(tb,r.teamA||''));
+      // 조 번호까지 비교 (예: "A조 1조" 안에 "1조" 포함 여부)
+      var groupOk=!rGroup||!grp||grp===rGroup||grp.indexOf(rGroup)!==-1||rGroup.indexOf(grp)!==-1;
+      if(teamOk&&groupOk){
         var el=cell.querySelector('.b-result');
         if(el){
-          el.textContent=(sim(ta,r.teamA||'')?r.scoreA:r.scoreB)+' : '+(sim(ta,r.teamA||'')?r.scoreB:r.scoreA);
+          var sA=sim(ta,r.teamA||'')?r.scoreA:r.scoreB;
+          var sB=sim(ta,r.teamA||'')?r.scoreB:r.scoreA;
+          el.textContent=sA+' : '+sB;
           el.classList.add('done');
         }
       }
