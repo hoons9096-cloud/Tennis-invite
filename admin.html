@@ -270,7 +270,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
     <div class="setup-section">
       <div class="setup-title">빠른 설정</div>
       <div class="setup-row">
-        <button class="setup-btn" onclick="initCourts(5)">5코트 초기화</button>
+        <button class="setup-btn" onclick="initCourtsFromBracket()">대진표 기준 코트 초기화</button>
         <button class="setup-btn" onclick="resetAll()">전체 리셋</button>
       </div>
       <div id="courtBracketInfo" style="margin-top:10px;padding:8px 12px;background:#0C1A08;border:1px solid #1A3010;border-radius:8px;font-size:12px;color:#707075">
@@ -546,11 +546,36 @@ function initCourts(n){
       teamA:'',teamB:'',
       scoreA:0,scoreB:0,
       event:'남복',group:'',
-      status:'waiting' // waiting, live, done
+      status:'waiting'
     };
   }
   courtsRef.set(data);
   toast(n+'코트 초기화 완료!');
+}
+
+function initCourtsFromBracket(){
+  db.ref('bracket').once('value', function(snap) {
+    var d = snap.val();
+    var n = (d && d.nCourts) ? parseInt(d.nCourts) : 5;
+    var name = d && d.savedName ? d.savedName : (d ? '대진표 #'+(d.ver||'?') : '');
+    var msg = name
+      ? name + ' 기준 ' + n + '코트로 초기화하시겠습니까?'
+      : n + '코트로 초기화하시겠습니까?';
+    if (!confirm(msg)) return;
+    var data = {};
+    for (var i = 1; i <= n; i++) {
+      data['court'+i] = {
+        name: '코트 '+i,
+        teamA: '', teamB: '',
+        scoreA: 0, scoreB: 0,
+        event: '남복', group: '',
+        status: 'waiting'
+      };
+    }
+    courtsRef.set(data);
+    renderScheduleGrid(n);
+    toast(n + '코트 초기화 완료!');
+  });
 }
 
 function resetAll(){
