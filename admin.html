@@ -827,7 +827,7 @@ function renderAllCourts(data){
     return;
   }
   var html='';
-  Object.keys(data).sort().forEach(function(key){
+  Object.keys(data).sort(function(a,b){return parseInt(a.replace('court',''))-parseInt(b.replace('court',''));}).forEach(function(key){
     html+=renderCourt(key,data[key]);
   });
   container.innerHTML=html;

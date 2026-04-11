@@ -335,7 +335,7 @@ db.ref('courts').on('value',function(snap){
   var container=document.getElementById('liveCourts');
   if(!data){container.innerHTML='<div class="empty"><span class="empty-icon">🎾</span><div class="empty-text">아직 경기가 시작되지 않았습니다</div></div>';return;}
   var html='';
-  Object.keys(data).sort().forEach(function(key){
+  Object.keys(data).sort(function(a,b){return parseInt(a.replace('court',''))-parseInt(b.replace('court',''));}).forEach(function(key){
     var d=data[key];
     var statusClass=d.status==='live'?'live':d.status==='done'?'done':'waiting';
     var statusText=d.status==='live'?'● LIVE':d.status==='done'?'종료':'대기';
@@ -509,8 +509,10 @@ function renderBracket(d){
 
     var maxC=(d.numSlots||times.length)*nC;
     var util=maxC>0?Math.round(slots.length/maxC*100):0;
-
-    disp.innerHTML='<div class="section-title">대진표 #'+(d.ver||1)+'</div>'
+    var titleHtml=d.savedName
+      ? d.savedName+'<span style="font-size:11px;color:#505055;font-weight:400;margin-left:8px">(대진표 #'+(d.ver||1)+')</span>'
+      : '대진표 #'+(d.ver||1);
+    disp.innerHTML='<div class="section-title">'+titleHtml+'</div>'
       +'<div class="bracket-meta">'
       +'<span class="b-pill">⏰ '+(d.startT||'')+'</span>'
       +'<span class="b-pill">🎾 '+slots.length+'경기 · '+(d.numSlots||times.length)+'슬롯</span>'
