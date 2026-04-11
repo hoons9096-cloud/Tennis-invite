@@ -1067,14 +1067,25 @@ function brPublish() {
   if (!BR_HISTORY.length) { brShowMsg('먼저 대진표를 생성해주세요.', 'err'); return; }
   var d = BR_HISTORY[BR_CUR];
   if (!confirm('대진표 #' + d.ver + ' 을 스코어보드에 게시하시겠습니까?\n(기존 게시 대진표를 덮어씁니다)')) return;
+
+  // Firebase는 배열을 객체로 변환하므로 명시적으로 인덱스 키 객체로 변환
+  var slotsObj = {};
+  d.slots.forEach(function(m, i) { slotsObj[i] = m; });
+  var gdsObj = {};
+  d.gds.forEach(function(gd, gi) {
+    var clubsObj = {};
+    gd.clubs.forEach(function(cl, ci) { clubsObj[ci] = cl; });
+    gdsObj[gi] = { name: gd.name, key: gd.key, clubs: clubsObj };
+  });
+
   db.ref('bracket').set({
     ver: d.ver,
     startT: d.startT,
     slotM: d.slotM,
     numSlots: d.numSlots,
     nCourts: d.nCourts,
-    slots: d.slots,
-    gds: d.gds,
+    slots: slotsObj,
+    gds: gdsObj,
     publishedAt: firebase.database.ServerValue.TIMESTAMP
   }, function(err) {
     if (err) { brShowMsg('게시 실패: ' + err.message, 'err'); }

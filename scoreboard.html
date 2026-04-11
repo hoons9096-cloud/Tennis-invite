@@ -448,24 +448,37 @@ function getBracketColor(clubName) {
 }
 
 function renderBracket(d) {
-  if (!d || !d.slots) return;
+  if (!d) return;
+
+  // Firebase는 배열을 객체({0:...,1:...})로 저장 → 다시 배열로 변환
+  function toArr(v) {
+    if (!v) return [];
+    if (Array.isArray(v)) return v;
+    return Object.keys(v).sort(function(a,b){return a-b;}).map(function(k){return v[k];});
+  }
+
+  var slots = toArr(d.slots);
+  var gds   = toArr(d.gds).map(function(gd) {
+    return { name: gd.name, key: gd.key, clubs: toArr(gd.clubs) };
+  });
+
+  if (!slots.length) return;
 
   // 클럽별 색상 매핑
   bracketColorMap = {};
-  (d.gds || []).forEach(function(gd, gi) {
+  gds.forEach(function(gd, gi) {
     var pal = gi === 0 ? BRACKET_COLORS_A : BRACKET_COLORS_B;
-    (gd.clubs || []).forEach(function(cl, ci) {
+    gd.clubs.forEach(function(cl, ci) {
       bracketColorMap[cl.name] = pal[ci % pal.length];
     });
   });
 
   var maxC = d.numSlots * d.nCourts;
-  var util = maxC > 0 ? Math.round(d.slots.length / maxC * 100) : 0;
+  var util = maxC > 0 ? Math.round(slots.length / maxC * 100) : 0;
 
   // 슬롯별 코트별 그룹핑
-  var grid = {}; // grid[time][court] = match
-  var times = [];
-  d.slots.forEach(function(m) {
+  var grid = {}, times = [];
+  slots.forEach(function(m) {
     if (!grid[m.time]) { grid[m.time] = {}; times.push(m.time); }
     grid[m.time][m.court] = m;
   });
@@ -511,15 +524,13 @@ function renderBracket(d) {
   var html = '<div class="section-title">대진표 #'+d.ver+'</div>'
     + '<div class="bracket-meta">'
     + '<span class="b-pill">⏰ '+d.startT+' 시작</span>'
-    + '<span class="b-pill">🎾 총 '+d.slots.length+'경기 · '+d.numSlots+'슬롯</span>'
+    + '<span class="b-pill">🎾 총 '+slots.length+'경기 · '+d.numSlots+'슬롯</span>'
     + '<span class="b-pill">📍 코트 가동률 '+util+'%</span>'
     + '</div>'
     + legendHtml
     + '<div class="bracket-scroll"><table class="b-table"><thead>'+thead+'</thead><tbody>'+tbody+'</tbody></table></div>';
 
   document.getElementById('bracketDisplay').innerHTML = html;
-
-  // 기존 결과 점수 오버레이 재실행
   db.ref('results').once('value', function(snap){ applyBracketResults(snap.val()||{}); });
 }
 
