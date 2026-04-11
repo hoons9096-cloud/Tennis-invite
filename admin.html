@@ -212,6 +212,10 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
   <h1>🎾 대회 본부 - 스코어 관리</h1>
   <span class="badge">ADMIN</span>
 </div>
+<div id="bracketStatusBar" style="background:#0C1A08;border-bottom:1px solid #1A3010;padding:6px 20px;font-size:11px;display:flex;align-items:center;gap:8px">
+  <span style="color:#707075">📡 게시 중인 대진표:</span>
+  <span id="bracketStatusText" style="color:#707075">불러오는 중...</span>
+</div>
 
 <div class="container">
   <!-- Tabs -->
@@ -268,6 +272,9 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
       <div class="setup-row">
         <button class="setup-btn" onclick="initCourts(5)">5코트 초기화</button>
         <button class="setup-btn" onclick="resetAll()">전체 리셋</button>
+      </div>
+      <div id="courtBracketInfo" style="margin-top:10px;padding:8px 12px;background:#0C1A08;border:1px solid #1A3010;border-radius:8px;font-size:12px;color:#707075">
+        📡 연동 대진표: <span id="courtBracketInfoText">확인 중...</span>
       </div>
     </div>
     <div class="courts" id="courts"></div>
@@ -988,6 +995,28 @@ resultsRef.on('value',function(){renderStandings()});
 
 // ============ SLOT AUTO-ASSIGN ============
 var SLOTS = {}; // 대진표 생성/불러오기 시 자동 업데이트됨
+
+// 현재 게시 중인 대진표 상태 표시
+db.ref('bracket').on('value', function(snap) {
+  var el = document.getElementById('bracketStatusText');
+  var el2 = document.getElementById('courtBracketInfoText');
+  var d = snap.val();
+  if (!d) {
+    if(el){ el.style.color='#707075'; el.textContent='없음 (대진표를 생성하면 자동 게시됩니다)'; }
+    if(el2){ el2.style.color='#707075'; el2.textContent='없음'; }
+    return;
+  }
+  var slots = d.slots ? Object.keys(d.slots).length : 0;
+  var t = new Date(d.publishedAt);
+  var timeStr = t.getHours().toString().padStart(2,'0') + ':' + t.getMinutes().toString().padStart(2,'0');
+  var infoHtml = '<strong style="color:#D2FF4E">대진표 #' + (d.ver||'?') + '</strong>'
+    + ' &nbsp;·&nbsp; ' + (d.startT||'') + ' 시작'
+    + ' &nbsp;·&nbsp; ' + slots + '경기'
+    + ' &nbsp;·&nbsp; ' + (d.nCourts||5) + '코트'
+    + ' &nbsp;·&nbsp; <span style="color:#505055">게시: ' + timeStr + '</span>';
+  if(el){ el.style.color='#D2FF4E'; el.innerHTML=infoHtml; }
+  if(el2){ el2.style.color='#D2FF4E'; el2.innerHTML=infoHtml; }
+});
 
 // 팀명 퍼지 매칭: 슬롯 데이터 팀명과 등록 팀명이 약간 다를 경우 대응
 function findTeam(name){
