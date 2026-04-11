@@ -1607,6 +1607,16 @@ function brGenerate() {
     brRenderTabs(); brRenderResult(sd);
     brShowMsg('대진표 #'+ver+' 생성 완료! ('+result.slots.length+'경기 / '+result.numSlots+'슬롯)', 'ok');
     brPublishSilent(sd);
+    // groups + teams 노드 업데이트 → 순위표 자동 갱신
+    var gData={}, tData={A:{},B:{}};
+    sd.gds.forEach(function(gd,gi){
+      var gKey=gd.key||(gi===0?'A':'B');
+      var tObj={};
+      gd.clubs.forEach(function(cl,ci){tObj[cl.name]=cl.name; tData[gKey][ci]=cl.name;});
+      gData[gKey]={name:gd.name,teams:tObj};
+    });
+    db.ref('groups').set(gData);
+    db.ref('teams').set(tData);
   } catch(e) { brShowMsg('오류: '+e.message,'err'); }
 }
 
@@ -1812,6 +1822,20 @@ function brLoadSchedule(id){
 
   // 경기 결과 초기화
   resultsRef.remove();
+
+  // groups + teams 노드 업데이트 → 순위표 자동 갱신
+  var groupsData = {}, teamsData = {A:{}, B:{}};
+  sd.gds.forEach(function(gd, gi) {
+    var gKey = gd.key || (gi===0?'A':'B');
+    var teamsObj = {};
+    gd.clubs.forEach(function(cl, ci) {
+      teamsObj[cl.name] = cl.name;
+      teamsData[gKey][ci] = cl.name;
+    });
+    groupsData[gKey] = { name: gd.name, teams: teamsObj };
+  });
+  db.ref('groups').set(groupsData);
+  db.ref('teams').set(teamsData);
 
   // 코트 초기화 (대기 상태로 nCourts만큼)
   var courtData={};
