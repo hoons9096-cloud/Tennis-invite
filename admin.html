@@ -738,21 +738,25 @@ function renderCourt(courtId, data){
   var statusClass = data.status==='live'?'live':data.status==='done'?'done':'waiting';
   var statusText = data.status==='live'?'LIVE':data.status==='done'?'종료':'대기';
 
-  var slotTimes=['08:00','08:30','09:00','09:30','10:00','10:30','11:00','11:30'];
+  var slotNums = Object.keys(SLOTS).map(Number).sort(function(a,b){return a-b;});
   var slotRow='<div style="padding:8px 12px 4px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;border-bottom:1px solid #1C1C20">'
     +'<span style="font-size:10px;font-weight:700;color:#505055;flex-shrink:0">슬롯:</span>';
-  for(var s=1;s<=8;s++){
-    var sd=SLOTS[s]&&SLOTS[s].courts[courtId];
-    var has=sd&&(sd.teamA||sd.teamB);
-    var done=(completedSlots[courtId]||[]).indexOf(s)!==-1;
-    // 현재 코트가 이 슬롯의 경기 중인지 확인 (live 상태 + 팀 일치)
-    var isLive=false;
+
+  if(slotNums.length === 0){
+    slotRow += '<span style="font-size:10px;color:#505055">대진표 없음</span>';
+  }
+
+  slotNums.forEach(function(s){
+    var sd=SLOTS[s] && SLOTS[s].courts[courtId];
+    var slotTime = SLOTS[s] ? SLOTS[s].time : '';
+    var has = sd && (sd.teamA || sd.teamB);
+    var done = (completedSlots[courtId]||[]).indexOf(s) !== -1;
+    var isLive = false;
     if(!done && has && data.status==='live'){
       var teamMatch=(data.teamA===sd.teamA&&data.teamB===sd.teamB)||(data.teamA===sd.teamB&&data.teamB===sd.teamA);
       var groupMatch=(!sd.group||sd.group===data.group);
       if(teamMatch&&groupMatch) isLive=true;
     }
-    // 색상: 완료=파랑, 진행중=주황, 예정=초록, 없음=회색
     var bg=done?'#1A1A3A':isLive?'#3A2200':has?'#162510':'#1C1C20';
     var bd=done?'#4444AA':isLive?'#AA6600':has?'#2A4A18':'#2A2A30';
     var cl=done?'#7777EE':isLive?'#FFAA00':has?'#D2FF4E':'#505055';
@@ -761,8 +765,8 @@ function renderCourt(courtId, data){
       +'style="padding:2px 7px;border-radius:5px;border:1px solid '+bd+';'
       +'background:'+bg+';color:'+cl+';'
       +'font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;line-height:1.4;text-align:center;text-decoration:'+deco+'">'
-      +s+'<br><span style="font-size:8px;opacity:0.75">'+slotTimes[s-1]+'</span></button>';
-  }
+      +s+'<br><span style="font-size:8px;opacity:0.75">'+slotTime+'</span></button>';
+  });
   slotRow+='</div>';
 
   return '<div class="court '+(data.status==='live'?'active':'')+'" id="'+courtId+'">'
@@ -1119,16 +1123,18 @@ function findTeam(name){
 
 function applySlotToCourt(courtId, num){
   var slot = SLOTS[num];
-  if(!slot) return;
+  if(!slot){ toast('슬롯 '+num+' 데이터 없음 — 대진표를 다시 불러오세요'); return; }
   var c = slot.courts[courtId];
   if(!c || (!c.teamA && !c.teamB)){
-    toast(courtId.replace('court','코트 ')+' 슬롯 '+num+': 경기 없음');
+    // 해당 슬롯에 이 코트 배정이 없음을 안내
+    var availCourts = Object.keys(slot.courts).filter(function(k){ var v=slot.courts[k]; return v.teamA||v.teamB; });
+    toast(courtId.replace('court','코트 ')+' 슬롯 '+num+'('+slot.time+'): 배정 없음'
+      +(availCourts.length ? ' · 배정된 코트: '+availCourts.map(function(k){return k.replace('court','');}).join(',') : ''));
     return;
   }
 
   var isDone=(completedSlots[courtId]||[]).indexOf(num)!==-1;
 
-  // LIVE 경기 중 슬롯 클릭 방어
   courtsRef.child(courtId).once('value',function(csnap){
     var cd=csnap.val()||{};
     if(cd.status==='live'){
