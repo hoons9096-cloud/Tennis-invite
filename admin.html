@@ -469,14 +469,17 @@ function saveTeams(){
   if(groupA.length===0 && groupB.length===0){toast('팀 이름을 입력해주세요');return}
   
   var teamsData = {A:{},B:{}};
-  groupA.forEach(function(t){teamsData.A[t]=t});
-  groupB.forEach(function(t){teamsData.B[t]=t});
+  groupA.forEach(function(t,i){teamsData.A[i]=t});
+  groupB.forEach(function(t,i){teamsData.B[i]=t});
   teamsRef.set(teamsData);
   
-  // Also update groups for standings
+  // Also update groups for standings (팀명 키 유지 — 순위 계산에 사용)
+  var groupsDataA = {}, groupsDataB = {};
+  groupA.forEach(function(t){groupsDataA[t]=t});
+  groupB.forEach(function(t){groupsDataB[t]=t});
   var groupsData = {
-    A:{name:'A조',teams:teamsData.A},
-    B:{name:'B조',teams:teamsData.B}
+    A:{name:'A조',teams:groupsDataA},
+    B:{name:'B조',teams:groupsDataB}
   };
   db.ref('groups').set(groupsData);
   
@@ -497,15 +500,23 @@ teamsRef.on('value',function(snap){
   allTeams = [];
   teamGroups = {};
   var displayHtml = '';
+
+  function orderedValues(obj){
+    if(!obj) return [];
+    // 숫자 키면 순서 보존, 아니면 그대로
+    var keys = Object.keys(obj).sort(function(a,b){ return Number(a)-Number(b); });
+    return keys.map(function(k){ return obj[k]; });
+  }
+
   if(data){
     if(data.A){
-      var aTeams = Object.values(data.A);
+      var aTeams = orderedValues(data.A);
       allTeams = allTeams.concat(aTeams);
       aTeams.forEach(function(t){ teamGroups[t]='A'; });
       displayHtml += '<span style="color:#D2FF4E;font-weight:700">A조:</span> '+aTeams.join(', ')+'<br>';
     }
     if(data.B){
-      var bTeams = Object.values(data.B);
+      var bTeams = orderedValues(data.B);
       allTeams = allTeams.concat(bTeams);
       bTeams.forEach(function(t){ teamGroups[t]='B'; });
       displayHtml += '<span style="color:#D2FF4E;font-weight:700">B조:</span> '+bTeams.join(', ');
@@ -517,7 +528,7 @@ teamsRef.on('value',function(snap){
   // Load team inputs if empty
   var aContainer = document.getElementById('groupA-inputs');
   if(aContainer && aContainer.children.length===0 && data){
-    if(data.A) Object.values(data.A).forEach(function(t,i){
+    if(data.A) orderedValues(data.A).forEach(function(t){
       var div = document.createElement('div');
       div.style.cssText='display:flex;gap:6px;margin-bottom:6px';
       div.innerHTML='<input class="team-name-input" style="width:100%" value="'+t+'">'
@@ -526,7 +537,7 @@ teamsRef.on('value',function(snap){
     });
     if(data.B){
       var bContainer = document.getElementById('groupB-inputs');
-      Object.values(data.B).forEach(function(t,i){
+      orderedValues(data.B).forEach(function(t){
         var div = document.createElement('div');
         div.style.cssText='display:flex;gap:6px;margin-bottom:6px';
         div.innerHTML='<input class="team-name-input" style="width:100%" value="'+t+'">'
@@ -1344,8 +1355,12 @@ function brLoadFromFirebase() {
   db.ref('teams').once('value', function(snap) {
     var data = snap.val();
     if (!data) { brShowMsg('Firebase에 등록된 팀이 없습니다. 팀 등록 탭에서 먼저 저장해주세요.', 'err'); return; }
-    var aTeams = data.A ? Object.values(data.A) : [];
-    var bTeams = data.B ? Object.values(data.B) : [];
+    function orderedValues(obj){
+      if(!obj) return [];
+      return Object.keys(obj).sort(function(a,b){return Number(a)-Number(b);}).map(function(k){return obj[k];});
+    }
+    var aTeams = orderedValues(data.A);
+    var bTeams = orderedValues(data.B);
     var maxN = Math.max(aTeams.length, bTeams.length, 2);
     document.getElementById('br-nClubs').value = maxN;
     brBuildUI();
@@ -1353,7 +1368,7 @@ function brLoadFromFirebase() {
     var bInputs = document.getElementById('br-cB').querySelectorAll('input');
     aTeams.forEach(function(t, i){ if(aInputs[i]) aInputs[i].value = t; });
     bTeams.forEach(function(t, i){ if(bInputs[i]) bInputs[i].value = t; });
-    brShowMsg('Firebase 팀 불러오기 완료! (A조 '+aTeams.length+'팀, B조 '+bTeams.length+'팀)', 'ok');
+    brShowMsg('팀 불러오기 완료! (A조 '+aTeams.length+'팀, B조 '+bTeams.length+'팀)', 'ok');
   });
 }
 
