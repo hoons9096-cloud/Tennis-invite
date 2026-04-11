@@ -1689,6 +1689,19 @@ function brLoadSchedule(id){
   for(var i=0;i<saved.length;i++){if(saved[i].id===id){entry=saved[i];break;}}
   if(!entry){brShowMsg('저장 데이터를 찾을 수 없습니다.','err');return;}
   var sd=entry.data;
+
+  // ⚠️ 확인 메시지
+  var msg='⚠️ "'+entry.name+'" 대진표를 불러오시겠습니까?\n\n'
+    +'이 작업은 다음을 모두 초기화합니다:\n'
+    +'  · 코트 관리 ('+sd.nCourts+'코트로 재설정)\n'
+    +'  · 코트별 슬롯 배정\n'
+    +'  · 경기 결과 (전체 삭제)\n'
+    +'  · 스코어보드 대진표\n\n'
+    +'⚠️ 삭제된 경기 결과는 복구할 수 없습니다.\n'
+    +'계속하시겠습니까?';
+  if(!confirm(msg)) return;
+
+  // 설정값 복원
   document.getElementById('br-nCourts').value=sd.nCourts;
   document.getElementById('br-nTeams').value=sd.nTeams;
   document.getElementById('br-startT').value=sd.startT;
@@ -1703,8 +1716,28 @@ function brLoadSchedule(id){
   BR_HISTORY.push(sd); BR_CUR=BR_HISTORY.length-1;
   brRenderTabs(); brRenderResult(sd);
   document.getElementById('br-savePanel').style.display='none';
-  brShowMsg('"'+entry.name+'" 불러오기 완료!','ok');
+
+  // Firebase 게시 → bracket.on() 이 SLOTS + 상태바 자동 갱신
   brPublishSilent(sd);
+
+  // 경기 결과 초기화
+  resultsRef.remove();
+
+  // 코트 초기화 (대기 상태로 nCourts만큼)
+  var courtData={};
+  for(var i=1;i<=parseInt(sd.nCourts);i++){
+    courtData['court'+i]={
+      name:'코트 '+i,
+      teamA:'',teamB:'',
+      scoreA:0,scoreB:0,
+      event:'남복',group:'',
+      status:'waiting'
+    };
+  }
+  courtsRef.set(courtData);
+
+  brShowMsg('"'+entry.name+'" 불러오기 완료! 코트가 '+sd.nCourts+'개로 초기화되었습니다.','ok');
+  toast('"'+entry.name+'" 불러오기 완료 — 코트 '+sd.nCourts+'개 초기화');
 }
 function brDeleteSchedule(id){
   brSetSaved(brGetSaved().filter(function(e){return e.id!==id;}));
