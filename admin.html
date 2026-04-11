@@ -270,7 +270,6 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
         <button class="setup-btn" onclick="resetAll()">전체 리셋</button>
       </div>
     </div>
-
     <div class="courts" id="courts"></div>
   </div>
 
@@ -341,13 +340,6 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
       <div class="br-ver-tabs" id="br-verTabs"></div>
     </div>
 
-    <!-- Firebase apply panel -->
-    <div class="br-apply-panel" id="br-applyPanel">
-      <div class="br-apply-title">☁ Firebase 슬롯 적용 — 원하는 타임을 코트에 배정</div>
-      <p style="font-size:11px;color:#707075;margin-bottom:10px">적용 시 schedule/next 를 덮어씁니다. 코트 관리 탭에서 "배정 적용"으로 실제 코트에 반영하세요.</p>
-      <div class="br-slot-list" id="br-slotList"></div>
-    </div>
-
     <!-- Result grid -->
     <div class="br-result" id="br-result">
       <div class="br-ver-badge">
@@ -358,6 +350,13 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
       <div class="br-legend" id="br-legend"></div>
       <div style="font-size:11px;font-weight:800;color:#707075;letter-spacing:2px;margin-bottom:10px">📅 시간·코트별 배정</div>
       <div class="br-cgwrap"><div class="br-cgrid" id="br-cgrid"></div></div>
+
+      <!-- 슬롯 → 코트 즉시 적용 -->
+      <div id="br-slot-apply-panel" style="background:#1A2A10;border:1px solid #2A4A18;border-radius:12px;padding:14px;margin-top:4px">
+        <div style="font-size:12px;font-weight:800;color:#D2FF4E;margin-bottom:6px">⚡ 슬롯 선택 → 코트에 즉시 적용</div>
+        <p style="font-size:11px;color:#707075;margin-bottom:10px">버튼을 누르면 해당 타임 경기가 코트 관리 탭에 바로 반영됩니다</p>
+        <div id="br-slot-apply-list" style="display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto"></div>
+      </div>
     </div>
   </div>
 
@@ -987,64 +986,7 @@ resultsRef.on('value',function(){renderStandings()});
 
 
 // ============ SLOT AUTO-ASSIGN ============
-var SLOTS = {
-  1: { time:'08:00', courts:{
-    court1:{teamA:'아테사',teamB:'일심회',event:'혼복',group:'A조 2조'},
-    court2:{teamA:'영남A',teamB:'SEMT',event:'혼복',group:'A조 3조'},
-    court3:{teamA:'아테사',teamB:'일심회',event:'혼복',group:'A조 3조'},
-    court4:{teamA:'영남B',teamB:'오구회',event:'혼복',group:'B조 3조'},
-    court5:{teamA:'팝테니스',teamB:'영남C',event:'혼복',group:'B조 2조'}
-  }},
-  2: { time:'08:30', courts:{
-    court1:{teamA:'영남A',teamB:'SEMT',event:'혼복',group:'A조 2조'},
-    court2:{teamA:'영남A',teamB:'SEMT',event:'혼복',group:'A조 1조'},
-    court3:{teamA:'팝테니스',teamB:'영남C',event:'혼복',group:'B조 3조'},
-    court4:{teamA:'영남C',teamB:'오구회',event:'혼복',group:'B조 1조'},
-    court5:{teamA:'영남B',teamB:'팝테니스',event:'혼복',group:'B조 1조'}
-  }},
-  3: { time:'09:00', courts:{
-    court1:{teamA:'아테사',teamB:'일심회',event:'혼복',group:'A조 1조'},
-    court2:{teamA:'영남A',teamB:'일심회',event:'혼복',group:'A조 2조'},
-    court3:{teamA:'영남A',teamB:'아테사',event:'혼복',group:'A조 3조'},
-    court4:{teamA:'영남B',teamB:'오구회',event:'혼복',group:'B조 2조'},
-    court5:{teamA:'영남B',teamB:'오구회',event:'혼복',group:'B조 1조'}
-  }},
-  4: { time:'09:30', courts:{
-    court1:{teamA:'SEMT',teamB:'아테사',event:'혼복',group:'A조 2조'},
-    court2:{teamA:'일심회',teamB:'SEMT',event:'혼복',group:'A조 3조'},
-    court3:{teamA:'팝테니스',teamB:'영남C',event:'혼복',group:'B조 1조'},
-    court4:{teamA:'영남B',teamB:'팝테니스',event:'혼복',group:'B조 3조'},
-    court5:{teamA:'영남C',teamB:'오구회',event:'혼복',group:'B조 3조'}
-  }},
-  5: { time:'10:00', courts:{
-    court1:{teamA:'영남A',teamB:'아테사',event:'혼복',group:'A조 1조'},
-    court2:{teamA:'일심회',teamB:'SEMT',event:'혼복',group:'A조 1조'},
-    court3:{teamA:'영남A',teamB:'일심회',event:'혼복',group:'A조 3조'},
-    court4:{teamA:'오구회',teamB:'팝테니스',event:'혼복',group:'B조 2조'},
-    court5:{teamA:'영남B',teamB:'영남C',event:'혼복',group:'B조 2조'}
-  }},
-  6: { time:'10:30', courts:{
-    court1:{teamA:'SEMT',teamB:'아테사',event:'혼복',group:'A조 3조'},
-    court2:{teamA:'SEMT',teamB:'아테사',event:'혼복',group:'A조 1조'},
-    court3:{teamA:'영남B',teamB:'영남C',event:'혼복',group:'B조 3조'},
-    court4:{teamA:'오구회',teamB:'팝테니스',event:'혼복',group:'B조 1조'},
-    court5:{teamA:'오구회',teamB:'팝테니스',event:'혼복',group:'B조 3조'}
-  }},
-  7: { time:'11:00', courts:{
-    court1:{teamA:'영남A',teamB:'일심회',event:'혼복',group:'A조 1조'},
-    court2:{teamA:'영남A',teamB:'아테사',event:'혼복',group:'A조 2조'},
-    court3:{teamA:'일심회',teamB:'SEMT',event:'혼복',group:'A조 2조'},
-    court4:{teamA:'영남B',teamB:'영남C',event:'혼복',group:'B조 1조'},
-    court5:{teamA:'영남C',teamB:'오구회',event:'혼복',group:'B조 2조'}
-  }},
-  8: { time:'11:30', courts:{
-    court1:{teamA:'영남B',teamB:'팝테니스',event:'혼복',group:'B조 2조'},
-    court2:{teamA:'',teamB:'',event:'혼복',group:''},
-    court3:{teamA:'',teamB:'',event:'혼복',group:''},
-    court4:{teamA:'',teamB:'',event:'혼복',group:''},
-    court5:{teamA:'',teamB:'',event:'혼복',group:''}
-  }}
-};
+var SLOTS = {}; // 대진표 생성/불러오기 시 자동 업데이트됨
 
 // 팀명 퍼지 매칭: 슬롯 데이터 팀명과 등록 팀명이 약간 다를 경우 대응
 function findTeam(name){
@@ -1119,6 +1061,89 @@ function _doApplySlot(courtId, num, c, slot, isDone){
   }
 }
 
+// ============ 대진표 슬롯 → 코트 즉시 적용 ============
+var _brSlotData = {}; // 현재 표시 중인 대진표 슬롯 데이터
+
+function brRenderSlotApply(d) {
+  // 슬롯별 그룹핑
+  var byTime = {};
+  d.slots.forEach(function(m) {
+    if (!byTime[m.time]) byTime[m.time] = [];
+    byTime[m.time].push(m);
+  });
+  _brSlotData = byTime;
+
+  var times = Object.keys(byTime).sort();
+  var html = '';
+  times.forEach(function(t) {
+    var matches = byTime[t];
+    var summary = matches.map(function(m) {
+      var color = m.gk === 'A' ? '#4f9cf9' : '#f9634f';
+      return '<span style="color:' + color + ';font-weight:700">' + m.club1 + '</span>'
+        + '<span style="color:#707075"> vs </span>'
+        + '<span style="color:' + color + ';font-weight:700">' + m.club2 + '</span>'
+        + '<span style="color:#505055;font-size:10px"> ' + m.court + '</span>';
+    }).join('  ');
+    html += '<div class="br-slot-item">'
+      + '<span class="br-slot-time">' + t + '</span>'
+      + '<span class="br-slot-info" style="font-size:11px;flex-wrap:wrap;line-height:1.8">' + summary + '</span>'
+      + '<button class="br-slot-apply" onclick="brApplySlot(\'' + t + '\')">코트 적용</button>'
+      + '</div>';
+  });
+  document.getElementById('br-slot-apply-list').innerHTML = html || '<div style="color:#707075;font-size:12px;padding:10px">슬롯 없음</div>';
+}
+
+function brApplySlot(time) {
+  var matches = _brSlotData[time];
+  if (!matches || !matches.length) { brShowMsg('슬롯 데이터를 찾을 수 없습니다', 'err'); return; }
+  if (!confirm(time + ' 슬롯 (' + matches.length + '경기) 을 코트에 적용하시겠습니까?')) return;
+
+  var nextData = {};
+  matches.forEach(function(m) {
+    var courtNum = parseInt(m.court);
+    if (courtNum) {
+      nextData['court' + courtNum] = {
+        teamA: m.club1, teamB: m.club2,
+        event: '남복',
+        group: m.group + ' ' + m.ttype
+      };
+    }
+  });
+
+  // Firebase schedule/next + 코트 동시 반영
+  db.ref('schedule/next').set(nextData);
+  db.ref('schedule/meta/nextRound').set(time + ' 타임');
+  Object.keys(nextData).forEach(function(courtKey) {
+    var s = nextData[courtKey];
+    courtsRef.child(courtKey).update({
+      teamA: s.teamA, teamB: s.teamB,
+      event: s.event, group: s.group,
+      scoreA: 0, scoreB: 0, status: 'waiting'
+    });
+  });
+  toast('✅ ' + time + ' → ' + Object.keys(nextData).length + '코트 적용 완료!');
+}
+
+// 대진표 데이터를 SLOTS 형식으로 변환하여 코트 슬롯 버튼과 연동
+function brUpdateSlots(d) {
+  var newSlots = {};
+  d.slots.forEach(function(m) {
+    var slotNum = m.slot;
+    var courtKey = m.court.replace('번코트','').replace('코트','').trim();
+    courtKey = 'court' + parseInt(courtKey);
+    if (!newSlots[slotNum]) newSlots[slotNum] = { time: m.time, courts: {} };
+    newSlots[slotNum].courts[courtKey] = {
+      teamA: m.club1,
+      teamB: m.club2,
+      event: '남복',
+      group: m.group + ' ' + m.ttype
+    };
+  });
+  SLOTS = newSlots;
+  // 코트 카드 슬롯 버튼 색상 갱신
+  if (latestCourtsData) renderAllCourts(latestCourtsData);
+}
+
 // ============ BRACKET GENERATOR ============
 var BR_DARK_A = ['#4f9cf9','#a78bfa','#38bdf8','#34d399','#fb923c','#818cf8','#f0abfc','#67e8f9'];
 var BR_DARK_B = ['#f9634f','#f472b6','#facc15','#e879f9','#84cc16','#fb7185','#fbbf24','#4ade80'];
@@ -1182,85 +1207,116 @@ function brFmtTime(base, slotIdx, slotMin) {
   return String(Math.floor(t/60)).padStart(2,'0') + ':' + String(t%60).padStart(2,'0');
 }
 
-function brMakeAllMatches(gd, nTeams) {
+// 라운드별 대진 생성 (4팀: 1-2/3-4 → 1-3/2-4 → 1-4/2-3 순서 고정)
+function brGetRoundPairs(n) {
+  // n팀 라운드로빈 페어링 (Berger 방식: 인접 시드 먼저)
+  if (n === 4) {
+    return [[[0,1],[2,3]], [[0,2],[1,3]], [[0,3],[1,2]]];
+  }
+  // 일반 n팀: 원형 알고리즘으로 라운드별 페어 생성
+  var arr = [];
+  for (var i = 0; i < n; i++) arr.push(i);
+  if (n % 2 === 1) arr.push(-1); // bye
+  var m = arr.length, half = m / 2;
+  var rounds = [];
+  for (var r = 0; r < m - 1; r++) {
+    var pairs = [];
+    for (var i = 0; i < half; i++) {
+      if (arr[i] !== -1 && arr[m-1-i] !== -1) pairs.push([arr[i], arr[m-1-i]]);
+    }
+    rounds.push(pairs);
+    arr = [arr[0], arr[m-1]].concat(arr.slice(1, m-1));
+  }
+  return rounds;
+}
+
+function brMakeMatchesByRound(gd, nTeams) {
   var clubs = gd.clubs;
-  var arr = clubs.slice();
-  if (arr.length % 2 === 1) arr.push(null);
-  var half = arr.length / 2;
-  var matches = []; var id = 0;
-  for (var r = 0; r < arr.length-1; r++) {
+  var roundPairs = brGetRoundPairs(clubs.length);
+  var id = 0;
+  return roundPairs.map(function(pairs, r) {
+    var roundMatches = [];
     for (var ti = 0; ti < nTeams; ti++) {
-      for (var i = 0; i < half; i++) {
-        var c1=arr[i], c2=arr[arr.length-1-i];
-        if (c1&&c2) matches.push({
+      pairs.forEach(function(pair) {
+        var c1 = clubs[pair[0]], c2 = clubs[pair[1]];
+        if (c1 && c2) roundMatches.push({
           id: gd.key+'_'+(id++), group: gd.name, gk: gd.key,
           club1: c1.name, team1: c1.name+' '+(ti+1)+'조',
           club2: c2.name, team2: c2.name+' '+(ti+1)+'조',
           ttype: (ti+1)+'조', round: r
         });
-      }
-    }
-    arr = [arr[0], arr[arr.length-1]].concat(arr.slice(1,arr.length-1));
-  }
-  return matches;
-}
-
-function brShuffle(arr) {
-  var a=arr.slice();
-  for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var tmp=a[i];a[i]=a[j];a[j]=tmp;}
-  return a;
-}
-
-function brSchedule(matchesA, matchesB, nCourts, startT, slotM) {
-  var remA=brShuffle(matchesA), remB=brShuffle(matchesB);
-  var scheduledIds={}, playCount={};
-  matchesA.concat(matchesB).forEach(function(m){
-    playCount[m.club1]=playCount[m.club1]||0;
-    playCount[m.club2]=playCount[m.club2]||0;
-  });
-  var slots=[], slotIdx=0, maxIter=1000;
-  while((remA.length+remB.length)>0 && maxIter-->0){
-    var total=remA.length+remB.length;
-    var quotaA,quotaB;
-    if(remA.length===0){quotaA=0;quotaB=nCourts;}
-    else if(remB.length===0){quotaA=nCourts;quotaB=0;}
-    else{quotaA=Math.max(1,Math.min(nCourts-1,Math.round(nCourts*remA.length/total)));quotaB=nCourts-quotaA;}
-    var usedTeams={}, slotMatches=[];
-    function pickFrom(rem,quota){
-      var remCount={};
-      rem.forEach(function(m){remCount[m.team1]=(remCount[m.team1]||0)+1;remCount[m.team2]=(remCount[m.team2]||0)+1;});
-      var sorted=rem.slice().sort(function(a,b){
-        var pa=(playCount[a.club1]||0)+(playCount[a.club2]||0);
-        var pb=(playCount[b.club1]||0)+(playCount[b.club2]||0);
-        if(pa!==pb) return pa-pb;
-        return ((remCount[b.team1]||0)+(remCount[b.team2]||0))-((remCount[a.team1]||0)+(remCount[a.team2]||0));
       });
-      var picked=[];
-      for(var i=0;i<sorted.length&&picked.length<quota;i++){
-        var m=sorted[i];
-        if(!usedTeams[m.team1]&&!usedTeams[m.team2]){
-          picked.push(m); usedTeams[m.team1]=true; usedTeams[m.team2]=true;
+    }
+    return roundMatches;
+  });
+}
+
+// 코트 배정:
+//   라운드 순서 유지 (flat queue → 앞에서부터 꺼내면 자연히 라운드 순 유지)
+//   빈 코트 생기면 상대 조 다음 라운드 경기 당겨서 즉시 채움
+//   5코트: 1,2→A / 4,5→B / 3코트→슬롯마다 A↔B 교대
+function brSchedule(roundsA, roundsB, nCourts, startT, slotM) {
+  var slots = [], slotIdx = 0;
+
+  // 라운드 순서 유지한 flat queue
+  var qA = [], qB = [];
+  roundsA.forEach(function(r){ r.forEach(function(m){ qA.push(m); }); });
+  roundsB.forEach(function(r){ r.forEach(function(m){ qB.push(m); }); });
+
+  var done = {};
+
+  function remQ(q) { return q.filter(function(m){ return !done[m.id]; }); }
+
+  var maxIter = 500;
+  while (maxIter-- > 0) {
+    var rA = remQ(qA), rB = remQ(qB);
+    if (rA.length === 0 && rB.length === 0) break;
+
+    // 코트 할당
+    var cA, cB;
+    if (rA.length === 0) {
+      cA = []; cB = [1,2,3,4,5];
+    } else if (rB.length === 0) {
+      cA = [1,2,3,4,5]; cB = [];
+    } else if (nCourts === 5) {
+      if (slotIdx % 2 === 0) { cA = [1,2,3]; cB = [4,5]; }
+      else                    { cA = [1,2];   cB = [3,4,5]; }
+    } else {
+      var nA = Math.max(1, Math.min(nCourts-1,
+        Math.round(nCourts * rA.length / (rA.length + rB.length))));
+      cA = []; for (var i=1;i<=nA;i++) cA.push(i);
+      cB = []; for (var i=nA+1;i<=nCourts;i++) cB.push(i);
+    }
+
+    var used = {};
+    function pick(list, n) {
+      var out = [];
+      for (var i = 0; i < list.length && out.length < n; i++) {
+        var m = list[i];
+        if (!done[m.id] && !used[m.team1] && !used[m.team2]) {
+          out.push(m); used[m.team1]=true; used[m.team2]=true;
         }
       }
-      return picked;
+      return out;
     }
-    var pickedA=pickFrom(remA,quotaA), pickedB=pickFrom(remB,quotaB);
-    var spare=nCourts-pickedA.length-pickedB.length;
-    if(spare>0&&remA.length>pickedA.length) pickedA=pickedA.concat(pickFrom(remA.filter(function(m){return !usedTeams[m.team1]&&!usedTeams[m.team2];}),spare));
-    if(spare>0&&remB.length>pickedB.length) pickedB=pickedB.concat(pickFrom(remB.filter(function(m){return !usedTeams[m.team1]&&!usedTeams[m.team2];}),spare));
-    var allPicked=pickedA.concat(pickedB);
-    if(allPicked.length===0) break;
-    allPicked.forEach(function(m){playCount[m.club1]++;playCount[m.club2]++;scheduledIds[m.id]=true;});
-    var time=brFmtTime(startT,slotIdx,slotM);
-    allPicked.forEach(function(m,ci){
-      slots.push({slot:slotIdx+1,time:time,court:(ci+1)+'번코트',group:m.group,gk:m.gk,
-        club1:m.club1,team1:m.team1,club2:m.club2,team2:m.team2,ttype:m.ttype});
-    });
-    remA=remA.filter(function(m){return !scheduledIds[m.id];});
-    remB=remB.filter(function(m){return !scheduledIds[m.id];});
+
+    var pA = pick(rA, cA.length);
+    var pB = pick(rB, cB.length);
+
+    // 빈 코트 → 상대 조 (다음 라운드 포함) 에서 채우기
+    var spA = cA.length - pA.length;
+    var spB = cB.length - pB.length;
+    if (spA > 0) { var ex = pick(rB, spA); pB = pB.concat(ex); cB = cB.concat(cA.slice(pA.length, pA.length+ex.length)); }
+    if (spB > 0) { var ex = pick(rA, spB); pA = pA.concat(ex); cA = cA.concat(cB.slice(pB.length, pB.length+ex.length)); }
+
+    if (pA.length + pB.length === 0) break;
+
+    var time = brFmtTime(startT, slotIdx, slotM);
+    pA.forEach(function(m,i){ done[m.id]=true; slots.push({slot:slotIdx+1,time:time,court:(cA[i]||i+1)+'번코트',group:m.group,gk:m.gk,club1:m.club1,team1:m.team1,club2:m.club2,team2:m.team2,ttype:m.ttype}); });
+    pB.forEach(function(m,i){ done[m.id]=true; slots.push({slot:slotIdx+1,time:time,court:(cB[i]||i+1)+'번코트',group:m.group,gk:m.gk,club1:m.club1,team1:m.team1,club2:m.club2,team2:m.team2,ttype:m.ttype}); });
     slotIdx++;
   }
-  return {slots:slots,numSlots:slotIdx};
+  return {slots:slots, numSlots:slotIdx};
 }
 
 function brGetColor(clubName, gds, pa, pb) {
@@ -1283,7 +1339,7 @@ function brGenerate() {
       inputs.forEach(function(inp,ci){clubs.push({name:inp.value.trim()||(g+'조클럽'+(ci+1))});});
       return {name:g+'조',key:g,clubs:clubs};
     });
-    var result=brSchedule(brMakeAllMatches(gds[0],nTeams),brMakeAllMatches(gds[1],nTeams),nCourts,startT,slotM);
+    var result=brSchedule(brMakeMatchesByRound(gds[0],nTeams),brMakeMatchesByRound(gds[1],nTeams),nCourts,startT,slotM);
     var ver=BR_HISTORY.length+1;
     var sd={ver:ver,slots:result.slots,numSlots:result.numSlots,nCourts:nCourts,nTeams:nTeams,gds:gds,startT:startT,slotM:slotM};
     BR_HISTORY.push(sd); BR_CUR=BR_HISTORY.length-1;
@@ -1368,55 +1424,10 @@ function brRenderResult(d) {
       }
     });
   });
-  // Firebase apply panel
-  brRenderSlotList(d);
+  document.getElementById('br-result').scrollIntoView({ behavior: 'smooth' });
+  brRenderSlotApply(d);
+  brUpdateSlots(d);
 }
-
-// Render slot list for Firebase apply
-function brRenderSlotList(d) {
-  var panel = document.getElementById('br-applyPanel');
-  panel.style.display = 'block';
-  // Group slots by time
-  var byTime = {};
-  d.slots.forEach(function(m) {
-    if (!byTime[m.time]) byTime[m.time] = [];
-    byTime[m.time].push(m);
-  });
-  var times = Object.keys(byTime).sort();
-  var html = '';
-  times.forEach(function(t) {
-    var matches = byTime[t];
-    var summary = matches.map(function(m){return m.club1+' vs '+m.club2;}).join(' | ');
-    html += '<div class="br-slot-item">'
-      +'<span class="br-slot-time">'+t+'</span>'
-      +'<span class="br-slot-info">'+summary+'</span>'
-      +'<button class="br-slot-apply" onclick="brApplySlotToFirebase(\''+t+'\')">Firebase 적용</button>'
-      +'</div>';
-  });
-  document.getElementById('br-slotList').innerHTML = html || '<div style="color:#707075;font-size:12px;padding:10px">슬롯 없음</div>';
-}
-
-// Apply a time slot to Firebase schedule/next
-function brApplySlotToFirebase(time) {
-  if (!BR_HISTORY.length) { brShowMsg('먼저 대진표를 생성해주세요.', 'err'); return; }
-  var d = BR_HISTORY[BR_CUR];
-  var slotMatches = d.slots.filter(function(m){ return m.time === time; });
-  if (!confirm(time+' 슬롯을 Firebase schedule/next에 적용하시겠습니까?\n('+slotMatches.length+'코트 배정)')) return;
-  var nextData = {};
-  slotMatches.forEach(function(m, i) {
-    var courtNum = parseInt(m.court) || (i+1);
-    nextData['court'+courtNum] = {
-      teamA: m.club1,
-      teamB: m.club2,
-      event: '남복',
-      group: m.group + ' ' + m.ttype
-    };
-  });
-  db.ref('schedule/next').set(nextData);
-  db.ref('schedule/meta/nextRound').set(time + ' 타임');
-  toast(time+' 슬롯 Firebase 적용 완료! 코트 관리 탭에서 "배정 적용"을 누르세요.');
-}
-
 // Excel download
 function brDlExcel() {
   if (!BR_HISTORY.length) { brShowMsg('먼저 대진표를 생성해주세요.', 'err'); return; }
