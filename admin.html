@@ -123,6 +123,87 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
 .standings-win{color:#D2FF4E;font-weight:700}
 .standings-lose{color:#FF6B6B;font-weight:700}
 .standings-qualify{background:rgba(210,255,78,.04)!important}
+
+/* ============ BRACKET GENERATOR ============ */
+.br-cfg{display:flex;flex-wrap:wrap;gap:10px;background:#151518;border:1px solid #2A2A30;border-radius:12px;padding:16px;margin-bottom:14px;}
+.br-ci{display:flex;align-items:center;gap:8px;}
+.br-ci label{font-size:12px;color:#707075;white-space:nowrap;}
+.br-ci input{background:#0C0C0E;border:1px solid #2A2A30;color:#E8E8E8;border-radius:8px;padding:6px 10px;font-size:13px;width:80px;font-family:inherit;}
+.br-ci input[type=time]{width:110px;}
+.br-ci input:focus{outline:none;border-color:#D2FF4E;}
+.br-grps{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+@media(max-width:600px){.br-grps{grid-template-columns:1fr;}}
+.br-gbox{background:#151518;border:1px solid #2A2A30;border-radius:12px;padding:14px;}
+.br-gtitle{font-size:12px;font-weight:800;letter-spacing:1px;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid;}
+.br-gtitle.A{color:#4f9cf9;border-color:#4f9cf9;}
+.br-gtitle.B{color:#f9634f;border-color:#f9634f;}
+.br-crow{display:flex;gap:6px;margin-bottom:6px;align-items:center;}
+.br-cnum{font-size:11px;color:#707075;width:18px;text-align:right;flex-shrink:0;}
+.br-crow input{flex:1;background:#0C0C0E;border:1px solid #2A2A30;color:#E8E8E8;border-radius:8px;padding:7px 10px;font-size:13px;font-family:inherit;}
+.br-crow input:focus{outline:none;border-color:#D2FF4E;}
+.br-btns{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.br-btn{padding:10px 20px;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;transition:transform .12s;font-family:inherit;}
+.br-btn:hover{transform:translateY(-2px);}
+.br-btn-gen{background:linear-gradient(135deg,#D2FF4E,#9CC43A);color:#0C0C0E;}
+.br-btn-xl{background:#1A3A10;color:#D2FF4E;border:1px solid #2A4A18;}
+.br-btn-fb{background:#1A2A40;color:#4f9cf9;border:1px solid #2A3A60;}
+.br-btn-sv{background:#2A1A40;color:#a78bfa;border:1px solid #3A2A60;}
+.br-btn-load{background:#3A2A10;color:#fbbf24;border:1px solid #4A3A18;}
+.br-msg{border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:12px;display:none;}
+.br-msg.ok{background:#1a2a1a;border:1px solid #2a5a2a;color:#6fda6f;}
+.br-msg.err{background:#3d1a1a;border:1px solid #7a2a2a;color:#f87171;}
+/* save panel */
+.br-savepanel{background:#151518;border:1px solid #2A2A30;border-radius:12px;padding:14px;margin-bottom:14px;display:none;}
+.br-sp-row{display:flex;gap:8px;margin-bottom:10px;align-items:center;flex-wrap:wrap;}
+.br-sp-row input{flex:1;min-width:160px;background:#0C0C0E;border:1px solid #2A2A30;color:#E8E8E8;border-radius:8px;padding:8px 12px;font-size:13px;font-family:inherit;}
+.br-sp-row input:focus{outline:none;border-color:#D2FF4E;}
+.br-saved-list{display:flex;flex-direction:column;gap:8px;max-height:240px;overflow-y:auto;}
+.br-saved-item{display:flex;align-items:center;gap:10px;background:#0C0C0E;border:1px solid #2A2A30;border-radius:8px;padding:10px 14px;}
+.br-saved-item:hover{border-color:#D2FF4E;}
+.br-si-info{flex:1;}
+.br-si-name{font-size:13px;font-weight:700;}
+.br-si-meta{font-size:11px;color:#707075;margin-top:2px;}
+.br-si-btns{display:flex;gap:6px;}
+/* version tabs */
+.br-ver-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+.br-vtab{padding:7px 14px;border-radius:8px;border:1px solid #2A2A30;background:#151518;color:#707075;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;line-height:1.4;text-align:center;}
+.br-vtab:hover{border-color:#D2FF4E;color:#E8E8E8;}
+.br-vtab.on{background:#D2FF4E;border-color:#D2FF4E;color:#0C0C0E;}
+/* result grid */
+.br-result{display:none;}
+.br-ver-badge{display:inline-flex;align-items:center;gap:10px;background:#1C1C20;border:1px solid #2A2A30;border-radius:10px;padding:10px 18px;margin-bottom:14px;}
+.br-vn{font-size:22px;font-weight:900;color:#D2FF4E;}
+.br-vi{font-size:12px;color:#707075;}
+.br-stats{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px;}
+.br-sc{background:#151518;border:1px solid #2A2A30;border-radius:10px;padding:10px 16px;}
+.br-sv{font-size:20px;font-weight:800;color:#E8E8E8;}
+.br-sv.g{color:#D2FF4E;}
+.br-sl{font-size:11px;color:#707075;}
+.br-legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;align-items:center;}
+.br-li{display:flex;align-items:center;gap:6px;font-size:12px;}
+.br-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.br-cgwrap{overflow-x:auto;margin-bottom:16px;}
+.br-cgrid{display:grid;border:1px solid #2A2A30;border-radius:12px;overflow:hidden;}
+.br-cc{padding:8px 10px;border-right:1px solid #2A2A30;border-bottom:1px solid #2A2A30;font-size:12px;}
+.br-cc:last-child{border-right:none;}
+.br-cc.hdr{background:#1C1C20;color:#707075;font-weight:700;font-size:11px;border-bottom:2px solid #2A2A30!important;}
+.br-cc.last{border-bottom:none!important;}
+.br-cc.ctime{color:#D2FF4E;font-weight:700;}
+.br-cm{line-height:1.6;}
+.br-vs{color:#2A2A30;font-size:11px;}
+.br-cempty{color:#2A2A30;font-size:12px;display:block;text-align:center;}
+.br-tag-a,.br-tag-b{display:inline-block;padding:1px 5px;border-radius:3px;font-size:10px;font-weight:700;}
+.br-tag-a{background:rgba(79,156,249,.15);color:#4f9cf9;}
+.br-tag-b{background:rgba(249,99,79,.15);color:#f9634f;}
+/* Firebase slot apply panel */
+.br-apply-panel{background:#1A2A10;border:1px solid #2A4A18;border-radius:12px;padding:14px;margin-bottom:14px;display:none;}
+.br-apply-title{font-size:12px;font-weight:800;color:#D2FF4E;margin-bottom:10px;}
+.br-slot-list{display:flex;flex-direction:column;gap:6px;max-height:240px;overflow-y:auto;}
+.br-slot-item{display:flex;align-items:center;gap:10px;background:#0C0C0E;border:1px solid #2A3A18;border-radius:8px;padding:8px 12px;font-size:12px;}
+.br-slot-time{color:#D2FF4E;font-weight:700;min-width:50px;}
+.br-slot-info{flex:1;color:#E8E8E8;}
+.br-slot-apply{padding:5px 12px;border-radius:6px;border:1px solid #2A4A18;background:#1A3A10;color:#D2FF4E;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;}
+.br-slot-apply:hover{background:#2A4A18;}
 </style>
 </head>
 <body>
@@ -139,6 +220,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
     <button class="admin-tab" onclick="switchTab('courts',this)">코트 관리</button>
     <button class="admin-tab" onclick="switchTab('standings',this)">순위표</button>
     <button class="admin-tab" onclick="switchTab('results',this)">경기 결과</button>
+    <button class="admin-tab" onclick="switchTab('bracket',this)">대진표 생성</button>
     <button class="admin-tab" onclick="switchTab('gallery',this)">사진 관리</button>
   </div>
 
@@ -210,7 +292,76 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
     <div id="resultsList"></div>
   </div>
 
-  <!-- Tab 5: Gallery Management -->
+  <!-- Tab 5: Bracket Generator -->
+  <div class="admin-section" id="sec-bracket">
+    <div class="setup-section">
+      <div class="setup-title">📋 대진표 생성기</div>
+      <p style="font-size:12px;color:#707075;margin-bottom:8px">팀 등록 탭에서 팀을 먼저 저장하면 자동 입력 가능 · 생성 후 Firebase에 슬롯별로 적용</p>
+    </div>
+
+    <div class="br-msg" id="br-msg"></div>
+
+    <!-- Config -->
+    <div class="br-cfg">
+      <div class="br-ci"><label>코트 수</label><input type="number" id="br-nCourts" value="5" min="1" max="10"></div>
+      <div class="br-ci"><label>조당 클럽 수</label><input type="number" id="br-nClubs" value="4" min="2" max="8" oninput="brBuildUI()"></div>
+      <div class="br-ci"><label>클럽당 복식조</label><input type="number" id="br-nTeams" value="3" min="1" max="6" oninput="brBuildUI()"></div>
+      <div class="br-ci"><label>시작 시간</label><input type="time" id="br-startT" value="09:00"></div>
+      <div class="br-ci"><label>슬롯(분)</label><input type="number" id="br-slotM" value="60" min="15" max="180" step="15"></div>
+    </div>
+
+    <!-- Club inputs -->
+    <div class="br-grps">
+      <div class="br-gbox"><div class="br-gtitle A">🔵 A조 클럽</div><div id="br-cA"></div></div>
+      <div class="br-gbox"><div class="br-gtitle B">🔴 B조 클럽</div><div id="br-cB"></div></div>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="br-btns">
+      <button class="br-btn br-btn-gen" onclick="brGenerate()">📋 대진표 생성</button>
+      <button class="br-btn br-btn-fb" onclick="brLoadFromFirebase()">☁ Firebase 팀 자동입력</button>
+      <button class="br-btn br-btn-xl" onclick="brDlExcel()">📥 엑셀 다운로드</button>
+      <button class="br-btn br-btn-sv" onclick="brToggleSavePanel()">💾 저장 / 불러오기</button>
+    </div>
+
+    <!-- Save/Load panel -->
+    <div class="br-savepanel" id="br-savePanel">
+      <div style="font-size:12px;font-weight:800;color:#a78bfa;margin-bottom:10px">💾 대진표 저장 / 불러오기</div>
+      <div class="br-sp-row">
+        <input type="text" id="br-saveName" placeholder="저장 이름 (예: 2026 회장배 최종안)">
+        <button class="br-btn br-btn-sv" style="padding:8px 16px;font-size:12px" onclick="brSaveSchedule()">💾 저장</button>
+      </div>
+      <div style="font-size:11px;color:#707075;margin-bottom:10px">⚠ 이 기기·브라우저에만 저장됩니다</div>
+      <div class="br-saved-list" id="br-savedList"></div>
+    </div>
+
+    <!-- Version tabs -->
+    <div id="br-verSection" style="display:none;margin-bottom:14px">
+      <div style="font-size:11px;color:#707075;margin-bottom:8px">생성된 대진표 — 탭을 눌러 비교</div>
+      <div class="br-ver-tabs" id="br-verTabs"></div>
+    </div>
+
+    <!-- Firebase apply panel -->
+    <div class="br-apply-panel" id="br-applyPanel">
+      <div class="br-apply-title">☁ Firebase 슬롯 적용 — 원하는 타임을 코트에 배정</div>
+      <p style="font-size:11px;color:#707075;margin-bottom:10px">적용 시 schedule/next 를 덮어씁니다. 코트 관리 탭에서 "배정 적용"으로 실제 코트에 반영하세요.</p>
+      <div class="br-slot-list" id="br-slotList"></div>
+    </div>
+
+    <!-- Result grid -->
+    <div class="br-result" id="br-result">
+      <div class="br-ver-badge">
+        <span class="br-vn" id="br-vn"></span>
+        <span class="br-vi" id="br-vi"></span>
+      </div>
+      <div class="br-stats" id="br-stats"></div>
+      <div class="br-legend" id="br-legend"></div>
+      <div style="font-size:11px;font-weight:800;color:#707075;letter-spacing:2px;margin-bottom:10px">📅 시간·코트별 배정</div>
+      <div class="br-cgwrap"><div class="br-cgrid" id="br-cgrid"></div></div>
+    </div>
+  </div>
+
+  <!-- Tab 6: Gallery Management -->
   <div class="admin-section" id="sec-gallery">
     <div class="setup-section">
       <div class="setup-title">📸 사진 업로드</div>
@@ -968,12 +1119,444 @@ function _doApplySlot(courtId, num, c, slot, isDone){
   }
 }
 
+// ============ BRACKET GENERATOR ============
+var BR_DARK_A = ['#4f9cf9','#a78bfa','#38bdf8','#34d399','#fb923c','#818cf8','#f0abfc','#67e8f9'];
+var BR_DARK_B = ['#f9634f','#f472b6','#facc15','#e879f9','#84cc16','#fb7185','#fbbf24','#4ade80'];
+var BR_XL_BG_A= ['#DBEAFE','#EDE9FE','#CFFAFE','#D1FAE5','#FFEDD5','#E0E7FF','#FDF4FF','#E0F2FE'];
+var BR_XL_BG_B= ['#FEE2E2','#FCE7F3','#FEF9C3','#F5D0FE','#DCFCE7','#FFE4E6','#FEF3C7','#D1FAE5'];
+var BR_XL_TX_A= ['#1D4ED8','#6D28D9','#0E7490','#065F46','#C2410C','#3730A3','#86198F','#0369A1'];
+var BR_XL_TX_B= ['#B91C1C','#9D174D','#854D0E','#7E22CE','#14532D','#9F1239','#92400E','#065F46'];
+
+var BR_HISTORY = [];
+var BR_CUR = 0;
+var BR_LS_KEY = 'tennis_bracket_admin_v1';
+
+function brShowMsg(text, type) {
+  var el = document.getElementById('br-msg');
+  el.className = 'br-msg ' + type;
+  el.textContent = (type==='ok' ? '✓ ' : '⚠ ') + text;
+  el.style.display = 'block';
+  setTimeout(function(){el.style.display='none';}, 4000);
+}
+
+// Build club input UI
+function brBuildUI() {
+  var n = parseInt(document.getElementById('br-nClubs').value) || 4;
+  ['A','B'].forEach(function(g) {
+    var wrap = document.getElementById('br-c' + g);
+    var prev = [];
+    wrap.querySelectorAll('input').forEach(function(el){ prev.push(el.value); });
+    wrap.innerHTML = '';
+    for (var i = 0; i < n; i++) {
+      var def = prev[i] || (g+'조클럽'+(i+1));
+      var row = document.createElement('div');
+      row.className = 'br-crow';
+      row.innerHTML = '<span class="br-cnum">'+(i+1)+'.</span>'
+        +'<input type="text" value="'+def.replace(/"/g,'&quot;')+'" placeholder="클럽명">';
+      wrap.appendChild(row);
+    }
+  });
+}
+
+// Load teams from Firebase into club inputs
+function brLoadFromFirebase() {
+  db.ref('teams').once('value', function(snap) {
+    var data = snap.val();
+    if (!data) { brShowMsg('Firebase에 등록된 팀이 없습니다. 팀 등록 탭에서 먼저 저장해주세요.', 'err'); return; }
+    var aTeams = data.A ? Object.values(data.A) : [];
+    var bTeams = data.B ? Object.values(data.B) : [];
+    var maxN = Math.max(aTeams.length, bTeams.length, 2);
+    document.getElementById('br-nClubs').value = maxN;
+    brBuildUI();
+    var aInputs = document.getElementById('br-cA').querySelectorAll('input');
+    var bInputs = document.getElementById('br-cB').querySelectorAll('input');
+    aTeams.forEach(function(t, i){ if(aInputs[i]) aInputs[i].value = t; });
+    bTeams.forEach(function(t, i){ if(bInputs[i]) bInputs[i].value = t; });
+    brShowMsg('Firebase 팀 불러오기 완료! (A조 '+aTeams.length+'팀, B조 '+bTeams.length+'팀)', 'ok');
+  });
+}
+
+function brFmtTime(base, slotIdx, slotMin) {
+  var p = base.split(':');
+  var t = parseInt(p[0])*60 + parseInt(p[1]) + slotIdx*slotMin;
+  return String(Math.floor(t/60)).padStart(2,'0') + ':' + String(t%60).padStart(2,'0');
+}
+
+function brMakeAllMatches(gd, nTeams) {
+  var clubs = gd.clubs;
+  var arr = clubs.slice();
+  if (arr.length % 2 === 1) arr.push(null);
+  var half = arr.length / 2;
+  var matches = []; var id = 0;
+  for (var r = 0; r < arr.length-1; r++) {
+    for (var ti = 0; ti < nTeams; ti++) {
+      for (var i = 0; i < half; i++) {
+        var c1=arr[i], c2=arr[arr.length-1-i];
+        if (c1&&c2) matches.push({
+          id: gd.key+'_'+(id++), group: gd.name, gk: gd.key,
+          club1: c1.name, team1: c1.name+' '+(ti+1)+'조',
+          club2: c2.name, team2: c2.name+' '+(ti+1)+'조',
+          ttype: (ti+1)+'조', round: r
+        });
+      }
+    }
+    arr = [arr[0], arr[arr.length-1]].concat(arr.slice(1,arr.length-1));
+  }
+  return matches;
+}
+
+function brShuffle(arr) {
+  var a=arr.slice();
+  for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var tmp=a[i];a[i]=a[j];a[j]=tmp;}
+  return a;
+}
+
+function brSchedule(matchesA, matchesB, nCourts, startT, slotM) {
+  var remA=brShuffle(matchesA), remB=brShuffle(matchesB);
+  var scheduledIds={}, playCount={};
+  matchesA.concat(matchesB).forEach(function(m){
+    playCount[m.club1]=playCount[m.club1]||0;
+    playCount[m.club2]=playCount[m.club2]||0;
+  });
+  var slots=[], slotIdx=0, maxIter=1000;
+  while((remA.length+remB.length)>0 && maxIter-->0){
+    var total=remA.length+remB.length;
+    var quotaA,quotaB;
+    if(remA.length===0){quotaA=0;quotaB=nCourts;}
+    else if(remB.length===0){quotaA=nCourts;quotaB=0;}
+    else{quotaA=Math.max(1,Math.min(nCourts-1,Math.round(nCourts*remA.length/total)));quotaB=nCourts-quotaA;}
+    var usedTeams={}, slotMatches=[];
+    function pickFrom(rem,quota){
+      var remCount={};
+      rem.forEach(function(m){remCount[m.team1]=(remCount[m.team1]||0)+1;remCount[m.team2]=(remCount[m.team2]||0)+1;});
+      var sorted=rem.slice().sort(function(a,b){
+        var pa=(playCount[a.club1]||0)+(playCount[a.club2]||0);
+        var pb=(playCount[b.club1]||0)+(playCount[b.club2]||0);
+        if(pa!==pb) return pa-pb;
+        return ((remCount[b.team1]||0)+(remCount[b.team2]||0))-((remCount[a.team1]||0)+(remCount[a.team2]||0));
+      });
+      var picked=[];
+      for(var i=0;i<sorted.length&&picked.length<quota;i++){
+        var m=sorted[i];
+        if(!usedTeams[m.team1]&&!usedTeams[m.team2]){
+          picked.push(m); usedTeams[m.team1]=true; usedTeams[m.team2]=true;
+        }
+      }
+      return picked;
+    }
+    var pickedA=pickFrom(remA,quotaA), pickedB=pickFrom(remB,quotaB);
+    var spare=nCourts-pickedA.length-pickedB.length;
+    if(spare>0&&remA.length>pickedA.length) pickedA=pickedA.concat(pickFrom(remA.filter(function(m){return !usedTeams[m.team1]&&!usedTeams[m.team2];}),spare));
+    if(spare>0&&remB.length>pickedB.length) pickedB=pickedB.concat(pickFrom(remB.filter(function(m){return !usedTeams[m.team1]&&!usedTeams[m.team2];}),spare));
+    var allPicked=pickedA.concat(pickedB);
+    if(allPicked.length===0) break;
+    allPicked.forEach(function(m){playCount[m.club1]++;playCount[m.club2]++;scheduledIds[m.id]=true;});
+    var time=brFmtTime(startT,slotIdx,slotM);
+    allPicked.forEach(function(m,ci){
+      slots.push({slot:slotIdx+1,time:time,court:(ci+1)+'번코트',group:m.group,gk:m.gk,
+        club1:m.club1,team1:m.team1,club2:m.club2,team2:m.team2,ttype:m.ttype});
+    });
+    remA=remA.filter(function(m){return !scheduledIds[m.id];});
+    remB=remB.filter(function(m){return !scheduledIds[m.id];});
+    slotIdx++;
+  }
+  return {slots:slots,numSlots:slotIdx};
+}
+
+function brGetColor(clubName, gds, pa, pb) {
+  for(var gi=0;gi<gds.length;gi++){
+    var pal=gi===0?pa:pb, clubs=gds[gi].clubs;
+    for(var ci=0;ci<clubs.length;ci++) if(clubs[ci].name===clubName) return pal[ci%pal.length];
+  }
+  return pa[0];
+}
+
+function brGenerate() {
+  try {
+    var nCourts=parseInt(document.getElementById('br-nCourts').value)||5;
+    var nTeams=parseInt(document.getElementById('br-nTeams').value)||3;
+    var startT=document.getElementById('br-startT').value||'09:00';
+    var slotM=parseInt(document.getElementById('br-slotM').value)||60;
+    var gds=['A','B'].map(function(g){
+      var inputs=document.getElementById('br-c'+g).querySelectorAll('input');
+      var clubs=[];
+      inputs.forEach(function(inp,ci){clubs.push({name:inp.value.trim()||(g+'조클럽'+(ci+1))});});
+      return {name:g+'조',key:g,clubs:clubs};
+    });
+    var result=brSchedule(brMakeAllMatches(gds[0],nTeams),brMakeAllMatches(gds[1],nTeams),nCourts,startT,slotM);
+    var ver=BR_HISTORY.length+1;
+    var sd={ver:ver,slots:result.slots,numSlots:result.numSlots,nCourts:nCourts,nTeams:nTeams,gds:gds,startT:startT,slotM:slotM};
+    BR_HISTORY.push(sd); BR_CUR=BR_HISTORY.length-1;
+    brRenderTabs(); brRenderResult(sd);
+    brShowMsg('대진표 #'+ver+' 생성 완료! ('+result.slots.length+'경기 / '+result.numSlots+'슬롯)', 'ok');
+  } catch(e) { brShowMsg('오류: '+e.message,'err'); }
+}
+
+function brRenderTabs() {
+  document.getElementById('br-verSection').style.display='block';
+  var wrap=document.getElementById('br-verTabs');
+  wrap.innerHTML='';
+  BR_HISTORY.forEach(function(sd,i){
+    var maxC=sd.numSlots*sd.nCourts;
+    var util=maxC>0?Math.round(sd.slots.length/maxC*100):0;
+    var btn=document.createElement('button');
+    btn.className='br-vtab'+(i===BR_CUR?' on':'');
+    btn.innerHTML='대진표 #'+sd.ver+(sd.savedName?'<br><small style="color:#fbbf24">📂'+sd.savedName+'</small>':'')
+      +'<br><small>'+sd.numSlots+'슬롯 · '+util+'%</small>';
+    (function(idx){btn.onclick=function(){BR_CUR=idx;brRenderTabs();brRenderResult(BR_HISTORY[idx]);};})(i);
+    wrap.appendChild(btn);
+  });
+}
+
+function brRenderResult(d) {
+  document.getElementById('br-result').style.display='block';
+  var totMin=d.numSlots*d.slotM;
+  var dh=Math.floor(totMin/60),dm=totMin%60;
+  var endT=brFmtTime(d.startT,d.numSlots,d.slotM);
+  var maxC=d.numSlots*d.nCourts;
+  var util=maxC>0?Math.round(d.slots.length/maxC*100):0;
+  document.getElementById('br-vn').textContent='대진표 #'+d.ver;
+  document.getElementById('br-vi').innerHTML=(d.savedName?'<span style="color:#fbbf24;font-weight:700;margin-right:8px">📂'+d.savedName+'</span>':'')
+    +'총 '+d.slots.length+'경기 · '+d.numSlots+'슬롯 · 가동률 '+util+'%';
+  function card(v,l,g){return '<div class="br-sc"><div class="br-sv'+(g?' g':'')+'" >'+v+'</div><div class="br-sl">'+l+'</div></div>';}
+  document.getElementById('br-stats').innerHTML=
+    card(d.slots.length,'총 경기 수')+card(d.numSlots,'시간 슬롯')+
+    card(dh+'h'+(dm?dm+'m':''),'총 소요시간',true)+
+    card(d.startT+' ~ '+endT,'운영 시간')+card(util+'%','코트 가동률',true)+card(maxC-d.slots.length,'빈 코트 수');
+  var leg='<span style="font-size:11px;color:#707075;margin-right:4px">클럽 색상:</span>';
+  d.gds.forEach(function(gd,gi){
+    var pal=gi===0?BR_DARK_A:BR_DARK_B;
+    gd.clubs.forEach(function(cl,ci){
+      leg+='<div class="br-li"><div class="br-dot" style="background:'+pal[ci%pal.length]+'"></div>'
+        +'<span style="color:'+pal[ci%pal.length]+'">'+cl.name+'</span></div>';
+    });
+  });
+  document.getElementById('br-legend').innerHTML=leg;
+  // Grid
+  var sm={};
+  d.slots.forEach(function(m){if(!sm[m.time])sm[m.time]={};sm[m.time][m.court]=m;});
+  var times=[];
+  for(var s=0;s<d.numSlots;s++) times.push(brFmtTime(d.startT,s,d.slotM));
+  var courts=[];
+  for(var c=1;c<=d.nCourts;c++) courts.push(c+'번코트');
+  var grid=document.getElementById('br-cgrid');
+  grid.innerHTML='';
+  grid.style.gridTemplateColumns='80px '+courts.map(function(){return '1fr';}).join(' ');
+  function addCell(parent,text,cls,inner){
+    var el=document.createElement('div'); el.className=cls;
+    if(inner) el.innerHTML=inner; else el.textContent=text;
+    parent.appendChild(el);
+  }
+  addCell(grid,'시간','br-cc hdr');
+  courts.forEach(function(c){addCell(grid,c,'br-cc hdr');});
+  times.forEach(function(t,ti){
+    var isLast=ti===times.length-1;
+    addCell(grid,t,'br-cc ctime'+(isLast?' last':''));
+    courts.forEach(function(c){
+      var m=sm[t]&&sm[t][c];
+      if(m){
+        var col1=brGetColor(m.club1,d.gds,BR_DARK_A,BR_DARK_B);
+        var col2=brGetColor(m.club2,d.gds,BR_DARK_A,BR_DARK_B);
+        var tag=m.gk==='A'?'<span class="br-tag-a">'+m.group+'</span>':'<span class="br-tag-b">'+m.group+'</span>';
+        addCell(grid,'','br-cc'+(isLast?' last':''),
+          '<div class="br-cm">'+tag+' <span style="font-size:10px;color:#707075">'+m.ttype+'</span><br>'
+          +'<span style="color:'+col1+';font-weight:700">'+m.club1+'</span>'
+          +'<span class="br-vs"> vs </span>'
+          +'<span style="color:'+col2+';font-weight:700">'+m.club2+'</span></div>');
+      } else {
+        addCell(grid,'','br-cc'+(isLast?' last':''),'<span class="br-cempty">—</span>');
+      }
+    });
+  });
+  // Firebase apply panel
+  brRenderSlotList(d);
+}
+
+// Render slot list for Firebase apply
+function brRenderSlotList(d) {
+  var panel = document.getElementById('br-applyPanel');
+  panel.style.display = 'block';
+  // Group slots by time
+  var byTime = {};
+  d.slots.forEach(function(m) {
+    if (!byTime[m.time]) byTime[m.time] = [];
+    byTime[m.time].push(m);
+  });
+  var times = Object.keys(byTime).sort();
+  var html = '';
+  times.forEach(function(t) {
+    var matches = byTime[t];
+    var summary = matches.map(function(m){return m.club1+' vs '+m.club2;}).join(' | ');
+    html += '<div class="br-slot-item">'
+      +'<span class="br-slot-time">'+t+'</span>'
+      +'<span class="br-slot-info">'+summary+'</span>'
+      +'<button class="br-slot-apply" onclick="brApplySlotToFirebase(\''+t+'\')">Firebase 적용</button>'
+      +'</div>';
+  });
+  document.getElementById('br-slotList').innerHTML = html || '<div style="color:#707075;font-size:12px;padding:10px">슬롯 없음</div>';
+}
+
+// Apply a time slot to Firebase schedule/next
+function brApplySlotToFirebase(time) {
+  if (!BR_HISTORY.length) { brShowMsg('먼저 대진표를 생성해주세요.', 'err'); return; }
+  var d = BR_HISTORY[BR_CUR];
+  var slotMatches = d.slots.filter(function(m){ return m.time === time; });
+  if (!confirm(time+' 슬롯을 Firebase schedule/next에 적용하시겠습니까?\n('+slotMatches.length+'코트 배정)')) return;
+  var nextData = {};
+  slotMatches.forEach(function(m, i) {
+    var courtNum = parseInt(m.court) || (i+1);
+    nextData['court'+courtNum] = {
+      teamA: m.club1,
+      teamB: m.club2,
+      event: '남복',
+      group: m.group + ' ' + m.ttype
+    };
+  });
+  db.ref('schedule/next').set(nextData);
+  db.ref('schedule/meta/nextRound').set(time + ' 타임');
+  toast(time+' 슬롯 Firebase 적용 완료! 코트 관리 탭에서 "배정 적용"을 누르세요.');
+}
+
+// Excel download
+function brDlExcel() {
+  if (!BR_HISTORY.length) { brShowMsg('먼저 대진표를 생성해주세요.', 'err'); return; }
+  var d = BR_HISTORY[BR_CUR];
+  var sm={};
+  d.slots.forEach(function(m){if(!sm[m.time])sm[m.time]={};sm[m.time][m.court]=m;});
+  var times=[];
+  for(var s=0;s<d.numSlots;s++) times.push(brFmtTime(d.startT,s,d.slotM));
+  var courts=[];
+  for(var c=1;c<=d.nCourts;c++) courts.push(c+'번코트');
+  var styles=[], styleMap={};
+  styles.push({id:'sHdr',bg:'1E293B',fg:'F1F5F9',bold:true,align:'Center',sz:11});
+  styles.push({id:'sTime',bg:'0F172A',fg:'4ADE80',bold:true,align:'Center',sz:12});
+  styles.push({id:'sEmpty',bg:'F8FAFC',fg:'94A3B8',bold:false,align:'Center',sz:10});
+  var allClubs=[];
+  d.gds.forEach(function(gd,gi){
+    gd.clubs.forEach(function(cl,ci){
+      var bg=(gi===0?BR_XL_BG_A:BR_XL_BG_B)[ci%8].replace('#','');
+      var fg=(gi===0?BR_XL_TX_A:BR_XL_TX_B)[ci%8].replace('#','');
+      var sid='sC'+gi+ci;
+      styles.push({id:sid,bg:bg,fg:fg,bold:true,align:'Center',sz:11});
+      styleMap[cl.name]=sid; allClubs.push({name:cl.name,sid:sid});
+    });
+  });
+  function xmlEsc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+  function styleXml(s){return '<Style ss:ID="'+s.id+'"><Alignment ss:Horizontal="'+s.align+'" ss:Vertical="Center" ss:WrapText="1"/><Font ss:FontName="맑은 고딕" ss:Size="'+s.sz+'" ss:Color="#'+s.fg+'"'+(s.bold?' ss:Bold="1"':'')+'/><Interior ss:Color="#'+s.bg+'" ss:Pattern="Solid"/><Borders><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/><Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/><Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/></Borders></Style>';}
+  function cell(val,sid,merge){var m=merge?' ss:MergeAcross="'+merge+'"':'';return '<Cell'+(sid?' ss:StyleID="'+sid+'"':'')+m+'><Data ss:Type="String">'+xmlEsc(String(val))+'</Data></Cell>';}
+  function row(cells,height){var h=height?' ss:AutoFitHeight="0" ss:Height="'+height+'"':'';return '<Row'+h+'>'+cells+'</Row>';}
+  var xml='<?xml version="1.0" encoding="UTF-8"?>\n<?mso-application progid="Excel.Sheet"?>\n<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:html="http://www.w3.org/TR/REC-html40">\n';
+  xml+='<Styles>';
+  styles.forEach(function(s){xml+=styleXml(s);});
+  xml+='<Style ss:ID="sTitle"><Font ss:FontName="맑은 고딕" ss:Size="14" ss:Bold="1" ss:Color="#1E293B"/></Style>';
+  xml+='</Styles>';
+  xml+='<Worksheet ss:Name="코트배정표"><Table ss:DefaultRowHeight="50" ss:DefaultColumnWidth="110">';
+  xml+='<Column ss:Width="70"/>';
+  courts.forEach(function(){xml+='<Column ss:Width="130"/>';});
+  var maxC=d.numSlots*d.nCourts;
+  var util=maxC>0?Math.round(d.slots.length/maxC*100):0;
+  xml+=row('<Cell ss:StyleID="sTitle" ss:MergeAcross="'+d.nCourts+'"><Data ss:Type="String">'+xmlEsc('테니스 대진표 #'+d.ver+' ('+d.startT+' 시작 / '+d.numSlots+'슬롯 / 가동률 '+util+'%)')+'</Data></Cell>',30);
+  xml+='<Row ss:Height="6"></Row>';
+  xml+=row(cell('시간','sTime')+courts.map(function(c){return cell(c,'sHdr');}).join(''),32);
+  times.forEach(function(t){
+    var cells=cell(t,'sTime');
+    courts.forEach(function(c){
+      var m=sm[t]&&sm[t][c];
+      if(m){var sid=styleMap[m.club1]||'sEmpty';cells+=cell('['+m.group+' '+m.ttype+']\n'+m.club1+'  vs  '+m.club2,sid);}
+      else cells+=cell('—','sEmpty');
+    });
+    xml+=row(cells,52);
+  });
+  xml+='<Row ss:Height="10"></Row>';
+  var legCells=cell('클럽 범례','sHdr');
+  allClubs.forEach(function(cl){legCells+=cell(cl.name,cl.sid);});
+  xml+=row(legCells,28);
+  xml+='</Table></Worksheet></Workbook>';
+  var blob=new Blob([xml],{type:'application/vnd.ms-excel;charset=utf-8'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url; a.download='테니스대진표_#'+d.ver+'_'+new Date().toISOString().slice(0,10)+'.xls';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  brShowMsg('대진표 #'+d.ver+' 엑셀 다운로드 완료!','ok');
+}
+
+// Save/Load (localStorage)
+function brToggleSavePanel(){
+  var p=document.getElementById('br-savePanel');
+  p.style.display=(p.style.display==='none'||p.style.display==='')?'block':'none';
+  brRenderSavedList();
+}
+function brGetSaved(){try{return JSON.parse(localStorage.getItem(BR_LS_KEY)||'[]');}catch(e){return [];}}
+function brSetSaved(arr){localStorage.setItem(BR_LS_KEY,JSON.stringify(arr));}
+function brSaveSchedule(){
+  if(!BR_HISTORY.length){brShowMsg('먼저 대진표를 생성해주세요.','err');return;}
+  var nameEl=document.getElementById('br-saveName');
+  var name=nameEl.value.trim()||('대진표 '+new Date().toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}));
+  var saved=brGetSaved();
+  var entry={id:Date.now(),name:name,savedAt:new Date().toLocaleString('ko-KR'),data:BR_HISTORY[BR_CUR]};
+  saved.unshift(entry);
+  if(saved.length>30) saved=saved.slice(0,30);
+  brSetSaved(saved); nameEl.value='';
+  brRenderSavedList();
+  brShowMsg('"'+name+'" 저장 완료!','ok');
+}
+function brLoadSchedule(id){
+  var saved=brGetSaved(), entry=null;
+  for(var i=0;i<saved.length;i++){if(saved[i].id===id){entry=saved[i];break;}}
+  if(!entry){brShowMsg('저장 데이터를 찾을 수 없습니다.','err');return;}
+  var sd=entry.data;
+  document.getElementById('br-nCourts').value=sd.nCourts;
+  document.getElementById('br-nTeams').value=sd.nTeams;
+  document.getElementById('br-startT').value=sd.startT;
+  document.getElementById('br-slotM').value=sd.slotM;
+  document.getElementById('br-nClubs').value=sd.gds[0].clubs.length;
+  brBuildUI();
+  ['A','B'].forEach(function(g,gi){
+    var inputs=document.getElementById('br-c'+g).querySelectorAll('input');
+    sd.gds[gi].clubs.forEach(function(cl,ci){if(inputs[ci])inputs[ci].value=cl.name;});
+  });
+  sd.ver=BR_HISTORY.length+1; sd.savedName=entry.name;
+  BR_HISTORY.push(sd); BR_CUR=BR_HISTORY.length-1;
+  brRenderTabs(); brRenderResult(sd);
+  document.getElementById('br-savePanel').style.display='none';
+  brShowMsg('"'+entry.name+'" 불러오기 완료!','ok');
+}
+function brDeleteSchedule(id){
+  brSetSaved(brGetSaved().filter(function(e){return e.id!==id;}));
+  brRenderSavedList();
+}
+function brRenderSavedList(){
+  var list=document.getElementById('br-savedList');
+  var saved=brGetSaved();
+  if(!saved.length){list.innerHTML='<div style="color:#707075;font-size:12px;text-align:center;padding:20px">저장된 대진표가 없습니다</div>';return;}
+  list.innerHTML=saved.map(function(e){
+    var sd=e.data;
+    var maxC=sd.numSlots*sd.nCourts;
+    var util=maxC>0?Math.round(sd.slots.length/maxC*100):0;
+    var names=sd.gds.map(function(gd){return gd.clubs.map(function(c){return c.name;}).join(', ');}).join(' | ');
+    return '<div class="br-saved-item">'
+      +'<div class="br-si-info"><div class="br-si-name">'+e.name+'</div>'
+      +'<div class="br-si-meta">'+e.savedAt+' · '+sd.numSlots+'슬롯 · '+util+'% · '+sd.slots.length+'경기</div>'
+      +'<div class="br-si-meta" style="color:#707075">'+names+'</div></div>'
+      +'<div class="br-si-btns">'
+      +'<button class="br-slot-apply" onclick="brLoadSchedule('+e.id+')">📂 불러오기</button>'
+      +'<button class="br-slot-apply" style="background:#3A1A10;color:#FF6B6B;border-color:#4A2A18" onclick="if(confirm(\'삭제?\'))brDeleteSchedule('+e.id+')">🗑</button>'
+      +'</div></div>';
+  }).join('');
+}
+
+// Init bracket UI
+brBuildUI();
+brRenderSavedList();
+
 // Init schedule grid based on courts count
 courtsRef.once('value',function(snap){
   var data=snap.val();
   var n=data?Object.keys(data).length:5;
   renderScheduleGrid(n);
 });
+</script>
 
 // Results management
 function saveResult(key){
