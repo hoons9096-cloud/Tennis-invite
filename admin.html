@@ -996,6 +996,32 @@ resultsRef.on('value',function(){renderStandings()});
 // ============ SLOT AUTO-ASSIGN ============
 var SLOTS = {}; // 대진표 생성/불러오기 시 자동 업데이트됨
 
+// 페이지 로드 시 Firebase bracket에서 SLOTS 복원
+db.ref('bracket').once('value', function(snap) {
+  var d = snap.val();
+  if (!d || !d.slots) return;
+  // brUpdateSlots와 동일한 변환 로직
+  function toArr(v){
+    if(!v) return [];
+    if(Array.isArray(v)) return v;
+    return Object.keys(v).sort(function(a,b){return Number(a)-Number(b);}).map(function(k){return v[k];});
+  }
+  var slots = toArr(d.slots);
+  var newSlots = {};
+  slots.forEach(function(m) {
+    var slotNum = m.slot;
+    var courtKey = 'court' + parseInt((m.court||'').replace('번코트','').replace('코트','').trim());
+    if (!newSlots[slotNum]) newSlots[slotNum] = { time: m.time, courts: {} };
+    newSlots[slotNum].courts[courtKey] = {
+      teamA: m.club1, teamB: m.club2,
+      event: '남복', group: (m.group||'') + ' ' + (m.ttype||'')
+    };
+  });
+  SLOTS = newSlots;
+  console.log('SLOTS 복원 완료:', Object.keys(SLOTS).length, '슬롯');
+  if (latestCourtsData) renderAllCourts(latestCourtsData);
+});
+
 // 현재 게시 중인 대진표 상태 표시
 db.ref('bracket').on('value', function(snap) {
   var el = document.getElementById('bracketStatusText');
@@ -1009,7 +1035,10 @@ db.ref('bracket').on('value', function(snap) {
   var slots = d.slots ? Object.keys(d.slots).length : 0;
   var t = new Date(d.publishedAt);
   var timeStr = t.getHours().toString().padStart(2,'0') + ':' + t.getMinutes().toString().padStart(2,'0');
-  var infoHtml = '<strong style="color:#D2FF4E">대진표 #' + (d.ver||'?') + '</strong>'
+  var nameLabel = d.savedName
+    ? '<strong style="color:#D2FF4E">'+d.savedName+'</strong> <span style="color:#505055">(#'+(d.ver||'?')+')</span>'
+    : '<strong style="color:#D2FF4E">대진표 #'+(d.ver||'?')+'</strong>';
+  var infoHtml = nameLabel
     + ' &nbsp;·&nbsp; ' + (d.startT||'') + ' 시작'
     + ' &nbsp;·&nbsp; ' + slots + '경기'
     + ' &nbsp;·&nbsp; ' + (d.nCourts||5) + '코트'
@@ -1096,6 +1125,7 @@ function brPublishSilent(d) {
   try {
     db.ref('bracket').set({
       ver: d.ver,
+      savedName: d.savedName || null,
       startT: d.startT,
       slotM: d.slotM,
       numSlots: d.numSlots,
