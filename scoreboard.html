@@ -439,140 +439,129 @@ db.ref('results').on('value',function(){renderPublicStandings()});
 db.ref('groups').on('value',function(){renderPublicStandings()});
 
 // ============ 대진표 Firebase 연동 ============
-var BRACKET_COLORS_A = ['#4f9cf9','#a78bfa','#38bdf8','#34d399','#fb923c','#818cf8','#f0abfc','#67e8f9'];
-var BRACKET_COLORS_B = ['#f9634f','#f472b6','#facc15','#e879f9','#84cc16','#fb7185','#fbbf24','#4ade80'];
-var bracketColorMap = {};
+var BR_COLORS_A=['#4f9cf9','#a78bfa','#38bdf8','#34d399','#fb923c','#818cf8','#f0abfc','#67e8f9'];
+var BR_COLORS_B=['#f9634f','#f472b6','#facc15','#e879f9','#84cc16','#fb7185','#fbbf24','#4ade80'];
+var brColorMap={};
 
-function getBracketColor(clubName) {
-  return bracketColorMap[clubName] || '#E8E8E8';
+function toArr(v){
+  if(!v) return [];
+  if(Array.isArray(v)) return v;
+  return Object.keys(v).sort(function(a,b){return Number(a)-Number(b);}).map(function(k){return v[k];});
 }
 
-function renderBracket(d) {
-  if (!d) return;
-
-  // Firebase는 배열을 객체({0:...,1:...})로 저장 → 다시 배열로 변환
-  function toArr(v) {
-    if (!v) return [];
-    if (Array.isArray(v)) return v;
-    return Object.keys(v).sort(function(a,b){return a-b;}).map(function(k){return v[k];});
-  }
-
-  var slots = toArr(d.slots);
-  var gds   = toArr(d.gds).map(function(gd) {
-    return { name: gd.name, key: gd.key, clubs: toArr(gd.clubs) };
-  });
-
-  if (!slots.length) return;
-
-  // 클럽별 색상 매핑
-  bracketColorMap = {};
-  gds.forEach(function(gd, gi) {
-    var pal = gi === 0 ? BRACKET_COLORS_A : BRACKET_COLORS_B;
-    gd.clubs.forEach(function(cl, ci) {
-      bracketColorMap[cl.name] = pal[ci % pal.length];
+function renderBracket(d){
+  try {
+    var slots=toArr(d.slots);
+    var gds=toArr(d.gds).map(function(gd){
+      return {name:gd.name,key:gd.key,clubs:toArr(gd.clubs)};
     });
-  });
 
-  var maxC = d.numSlots * d.nCourts;
-  var util = maxC > 0 ? Math.round(slots.length / maxC * 100) : 0;
+    // 색상 맵
+    brColorMap={};
+    gds.forEach(function(gd,gi){
+      var pal=gi===0?BR_COLORS_A:BR_COLORS_B;
+      gd.clubs.forEach(function(cl,ci){ brColorMap[cl.name]=pal[ci%pal.length]; });
+    });
 
-  // 슬롯별 코트별 그룹핑
-  var grid = {}, times = [];
-  slots.forEach(function(m) {
-    if (!grid[m.time]) { grid[m.time] = {}; times.push(m.time); }
-    grid[m.time][m.court] = m;
-  });
-  times = times.filter(function(v,i,a){return a.indexOf(v)===i;}).sort();
+    // 슬롯→코트 그리드
+    var grid={}, times=[];
+    slots.forEach(function(m){
+      if(!grid[m.time]){grid[m.time]={};times.push(m.time);}
+      grid[m.time][m.court]=m;
+    });
+    times=times.filter(function(v,i,a){return a.indexOf(v)===i;}).sort();
 
-  var courts = [];
-  for (var c = 1; c <= d.nCourts; c++) courts.push(c + '번코트');
+    var nC=d.nCourts||5;
+    var courts=[];
+    for(var c=1;c<=nC;c++) courts.push(c+'번코트');
 
-  // 범례
-  var legendHtml = '<div class="b-legend"><span class="b-legend-label">클럽:</span>';
-  Object.keys(bracketColorMap).forEach(function(name) {
-    var col = bracketColorMap[name];
-    legendHtml += '<span class="b-legend-item"><span class="b-dot" style="background:'+col+'"></span><span style="color:'+col+'">'+name+'</span></span>';
-  });
-  legendHtml += '</div>';
+    // 범례
+    var leg='<div class="b-legend"><span class="b-legend-label">클럽:</span>';
+    Object.keys(brColorMap).forEach(function(n){
+      leg+='<span class="b-legend-item"><span class="b-dot" style="background:'+brColorMap[n]+'"></span><span style="color:'+brColorMap[n]+'">'+n+'</span></span>';
+    });
+    leg+='</div>';
 
-  // 테이블
-  var thead = '<tr><th>시간</th>' + courts.map(function(c){return '<th>'+c+'</th>';}).join('') + '</tr>';
-  var tbody = times.map(function(t) {
-    var cells = courts.map(function(c) {
-      var m = grid[t] && grid[t][c];
-      if (!m) return '<td class="cell-empty">—</td>';
-      var isA = m.gk === 'A';
-      var col1 = getBracketColor(m.club1);
-      var col2 = getBracketColor(m.club2);
-      var badgeCls = isA ? 'badge-a' : 'badge-b';
-      var cellCls  = isA ? 'cell-a'  : 'cell-b';
-      var grpLabel = m.group + ' ' + m.ttype;
-      return '<td class="'+cellCls+'">'
-        +'<div class="b-match" data-ta="'+m.club1+'" data-tb="'+m.club2+'" data-group="'+grpLabel+'">'
-        +'<span class="b-badge '+badgeCls+'">'+grpLabel+'</span>'
-        +'<div class="b-teams">'
-        +'<span style="color:'+col1+';font-weight:700">'+m.club1+'</span>'
-        +'<span class="b-vs">vs</span>'
-        +'<span style="color:'+col2+';font-weight:700">'+m.club2+'</span>'
-        +'</div>'
-        +'<div class="b-result"></div>'
-        +'</div></td>';
+    // 테이블
+    var th='<tr><th>시간</th>'+courts.map(function(c){return'<th>'+c+'</th>';}).join('')+'</tr>';
+    var tb=times.map(function(t){
+      var cells=courts.map(function(c){
+        var m=grid[t]&&grid[t][c];
+        if(!m) return'<td class="cell-empty">—</td>';
+        var isA=m.gk==='A';
+        var c1=brColorMap[m.club1]||'#E8E8E8';
+        var c2=brColorMap[m.club2]||'#E8E8E8';
+        var grp=m.group+' '+m.ttype;
+        return'<td class="'+(isA?'cell-a':'cell-b')+'">'
+          +'<div class="b-match" data-ta="'+m.club1+'" data-tb="'+m.club2+'" data-group="'+grp+'">'
+          +'<span class="b-badge '+(isA?'badge-a':'badge-b')+'">'+grp+'</span>'
+          +'<div class="b-teams">'
+          +'<span style="color:'+c1+';font-weight:700">'+m.club1+'</span>'
+          +'<span class="b-vs">vs</span>'
+          +'<span style="color:'+c2+';font-weight:700">'+m.club2+'</span>'
+          +'</div>'
+          +'<div class="b-result"></div>'
+          +'</div></td>';
+      }).join('');
+      return'<tr><td class="b-time">'+t+'</td>'+cells+'</tr>';
     }).join('');
-    return '<tr><td class="b-time">'+t+'</td>'+cells+'</tr>';
-  }).join('');
 
-  var html = '<div class="section-title">대진표 #'+d.ver+'</div>'
-    + '<div class="bracket-meta">'
-    + '<span class="b-pill">⏰ '+d.startT+' 시작</span>'
-    + '<span class="b-pill">🎾 총 '+slots.length+'경기 · '+d.numSlots+'슬롯</span>'
-    + '<span class="b-pill">📍 코트 가동률 '+util+'%</span>'
-    + '</div>'
-    + legendHtml
-    + '<div class="bracket-scroll"><table class="b-table"><thead>'+thead+'</thead><tbody>'+tbody+'</tbody></table></div>';
+    var maxC=d.numSlots*nC;
+    var util=maxC>0?Math.round(slots.length/maxC*100):0;
 
-  document.getElementById('bracketDisplay').innerHTML = html;
-  db.ref('results').once('value', function(snap){ applyBracketResults(snap.val()||{}); });
+    var html='<div class="section-title">대진표 #'+d.ver+'</div>'
+      +'<div class="bracket-meta">'
+      +'<span class="b-pill">⏰ '+d.startT+' 시작</span>'
+      +'<span class="b-pill">🎾 총 '+slots.length+'경기 · '+d.numSlots+'슬롯</span>'
+      +'<span class="b-pill">📍 가동률 '+util+'%</span>'
+      +'</div>'+leg
+      +'<div class="bracket-scroll"><table class="b-table"><thead>'+th+'</thead><tbody>'+tb+'</tbody></table></div>';
+
+    document.getElementById('bracketDisplay').innerHTML=html;
+
+    // 결과 점수 오버레이
+    db.ref('results').once('value',function(snap){ applyBracketScores(snap.val()||{}); });
+  } catch(e) {
+    document.getElementById('bracketDisplay').innerHTML=
+      '<div class="empty"><span class="empty-icon">⚠️</span><div class="empty-text">대진표 렌더링 오류: '+e.message+'</div></div>';
+    console.error('renderBracket error:', e);
+  }
 }
 
-function applyBracketResults(data) {
-  document.querySelectorAll('.b-result').forEach(function(el){
-    el.classList.remove('done'); el.textContent='';
-  });
+function applyBracketScores(data){
+  document.querySelectorAll('.b-result').forEach(function(el){el.classList.remove('done');el.textContent='';});
   Object.keys(data).forEach(function(key){
-    var r = data[key];
+    var r=data[key];
     document.querySelectorAll('.b-match').forEach(function(cell){
-      var ta=cell.dataset.ta, tb=cell.dataset.tb;
+      var ta=cell.dataset.ta,tb=cell.dataset.tb;
       if(!ta) return;
       function sim(a,b){return a===b||a.indexOf(b)!==-1||b.indexOf(a)!==-1;}
-      var tm=(sim(ta,r.teamA||'')&&sim(tb,r.teamB||''))||(sim(ta,r.teamB||'')&&sim(tb,r.teamA||''));
-      if(tm){
-        var scoreEl=cell.querySelector('.b-result');
-        if(scoreEl){
+      var match=(sim(ta,r.teamA||'')&&sim(tb,r.teamB||''))||(sim(ta,r.teamB||'')&&sim(tb,r.teamA||''));
+      if(match){
+        var el=cell.querySelector('.b-result');
+        if(el){
           var sA=sim(ta,r.teamA||'')?r.scoreA:r.scoreB;
           var sB=sim(ta,r.teamA||'')?r.scoreB:r.scoreA;
-          scoreEl.textContent=sA+' : '+sB;
-          scoreEl.classList.add('done');
+          el.textContent=sA+' : '+sB;
+          el.classList.add('done');
         }
       }
     });
   });
 }
 
-// Firebase bracket 실시간 리스너
-db.ref('bracket').on('value', function(snap){
-  var d = snap.val();
-  if (!d) {
-    document.getElementById('bracketDisplay').innerHTML =
-      '<div class="empty"><span class="empty-icon">📋</span><div class="empty-text">아직 게시된 대진표가 없습니다</div></div>';
+db.ref('bracket').on('value',function(snap){
+  var d=snap.val();
+  if(!d){
+    document.getElementById('bracketDisplay').innerHTML=
+      '<div class="empty"><span class="empty-icon">📋</span><div class="empty-text">아직 게시된 대진표가 없습니다<br><small style="font-size:11px;margin-top:6px;display:block">관리자 페이지에서 대진표 생성 후 자동으로 표시됩니다</small></div></div>';
     return;
   }
   renderBracket(d);
 });
 
-// 결과 업데이트 시 대진표 점수도 갱신
-db.ref('results').on('value', function(snap){
-  applyBracketResults(snap.val()||{});
-});
+db.ref('results').on('value',function(snap){ applyBracketScores(snap.val()||{}); });
+
 </script>
 </body>
 </html>
