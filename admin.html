@@ -204,9 +204,31 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
 .br-slot-info{flex:1;color:#E8E8E8;}
 .br-slot-apply{padding:5px 12px;border-radius:6px;border:1px solid #2A4A18;background:#1A3A10;color:#D2FF4E;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;}
 .br-slot-apply:hover{background:#2A4A18;}
-</style>
+/* ===== 로그인 ===== */
+#loginOverlay{position:fixed;inset:0;background:#0C0C0E;z-index:9999;display:flex;align-items:center;justify-content:center;}
+.login-box{background:#151518;border:1px solid #2A2A30;border-radius:16px;padding:36px 32px;width:100%;max-width:360px;text-align:center;}
+.login-box h2{color:#D2FF4E;font-size:20px;font-weight:900;margin-bottom:6px;}
+.login-box p{color:#707075;font-size:12px;margin-bottom:24px;}
+.login-input{width:100%;background:#0C0C0E;border:1px solid #2A2A30;border-radius:8px;color:#E8E8E8;font-size:14px;padding:12px 14px;margin-bottom:10px;font-family:inherit;box-sizing:border-box;}
+.login-input:focus{outline:none;border-color:#D2FF4E;}
+.login-btn{width:100%;padding:12px;background:#D2FF4E;color:#0C0C0E;border:none;border-radius:8px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;margin-top:6px;}
+.login-btn:hover{background:#bfee2e;}
+.login-err{color:#FF6B6B;font-size:12px;margin-top:8px;min-height:18px;}</style>
 </head>
 <body>
+
+<!-- 로그인 오버레이 -->
+<div id="loginOverlay">
+  <div class="login-box">
+    <h2>🎾 대회 본부</h2>
+    <p>관리자 로그인이 필요합니다</p>
+    <input class="login-input" type="email" id="loginEmail" placeholder="이메일" autocomplete="email">
+    <input class="login-input" type="password" id="loginPw" placeholder="비밀번호" autocomplete="current-password"
+      onkeydown="if(event.key==='Enter') doLogin()">
+    <button class="login-btn" onclick="doLogin()">로그인</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
 
 <div class="header">
   <h1>🎾 대회 본부 - 스코어 관리</h1>
@@ -409,6 +431,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script>
 firebase.initializeApp({
   apiKey: "AIzaSyBLEGto1SK7JiowYJJCuBCfpBsjrkiqklM",
@@ -421,6 +444,29 @@ firebase.initializeApp({
 });
 
 var db = firebase.database();
+var auth = firebase.auth();
+
+// 로그인 상태 감지
+auth.onAuthStateChanged(function(user) {
+  if (user) {
+    document.getElementById('loginOverlay').style.display = 'none';
+    console.log('로그인됨:', user.email);
+  } else {
+    document.getElementById('loginOverlay').style.display = 'flex';
+  }
+});
+
+function doLogin() {
+  var email = document.getElementById('loginEmail').value.trim();
+  var pw    = document.getElementById('loginPw').value;
+  var errEl = document.getElementById('loginErr');
+  errEl.textContent = '';
+  if (!email || !pw) { errEl.textContent = '이메일과 비밀번호를 입력해주세요'; return; }
+  auth.signInWithEmailAndPassword(email, pw)
+    .catch(function(e) {
+      errEl.textContent = '로그인 실패: 이메일 또는 비밀번호를 확인해주세요';
+    });
+}
 var courtsRef = db.ref('courts');
 var resultsRef = db.ref('results');
 var teamsRef = db.ref('teams');
