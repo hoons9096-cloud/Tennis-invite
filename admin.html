@@ -290,7 +290,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
     <div id="teamSavePanel" style="display:none;background:#151518;border:1px solid #2A2A30;border-radius:12px;padding:14px;margin-top:10px">
       <div style="font-size:12px;font-weight:800;color:#a78bfa;margin-bottom:10px">💾 팀 구성 저장 / 불러오기</div>
       <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;flex-wrap:wrap">
-        <input type="text" id="teamSaveName" placeholder="저장 이름 (예: 2026 회장배 팀구성)"
+        <input type="text" id="teamSaveName" placeholder="저장 이름 (예: 2026 월촌구장배 팀구성)"
           style="flex:1;min-width:160px;background:#0C0C0E;border:1px solid #2A2A30;color:#E8E8E8;border-radius:8px;padding:8px 12px;font-size:13px;font-family:inherit">
         <button class="setup-btn" style="background:#2A1A40;color:#a78bfa;border-color:#3A2A60" onclick="saveTeamConfig()">💾 현재 입력 저장</button>
       </div>
@@ -373,7 +373,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
     <div class="br-savepanel" id="br-savePanel">
       <div style="font-size:12px;font-weight:800;color:#a78bfa;margin-bottom:10px">💾 대진표 저장 / 불러오기</div>
       <div class="br-sp-row">
-        <input type="text" id="br-saveName" placeholder="저장 이름 (예: 2026 회장배 최종안)">
+        <input type="text" id="br-saveName" placeholder="저장 이름 (예: 2026 월촌구장배 최종안)">
         <button class="br-btn br-btn-sv" style="padding:8px 16px;font-size:12px" onclick="brSaveSchedule()">💾 저장</button>
       </div>
       <div style="font-size:11px;color:#707075;margin-bottom:10px">⚠ 이 기기·브라우저에만 저장됩니다</div>
@@ -1000,6 +1000,99 @@ function resetCourt(courtId){
   toast('코트 '+courtId.replace('court','')+' 초기화 완료');
 }
 
+// ★ 다음 경기 배정: 이 코트의 대진표 순서(슬롯)를 따라 다음 경기를 앞당겨 배정
+// 대진표 순서 그대로 유지 → 혼동 없음. 단지 예정보다 일찍 시작 가능.
+function assignNextMatchup(courtId){
+  var slotNums = Object.keys(SLOTS).map(Number).sort(function(a,b){return a-b;});
+  if(slotNums.length === 0){
+    toast('⚠️ 대진표가 없습니다. 대진표를 먼저 생성해주세요.');
+    return;
+  }
+  
+  resultsRef.once('value',function(rsnap){
+    var rdata = rsnap.val()||{};
+    
+    // 매치업별 승수 계산
+    function matchupStatus(club1, club2){
+      var w1=0, w2=0;
+      Object.values(rdata).forEach(function(r){
+        if(r.skipped) return;
+        var rCA = (r.teamA||'').replace(/\s*\d+장조$/,'').trim();
+        var rCB = (r.teamB||'').replace(/\s*\d+장조$/,'').trim();
+        var same = (rCA===club1 && rCB===club2) || (rCA===club2 && rCB===club1);
+        if(!same) return;
+        if(r.scoreA > r.scoreB){
+          if(rCA===club1) w1++; else w2++;
+        } else if(r.scoreB > r.scoreA){
+          if(rCB===club1) w1++; else w2++;
+        }
+      });
+      return {w1:w1, w2:w2, done: w1>=2 || w2>=2};
+    }
+    
+    courtsRef.once('value',function(csnap){
+      var courts = csnap.val()||{};
+      
+      // 현재 다른 코트에서 경기 중(배정 포함)인 클럽
+      var busyClubs = {};
+      Object.keys(courts).forEach(function(cId){
+        if(cId === courtId) return;
+        var c = courts[cId];
+        if(!c || !c.teamA || !c.teamB) return;
+        if(c.status === 'live' || c.status === 'waiting'){
+          var cA = c.teamA.replace(/\s*\d+장조$/,'').trim();
+          var cB = c.teamB.replace(/\s*\d+장조$/,'').trim();
+          if(cA) busyClubs[cA] = true;
+          if(cB) busyClubs[cB] = true;
+        }
+      });
+      
+      // ★ 이 코트의 대진표 순서대로 다음 미완료 매치업 찾기
+      var next = null;
+      var blockedMsg = null;
+      for(var i=0; i<slotNums.length; i++){
+        var s = slotNums[i];
+        var sd = SLOTS[s] && SLOTS[s].courts[courtId];
+        if(!sd || !sd.teamA || !sd.teamB) continue;
+        
+        var club1 = sd.teamA.replace(/\s*\d+장조$/,'').trim();
+        var club2 = sd.teamB.replace(/\s*\d+장조$/,'').trim();
+        var st = matchupStatus(club1, club2);
+        if(st.done) continue; // 완료된 매치업 → 다음 슬롯
+        
+        if(busyClubs[club1] || busyClubs[club2]){
+          blockedMsg = '⏳ 다음 경기('+club1+' vs '+club2+')의 팀이 다른 코트에서 경기 중입니다';
+          break; // 순서 유지: 건너뛰지 않고 대기
+        }
+        
+        next = {slot:s, club1:club1, club2:club2, group:sd.group||'', st:st};
+        break;
+      }
+      
+      if(!next){
+        toast(blockedMsg || '🎉 이 코트의 모든 경기가 완료되었습니다!');
+        return;
+      }
+      
+      // 다음 장조 결정
+      var playedCount = next.st.w1 + next.st.w2;
+      var nextJo = Math.min(playedCount + 1, 3);
+      
+      courtsRef.child(courtId).update({
+        teamA: next.club1,
+        teamB: next.club2,
+        scoreA: 0, scoreB: 0,
+        event: nextJo+'장조',
+        group: next.group,
+        status: 'waiting'
+      });
+      
+      var statusMsg = playedCount > 0 ? ' (현재 '+next.st.w1+':'+next.st.w2+', '+nextJo+'장조부터)' : '';
+      toast('▶ 슬롯'+next.slot+' '+next.club1+' vs '+next.club2+' 배정!'+statusMsg);
+    });
+  });
+}
+
 function renderCourt(courtId, data){
   var statusClass = data.status==='live'?'live':data.status==='done'?'done':'waiting';
   var statusText = data.status==='live'?'LIVE':data.status==='done'?'종료':'대기';
@@ -1355,9 +1448,13 @@ function calcMatchupStandings(groupTeams, results){
   standings.sort(function(a,b){
     // 1순위: 매치 승 수 (많을수록 상위)
     if(b.matchWin !== a.matchWin) return b.matchWin - a.matchWin;
-    // 2순위: 세트 패 수 (적을수록 상위 = 압도적 승리)
-    if(a.setLose !== b.setLose) return a.setLose - b.setLose;
-    // 3순위: 세트 승 수 (참고 지표)
+    // 2순위: 세트 승률 (매치 수가 달라도 공정)
+    var totalA = a.setWin + a.setLose;
+    var totalB = b.setWin + b.setLose;
+    var rateA = totalA > 0 ? a.setWin / totalA : 0;
+    var rateB = totalB > 0 ? b.setWin / totalB : 0;
+    if(rateB !== rateA) return rateB - rateA;
+    // 3순위: 세트 승 수
     if(b.setWin !== a.setWin) return b.setWin - a.setWin;
     // 4순위: 상대전적
     return h2hMatchWin(b.club, a.club) - h2hMatchWin(a.club, b.club);
@@ -1439,12 +1536,13 @@ function renderStandings(){
         // 최종 순위표
         html += '<div style="font-size:11px;font-weight:800;color:'+color+';margin-bottom:6px;letter-spacing:2px">최종 순위</div>';
         html += '<table class="standings-table"><thead><tr>'
-          +'<th>순위</th><th style="text-align:left">클럽</th><th>매치승</th><th>매치패</th><th>세트승</th><th>세트패</th><th>세트득실</th>'
+          +'<th>순위</th><th style="text-align:left">클럽</th><th>매치승</th><th>매치패</th><th>세트승</th><th>세트패</th><th>세트승률</th>'
           +'</tr></thead><tbody>';
         
         standings.forEach(function(s,i){
           var qualify = i<2 ? 'standings-qualify' : '';
-          var gd = s.setWin - s.setLose;
+          var totalSets = s.setWin + s.setLose;
+          var rate = totalSets > 0 ? Math.round(s.setWin / totalSets * 100) : 0;
           html += '<tr class="'+qualify+'">'
             +'<td class="standings-rank" style="color:'+color+'">'+(i+1)+'</td>'
             +'<td class="standings-team">'+s.club+'</td>'
@@ -1452,7 +1550,7 @@ function renderStandings(){
             +'<td class="standings-lose">'+s.matchLose+'</td>'
             +'<td>'+s.setWin+'</td>'
             +'<td>'+s.setLose+'</td>'
-            +'<td style="color:'+(gd>0?'#50C878':gd<0?'#FF6B6B':'#707075')+';font-weight:700">'+(gd>0?'+':'')+gd+'</td>'
+            +'<td style="color:'+color+';font-weight:700">'+rate+'%</td>'
             +'</tr>';
         });
         html += '</tbody></table></div>';
@@ -1958,6 +2056,16 @@ function brGenerate() {
     brRenderTabs(); brRenderResult(sd);
     brShowMsg('대진표 #'+ver+' 생성 완료! ('+result.slots.length+'경기 / '+result.numSlots+'슬롯)', 'ok');
     brPublishSilent(sd);
+    // ★ 매치업 대기열(큐) 생성 → Firebase 저장 (빠른 진행용)
+    var queue = [];
+    var seenMatchups = {};
+    result.slots.forEach(function(m){
+      var mKey = [m.club1, m.club2].sort().join('|') + '|' + m.gk;
+      if(seenMatchups[mKey]) return;
+      seenMatchups[mKey] = true;
+      queue.push({order: queue.length+1, club1: m.club1, club2: m.club2, group: m.group, gk: m.gk});
+    });
+    db.ref('matchQueue').set(queue);
     // groups + teams 노드 업데이트
     var gData={}, tData={};
     sd.gds.forEach(function(gd){

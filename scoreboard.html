@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>영남테니스회장배 - 실시간 스코어보드</title>
-<meta property="og:title" content="🎾 영남테니스회장배 실시간 스코어보드">
+<title>월촌구장배 테니스대회 - 실시간 스코어보드</title>
+<meta property="og:title" content="🎾 월촌구장배 테니스대회 실시간 스코어보드">
 <meta property="og:description" content="경기 진행 상황을 실시간으로 확인하세요!">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
@@ -94,7 +94,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
 <body>
 
 <div class="header">
-  <h1>🎾 영남테니스회장배 초청 대회</h1>
+  <h1>🎾 월촌구장배 테니스대회</h1>
   <p><span class="refresh-dot"></span>실시간 업데이트 중 · 2026.4.25</p>
 </div>
 
@@ -360,7 +360,11 @@ function calcMatchupStandings(groupTeams, results){
   var standings = Object.values(clubStats);
   standings.sort(function(a,b){
     if(b.matchWin !== a.matchWin) return b.matchWin - a.matchWin;
-    if(a.setLose !== b.setLose) return a.setLose - b.setLose;
+    var totalA = a.setWin + a.setLose;
+    var totalB = b.setWin + b.setLose;
+    var rateA = totalA > 0 ? a.setWin / totalA : 0;
+    var rateB = totalB > 0 ? b.setWin / totalB : 0;
+    if(rateB !== rateA) return rateB - rateA;
     if(b.setWin !== a.setWin) return b.setWin - a.setWin;
     return h2hMatchWin(b.club, a.club) - h2hMatchWin(a.club, b.club);
   });
@@ -441,17 +445,20 @@ function renderPublicStandings(){
         // 최종 순위
         html += '<div style="font-size:10px;font-weight:800;color:'+color+';margin-bottom:6px;letter-spacing:2px">최종 순위</div>';
         html += '<table class="st-tbl"><thead><tr>'
-          +'<th>순위</th><th style="text-align:left">클럽</th><th>매치승</th><th>매치패</th><th>세트승</th><th>세트패</th>'
+          +'<th>순위</th><th style="text-align:left">클럽</th><th>매치승</th><th>매치패</th><th>세트승</th><th>세트패</th><th>승률</th>'
           +'</tr></thead><tbody>';
         standings.forEach(function(s,i){
           var q=i<2?'st-qualify':'';
+          var totalSets = s.setWin + s.setLose;
+          var rate = totalSets > 0 ? Math.round(s.setWin / totalSets * 100) : 0;
           html+='<tr class="'+q+'">'
             +'<td class="st-rank" style="color:'+color+'">'+(i+1)+'</td>'
             +'<td class="st-team">'+s.club+'</td>'
             +'<td style="color:#50C878;font-weight:800">'+s.matchWin+'</td>'
             +'<td style="color:#FF6B6B;font-weight:800">'+s.matchLose+'</td>'
             +'<td>'+s.setWin+'</td>'
-            +'<td>'+s.setLose+'</td></tr>';
+            +'<td>'+s.setLose+'</td>'
+            +'<td style="color:'+color+';font-weight:700">'+rate+'%</td></tr>';
         });
         html+='</tbody></table></div>';
       });
