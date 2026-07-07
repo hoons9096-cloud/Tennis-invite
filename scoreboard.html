@@ -480,13 +480,8 @@ function renderPublicStandings(){
                 var color2 = mWon?'#50C878':mLost?'#FF6B6B':'#FFB43C';
                 var bg = mWon?'rgba(80,200,120,.08)':mLost?'rgba(255,107,107,.08)':'rgba(255,180,60,.08)';
                 var scoreText = m.jomatchesWon+':'+m.jomatchesLost;
-                var detailParts = m.matches.map(function(mm){
-                  var mark = mm.myWin?'○':'●';
-                  return '<span style="color:'+(mm.myWin?'#50C878':'#FF6B6B')+'">'+mark+'</span>';
-                });
                 html += '<td style="background:'+bg+'">'
-                  +'<div style="font-weight:800;color:'+color2+';font-size:13px">'+scoreText+'</div>'
-                  +'<div style="font-size:10px;margin-top:2px">'+detailParts.join(' ')+'</div></td>';
+                  +'<div style="font-weight:800;color:'+color2+';font-size:14px">'+scoreText+'</div></td>';
               }
             }
           });
