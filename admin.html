@@ -1454,16 +1454,11 @@ function calcMatchupStandings(groupTeams, results){
   
   var standings = Object.values(clubStats);
   standings.sort(function(a,b){
-    // 1순위: 매치 승 수
+    // 1순위: 클럽매치 승 수
     if(b.matchWin !== a.matchWin) return b.matchWin - a.matchWin;
-    // 2순위: 세트 패 수 (적을수록 상위)
+    // 2순위: 매치 패 (적을수록 상위 = 압도적 승리)
     if(a.setLose !== b.setLose) return a.setLose - b.setLose;
-    // 3순위: 세트 승 수 (많을수록)
-    if(b.setWin !== a.setWin) return b.setWin - a.setWin;
-    // 4순위: 게임 득실차
-    var gdA = a.gf - a.ga, gdB = b.gf - b.ga;
-    if(gdB !== gdA) return gdB - gdA;
-    // 5순위: 상대전적
+    // 3순위: 상대전적
     return h2hMatchWin(b.club, a.club) - h2hMatchWin(a.club, b.club);
   });
   
@@ -1493,7 +1488,7 @@ function renderStandings(){
         var standings = res.standings;
         
         html += '<div class="standings-group">';
-        html += '<div class="standings-group-header" style="color:'+color+'">'+g.name+' — 매치업 결과표</div>';
+        html += '<div class="standings-group-header" style="color:'+color+'">'+g.name+' — 클럽매치 결과표</div>';
         
         // 매치업 크로스 테이블 (클럽 vs 클럽)
         html += '<table class="standings-table" style="margin-bottom:16px"><thead><tr>';
@@ -1501,8 +1496,8 @@ function renderStandings(){
         clubs.forEach(function(c){
           html += '<th style="text-align:center;font-size:11px;color:'+color+'">'+c+'</th>';
         });
-        html += '<th style="text-align:center;font-size:10px;color:#8A8A8E">매치승</th>';
-        html += '<th style="text-align:center;font-size:10px;color:#8A8A8E">매치패</th>';
+        html += '<th style="text-align:center;font-size:10px;color:#8A8A8E">클럽매치<br>승</th>';
+        html += '<th style="text-align:center;font-size:10px;color:#8A8A8E">클럽매치<br>패</th>';
         html += '</tr></thead><tbody>';
         
         clubs.forEach(function(cA){
@@ -1540,25 +1535,26 @@ function renderStandings(){
         });
         html += '</tbody></table>';
         
-        // 최종 순위표 (간단 버전)
+        // 최종 순위표 (순위 결정 순서대로 컬럼 배치)
         html += '<div style="font-size:11px;font-weight:800;color:'+color+';margin-bottom:6px;letter-spacing:2px">최종 순위</div>';
         html += '<table class="standings-table"><thead><tr>'
-          +'<th>순위</th><th style="text-align:left">클럽</th><th>매치</th><th>세트</th><th>게임득실</th>'
+          +'<th>순위</th><th style="text-align:left">클럽</th>'
+          +'<th>①클럽매치<br>승-패</th><th>②매치<br>패</th><th>매치승<br>(참고)</th>'
           +'</tr></thead><tbody>';
         
         standings.forEach(function(s,i){
           var qualify = i<2 ? 'standings-qualify' : '';
-          var gd = s.gf - s.ga;
-          var setStr = s.setWin+'-'+s.setLose + (s.setDraw?('-'+s.setDraw+'무'):'');
           html += '<tr class="'+qualify+'">'
             +'<td class="standings-rank" style="color:'+color+'">'+(i+1)+'</td>'
             +'<td class="standings-team">'+s.club+(i<2?' <span style="font-size:9px;color:'+color+'">▲4강</span>':'')+'</td>'
-            +'<td><span style="color:#50C878;font-weight:700">'+s.matchWin+'</span>승 <span style="color:#FF6B6B;font-weight:700">'+s.matchLose+'</span>패</td>'
-            +'<td style="color:#A0A8A2">'+setStr+'</td>'
-            +'<td style="color:'+(gd>0?'#50C878':gd<0?'#FF6B6B':'#707075')+';font-weight:700">'+(gd>0?'+':'')+gd+'</td>'
+            +'<td style="font-size:14px"><span style="color:#50C878;font-weight:800">'+s.matchWin+'</span><span style="color:#5A5A5E">-</span><span style="color:#FF6B6B;font-weight:800">'+s.matchLose+'</span></td>'
+            +'<td style="color:#FF6B6B;font-weight:700">'+s.setLose+'</td>'
+            +'<td style="color:#707075">'+s.setWin+'</td>'
             +'</tr>';
         });
-        html += '</tbody></table></div>';
+        html += '</tbody></table>';
+        html += '<div style="font-size:10px;color:#707075;margin-top:6px;line-height:1.6">순위 결정: ① 클럽매치 승수 → ② 매치 패(적을수록) → ③ 상대전적 순<br>동률 시 직접 대결(상대전적)로 결정합니다.</div>';
+        html += '</div>';
       });
       
       document.getElementById('standingsArea').innerHTML=html||'<div class="result-empty">조 편성을 먼저 초기화해주세요</div>';

@@ -370,11 +370,11 @@ function calcMatchupStandings(groupTeams, results){
   
   var standings = Object.values(clubStats);
   standings.sort(function(a,b){
+    // 1순위: 클럽매치 승 수
     if(b.matchWin !== a.matchWin) return b.matchWin - a.matchWin;
+    // 2순위: 매치 패 (적을수록 상위 = 압도적 승리)
     if(a.setLose !== b.setLose) return a.setLose - b.setLose;
-    if(b.setWin !== a.setWin) return b.setWin - a.setWin;
-    var gdA = a.gf - a.ga, gdB = b.gf - b.ga;
-    if(gdB !== gdA) return gdB - gdA;
+    // 3순위: 상대전적
     return h2hMatchWin(b.club, a.club) - h2hMatchWin(a.club, b.club);
   });
   
@@ -406,7 +406,7 @@ function renderPublicStandings(){
         var standings = res.standings;
         
         html += '<div class="st-group">';
-        html += '<div class="st-group-hdr" style="color:'+color+'">'+g.name+' — 매치업 결과</div>';
+        html += '<div class="st-group-hdr" style="color:'+color+'">'+g.name+' — 클럽매치 결과</div>';
         
         // 매치업 크로스 테이블
         html += '<table class="st-tbl" style="margin-bottom:16px"><thead><tr>';
@@ -414,8 +414,8 @@ function renderPublicStandings(){
         clubs.forEach(function(c){
           html += '<th style="color:'+color+';font-size:10px">'+c+'</th>';
         });
-        html += '<th style="font-size:9px">매치승</th>';
-        html += '<th style="font-size:9px">매치패</th>';
+        html += '<th style="font-size:9px">클럽매치<br>승</th>';
+        html += '<th style="font-size:9px">클럽매치<br>패</th>';
         html += '</tr></thead><tbody>';
         
         clubs.forEach(function(cA){
@@ -451,23 +451,24 @@ function renderPublicStandings(){
         });
         html += '</tbody></table>';
         
-        // 최종 순위
+        // 최종 순위 (순위 결정 순서대로)
         html += '<div style="font-size:10px;font-weight:800;color:'+color+';margin-bottom:6px;letter-spacing:2px">최종 순위</div>';
         html += '<table class="st-tbl"><thead><tr>'
-          +'<th>순위</th><th style="text-align:left">클럽</th><th>매치</th><th>세트</th><th>게임득실</th>'
+          +'<th>순위</th><th style="text-align:left">클럽</th>'
+          +'<th>①클럽매치<br>승-패</th><th>②매치<br>패</th><th>매치승<br>(참고)</th>'
           +'</tr></thead><tbody>';
         standings.forEach(function(s,i){
           var q=i<2?'st-qualify':'';
-          var gd = s.gf - s.ga;
-          var setStr = s.setWin+'-'+s.setLose + (s.setDraw?('-'+s.setDraw+'무'):'');
           html+='<tr class="'+q+'">'
             +'<td class="st-rank" style="color:'+color+'">'+(i+1)+'</td>'
             +'<td class="st-team">'+s.club+(i<2?' 🏆':'')+'</td>'
-            +'<td><span style="color:#50C878;font-weight:700">'+s.matchWin+'</span>승 <span style="color:#FF6B6B;font-weight:700">'+s.matchLose+'</span>패</td>'
-            +'<td style="color:#A0A8A2">'+setStr+'</td>'
-            +'<td style="color:'+(gd>0?'#50C878':gd<0?'#FF6B6B':'#707075')+';font-weight:700">'+(gd>0?'+':'')+gd+'</td></tr>';
+            +'<td style="font-size:14px"><span style="color:#50C878;font-weight:800">'+s.matchWin+'</span><span style="color:#5A5A5E">-</span><span style="color:#FF6B6B;font-weight:800">'+s.matchLose+'</span></td>'
+            +'<td style="color:#FF6B6B;font-weight:700">'+s.setLose+'</td>'
+            +'<td style="color:#707075">'+s.setWin+'</td></tr>';
         });
-        html+='</tbody></table></div>';
+        html+='</tbody></table>';
+        html+='<div style="font-size:9px;color:#707075;margin-top:5px;line-height:1.5">순위: ①클럽매치 승 → ②매치 패(적을수록) → ③상대전적</div>';
+        html+='</div>';
       });
       container.innerHTML=html||'<div class="empty"><span class="empty-icon">🏆</span><div class="empty-text">아직 순위 정보가 없습니다</div></div>';
     });
