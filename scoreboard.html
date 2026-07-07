@@ -16,8 +16,8 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
 .header p{font-size:11px;color:#707075;margin-top:2px}
 
 /* Tabs */
-.tabs{display:flex;justify-content:center;gap:4px;padding:12px 16px;background:#0C0C0E;position:sticky;top:62px;z-index:99}
-.tab{padding:8px 24px;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid #2A2A30;color:#707075;transition:all .2s;background:transparent}
+.tabs{display:flex;justify-content:center;gap:4px;padding:12px 12px;background:#0C0C0E;position:sticky;top:62px;z-index:99;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tab{padding:8px 16px;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid #2A2A30;color:#707075;transition:all .2s;background:transparent;white-space:nowrap;flex-shrink:0}
 .tab.active{background:#D2FF4E;color:#0C0C0E;border-color:#D2FF4E}
 
 .container{max-width:900px;margin:0 auto;padding:16px}
@@ -102,6 +102,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
   <div class="tab active" onclick="showTab('live',this)">실시간 스코어</div>
   <div class="tab" onclick="showTab('standings',this)">순위표</div>
   <div class="tab" onclick="showTab('results',this)">경기 결과</div>
+  <div class="tab" onclick="showTab('rule',this)">📖 순위 규칙</div>
 </div>
 
 <div class="container">
@@ -120,6 +121,51 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
     <div class="section-title">조별 순위표</div>
     <div id="standingsDisplay">
       <div class="empty"><span class="empty-icon">🏆</span><div class="empty-text">아직 순위 정보가 없습니다</div></div>
+    </div>
+  </div>
+
+  <!-- 순위 규칙 탭 -->
+  <div class="section" id="sec-rule">
+    <div class="section-title">순위 결정 규칙</div>
+
+    <div style="background:#151518;border:1px solid #2A2A30;border-radius:14px;padding:22px 20px;margin-bottom:16px">
+      <div style="font-size:14px;font-weight:800;color:#D2FF4E;margin-bottom:12px;letter-spacing:1px">📋 경기 방식</div>
+      <div style="font-size:14px;color:#C8C8CC;line-height:2">
+        • 예선: 조별 <b style="color:#fff">풀리그</b> (같은 조끼리 모두 대결)<br>
+        • 클럽 대 클럽은 <b style="color:#fff">3매치(1·2·3장조)</b>로 승부<br>
+        • <b style="color:#50C878">2매치 먼저 이기면</b> 그 클럽 승리 (2선승제)<br>
+        &nbsp;&nbsp;→ 2:0이면 3장조는 생략<br>
+        • 각 매치는 <b style="color:#fff">6게임 단판</b>
+      </div>
+    </div>
+
+    <div style="background:#151518;border:1px solid #2A2A30;border-radius:14px;padding:22px 20px;margin-bottom:16px">
+      <div style="font-size:14px;font-weight:800;color:#D2FF4E;margin-bottom:14px;letter-spacing:1px">🏆 순위 결정 순서</div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;gap:14px;align-items:flex-start;background:#0C0C0E;border-radius:10px;padding:14px 16px">
+          <span style="color:#D2FF4E;font-weight:900;font-size:22px;line-height:1.1">①</span>
+          <div><div style="color:#fff;font-weight:700;font-size:15px">클럽매치 승수</div>
+          <div style="color:#909096;font-size:13px;margin-top:3px">이긴 클럽매치가 많은 팀이 상위</div></div>
+        </div>
+        <div style="display:flex;gap:14px;align-items:flex-start;background:#0C0C0E;border-radius:10px;padding:14px 16px">
+          <span style="color:#D2FF4E;font-weight:900;font-size:22px;line-height:1.1">②</span>
+          <div><div style="color:#fff;font-weight:700;font-size:15px">매치 패 (적을수록 상위)</div>
+          <div style="color:#909096;font-size:13px;margin-top:3px">2:0으로 이긴 팀이 2:1로 이긴 팀보다 위<br>(적게 질수록 강하다는 의미)</div></div>
+        </div>
+        <div style="display:flex;gap:14px;align-items:flex-start;background:#0C0C0E;border-radius:10px;padding:14px 16px">
+          <span style="color:#D2FF4E;font-weight:900;font-size:22px;line-height:1.1">③</span>
+          <div><div style="color:#fff;font-weight:700;font-size:15px">상대전적</div>
+          <div style="color:#909096;font-size:13px;margin-top:3px">위 둘이 같으면 직접 맞대결 결과로 결정</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:rgba(210,255,78,.06);border:1px solid rgba(210,255,78,.2);border-radius:14px;padding:18px 20px">
+      <div style="font-size:13px;color:#D2FF4E;font-weight:800;margin-bottom:8px">💡 예시</div>
+      <div style="font-size:14px;color:#C8C8CC;line-height:1.9">
+        A팀 3승 (매치패 1) vs B팀 3승 (매치패 3)<br>
+        → <b style="color:#50C878">A팀이 상위</b> (매치를 덜 내줌)
+      </div>
     </div>
   </div>
 
