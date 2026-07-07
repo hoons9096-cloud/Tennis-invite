@@ -1467,7 +1467,8 @@ function calcMatchupStandings(groupTeams, results){
     return h2hMatchWin(b.club, a.club) - h2hMatchWin(a.club, b.club);
   });
   
-  return {matchups:matchups, standings:standings, clubs:clubs}
+  return {matchups:matchups, standings:standings, clubs:clubs};
+}
 
 function renderStandings(){
   db.ref('groups').once('value',function(gsnap){

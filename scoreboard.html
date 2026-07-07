@@ -378,7 +378,8 @@ function calcMatchupStandings(groupTeams, results){
     return h2hMatchWin(b.club, a.club) - h2hMatchWin(a.club, b.club);
   });
   
-  return {matchups:matchups, standings:standings, clubs:clubs}
+  return {matchups:matchups, standings:standings, clubs:clubs};
+}
 
 var SB_GROUP_LABELS = ['A','B','C','D','E','F'];
 var SB_GROUP_COLORS = ['#4f9cf9','#f9634f','#50C878','#FFB43C','#a78bfa','#FF6B8A'];
