@@ -296,9 +296,9 @@ function calcMatchupStandings(groupTeams, results){
   
   clubs.forEach(function(c){
     matchups[c] = {};
-    clubStats[c] = {club:c, matchWin:0, matchLose:0, setWin:0, setLose:0, matchesPlayed:0};
+    clubStats[c] = {club:c, matchWin:0, matchLose:0, setWin:0, setLose:0, setDraw:0, gf:0, ga:0, matchesPlayed:0};
     clubs.forEach(function(c2){
-      if(c !== c2) matchups[c][c2] = {jomatchesWon:0, jomatchesLost:0, matches:[]};
+      if(c !== c2) matchups[c][c2] = {jomatchesWon:0, jomatchesLost:0, jomatchesDraw:0, matches:[]};
     });
   });
   
@@ -313,7 +313,6 @@ function calcMatchupStandings(groupTeams, results){
     if(!matchups[clubA] || !matchups[clubB]) return;
     
     var sA = r.scoreA||0, sB = r.scoreB||0;
-    var jo = (r.event||'') || (tA.match(/\d+장조/)||[''])[0];
     
     if(sA > sB){
       matchups[clubA][clubB].jomatchesWon++;
@@ -321,9 +320,12 @@ function calcMatchupStandings(groupTeams, results){
     } else if(sB > sA){
       matchups[clubB][clubA].jomatchesWon++;
       matchups[clubA][clubB].jomatchesLost++;
+    } else {
+      matchups[clubA][clubB].jomatchesDraw++;
+      matchups[clubB][clubA].jomatchesDraw++;
     }
-    matchups[clubA][clubB].matches.push({jo:jo, sA:sA, sB:sB, myWin:sA>sB});
-    matchups[clubB][clubA].matches.push({jo:jo, sA:sB, sB:sA, myWin:sB>sA});
+    matchups[clubA][clubB].matches.push({sA:sA, sB:sB, myWin:sA>sB, draw:sA===sB});
+    matchups[clubB][clubA].matches.push({sA:sB, sB:sA, myWin:sB>sA, draw:sA===sB});
   });
   
   clubs.forEach(function(cA){
@@ -334,10 +336,19 @@ function calcMatchupStandings(groupTeams, results){
       
       clubStats[cA].setWin += mA.jomatchesWon;
       clubStats[cA].setLose += mA.jomatchesLost;
+      clubStats[cA].setDraw += mA.jomatchesDraw;
       clubStats[cB].setWin += mA.jomatchesLost;
       clubStats[cB].setLose += mA.jomatchesWon;
+      clubStats[cB].setDraw += mA.jomatchesDraw;
       clubStats[cA].matchesPlayed++;
       clubStats[cB].matchesPlayed++;
+      
+      mA.matches.forEach(function(mm){
+        clubStats[cA].gf += mm.sA; clubStats[cA].ga += mm.sB;
+      });
+      matchups[cB][cA].matches.forEach(function(mm){
+        clubStats[cB].gf += mm.sA; clubStats[cB].ga += mm.sB;
+      });
       
       if(mA.jomatchesWon >= 2){
         clubStats[cA].matchWin++;
@@ -360,17 +371,14 @@ function calcMatchupStandings(groupTeams, results){
   var standings = Object.values(clubStats);
   standings.sort(function(a,b){
     if(b.matchWin !== a.matchWin) return b.matchWin - a.matchWin;
-    var totalA = a.setWin + a.setLose;
-    var totalB = b.setWin + b.setLose;
-    var rateA = totalA > 0 ? a.setWin / totalA : 0;
-    var rateB = totalB > 0 ? b.setWin / totalB : 0;
-    if(rateB !== rateA) return rateB - rateA;
+    if(a.setLose !== b.setLose) return a.setLose - b.setLose;
     if(b.setWin !== a.setWin) return b.setWin - a.setWin;
+    var gdA = a.gf - a.ga, gdB = b.gf - b.ga;
+    if(gdB !== gdA) return gdB - gdA;
     return h2hMatchWin(b.club, a.club) - h2hMatchWin(a.club, b.club);
   });
   
-  return {matchups:matchups, standings:standings, clubs:clubs};
-}
+  return {matchups:matchups, standings:standings, clubs:clubs}
 
 var SB_GROUP_LABELS = ['A','B','C','D','E','F'];
 var SB_GROUP_COLORS = ['#4f9cf9','#f9634f','#50C878','#FFB43C','#a78bfa','#FF6B8A'];
@@ -445,20 +453,18 @@ function renderPublicStandings(){
         // 최종 순위
         html += '<div style="font-size:10px;font-weight:800;color:'+color+';margin-bottom:6px;letter-spacing:2px">최종 순위</div>';
         html += '<table class="st-tbl"><thead><tr>'
-          +'<th>순위</th><th style="text-align:left">클럽</th><th>매치승</th><th>매치패</th><th>세트승</th><th>세트패</th><th>승률</th>'
+          +'<th>순위</th><th style="text-align:left">클럽</th><th>매치</th><th>세트</th><th>게임득실</th>'
           +'</tr></thead><tbody>';
         standings.forEach(function(s,i){
           var q=i<2?'st-qualify':'';
-          var totalSets = s.setWin + s.setLose;
-          var rate = totalSets > 0 ? Math.round(s.setWin / totalSets * 100) : 0;
+          var gd = s.gf - s.ga;
+          var setStr = s.setWin+'-'+s.setLose + (s.setDraw?('-'+s.setDraw+'무'):'');
           html+='<tr class="'+q+'">'
             +'<td class="st-rank" style="color:'+color+'">'+(i+1)+'</td>'
-            +'<td class="st-team">'+s.club+'</td>'
-            +'<td style="color:#50C878;font-weight:800">'+s.matchWin+'</td>'
-            +'<td style="color:#FF6B6B;font-weight:800">'+s.matchLose+'</td>'
-            +'<td>'+s.setWin+'</td>'
-            +'<td>'+s.setLose+'</td>'
-            +'<td style="color:'+color+';font-weight:700">'+rate+'%</td></tr>';
+            +'<td class="st-team">'+s.club+(i<2?' 🏆':'')+'</td>'
+            +'<td><span style="color:#50C878;font-weight:700">'+s.matchWin+'</span>승 <span style="color:#FF6B6B;font-weight:700">'+s.matchLose+'</span>패</td>'
+            +'<td style="color:#A0A8A2">'+setStr+'</td>'
+            +'<td style="color:'+(gd>0?'#50C878':gd<0?'#FF6B6B':'#707075')+';font-weight:700">'+(gd>0?'+':'')+gd+'</td></tr>';
         });
         html+='</tbody></table></div>';
       });

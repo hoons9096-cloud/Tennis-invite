@@ -1372,21 +1372,19 @@ function calcStandings(groupTeams,results){
 // 매치업(클럽대클럽) 단위 순위 계산
 function calcMatchupStandings(groupTeams, results){
   var clubs = Object.keys(groupTeams);
-  // 매치업 결과 집계: matchups[클럽A][클럽B] = {wins, losses, jomatches}
   var matchups = {};
-  var clubStats = {}; // 클럽별 매치업 승패
+  var clubStats = {};
   
   clubs.forEach(function(c){
     matchups[c] = {};
-    clubStats[c] = {club:c, matchWin:0, matchLose:0, setWin:0, setLose:0, matchesPlayed:0};
+    clubStats[c] = {club:c, matchWin:0, matchLose:0, setWin:0, setLose:0, setDraw:0, gf:0, ga:0, matchesPlayed:0};
     clubs.forEach(function(c2){
-      if(c !== c2) matchups[c][c2] = {jomatchesWon:0, jomatchesLost:0, matches:[]};
+      if(c !== c2) matchups[c][c2] = {jomatchesWon:0, jomatchesLost:0, jomatchesDraw:0, matches:[]};
     });
   });
   
-  if(!results) return {matchups:matchups, standings:Object.values(clubStats)};
+  if(!results) return {matchups:matchups, standings:Object.values(clubStats), clubs:clubs};
   
-  // 각 장조 경기 결과 → 매치업 데이터에 반영
   Object.values(results).forEach(function(r){
     if(r.skipped) return;
     var tA = r.teamA, tB = r.teamB;
@@ -1396,7 +1394,6 @@ function calcMatchupStandings(groupTeams, results){
     if(!matchups[clubA] || !matchups[clubB]) return;
     
     var sA = r.scoreA||0, sB = r.scoreB||0;
-    var jo = (r.event||'') || (tA.match(/\d+장조/)||[''])[0];
     
     if(sA > sB){
       matchups[clubA][clubB].jomatchesWon++;
@@ -1404,26 +1401,39 @@ function calcMatchupStandings(groupTeams, results){
     } else if(sB > sA){
       matchups[clubB][clubA].jomatchesWon++;
       matchups[clubA][clubB].jomatchesLost++;
+    } else {
+      // 6:6 무승부 → 각 0.5
+      matchups[clubA][clubB].jomatchesDraw++;
+      matchups[clubB][clubA].jomatchesDraw++;
     }
-    matchups[clubA][clubB].matches.push({jo:jo, sA:sA, sB:sB, myWin:sA>sB});
-    matchups[clubB][clubA].matches.push({jo:jo, sA:sB, sB:sA, myWin:sB>sA});
+    matchups[clubA][clubB].matches.push({sA:sA, sB:sB, myWin:sA>sB, draw:sA===sB});
+    matchups[clubB][clubA].matches.push({sA:sB, sB:sA, myWin:sB>sA, draw:sA===sB});
   });
   
-  // 클럽별 매치업 승패 집계 (2선승제)
   clubs.forEach(function(cA){
     clubs.forEach(function(cB){
-      if(cA >= cB) return; // 각 매치업 1번만
+      if(cA >= cB) return;
       var mA = matchups[cA][cB];
       if(mA.matches.length === 0) return;
       
       clubStats[cA].setWin += mA.jomatchesWon;
       clubStats[cA].setLose += mA.jomatchesLost;
+      clubStats[cA].setDraw += mA.jomatchesDraw;
       clubStats[cB].setWin += mA.jomatchesLost;
       clubStats[cB].setLose += mA.jomatchesWon;
+      clubStats[cB].setDraw += mA.jomatchesDraw;
       clubStats[cA].matchesPlayed++;
       clubStats[cB].matchesPlayed++;
       
-      // 매치업 승패 판정 (2승 이상)
+      // 게임 득실
+      mA.matches.forEach(function(mm){
+        clubStats[cA].gf += mm.sA; clubStats[cA].ga += mm.sB;
+      });
+      matchups[cB][cA].matches.forEach(function(mm){
+        clubStats[cB].gf += mm.sA; clubStats[cB].ga += mm.sB;
+      });
+      
+      // 매치업 승패 판정 (2승 이상 확정 시만)
       if(mA.jomatchesWon >= 2){
         clubStats[cA].matchWin++;
         clubStats[cB].matchLose++;
@@ -1434,9 +1444,6 @@ function calcMatchupStandings(groupTeams, results){
     });
   });
   
-  // 순위 정렬: 매치승 > 세트패 (적을수록 좋음) > 상대전적
-  var standings = Object.values(clubStats);
-  
   function h2hMatchWin(cA, cB){
     var m = matchups[cA] && matchups[cA][cB];
     if(!m || m.matches.length === 0) return 0;
@@ -1445,23 +1452,22 @@ function calcMatchupStandings(groupTeams, results){
     return 0;
   }
   
+  var standings = Object.values(clubStats);
   standings.sort(function(a,b){
-    // 1순위: 매치 승 수 (많을수록 상위)
+    // 1순위: 매치 승 수
     if(b.matchWin !== a.matchWin) return b.matchWin - a.matchWin;
-    // 2순위: 세트 승률 (매치 수가 달라도 공정)
-    var totalA = a.setWin + a.setLose;
-    var totalB = b.setWin + b.setLose;
-    var rateA = totalA > 0 ? a.setWin / totalA : 0;
-    var rateB = totalB > 0 ? b.setWin / totalB : 0;
-    if(rateB !== rateA) return rateB - rateA;
-    // 3순위: 세트 승 수
+    // 2순위: 세트 패 수 (적을수록 상위)
+    if(a.setLose !== b.setLose) return a.setLose - b.setLose;
+    // 3순위: 세트 승 수 (많을수록)
     if(b.setWin !== a.setWin) return b.setWin - a.setWin;
-    // 4순위: 상대전적
+    // 4순위: 게임 득실차
+    var gdA = a.gf - a.ga, gdB = b.gf - b.ga;
+    if(gdB !== gdA) return gdB - gdA;
+    // 5순위: 상대전적
     return h2hMatchWin(b.club, a.club) - h2hMatchWin(a.club, b.club);
   });
   
-  return {matchups:matchups, standings:standings, clubs:clubs};
-}
+  return {matchups:matchups, standings:standings, clubs:clubs}
 
 function renderStandings(){
   db.ref('groups').once('value',function(gsnap){
@@ -1533,24 +1539,22 @@ function renderStandings(){
         });
         html += '</tbody></table>';
         
-        // 최종 순위표
+        // 최종 순위표 (간단 버전)
         html += '<div style="font-size:11px;font-weight:800;color:'+color+';margin-bottom:6px;letter-spacing:2px">최종 순위</div>';
         html += '<table class="standings-table"><thead><tr>'
-          +'<th>순위</th><th style="text-align:left">클럽</th><th>매치승</th><th>매치패</th><th>세트승</th><th>세트패</th><th>세트승률</th>'
+          +'<th>순위</th><th style="text-align:left">클럽</th><th>매치</th><th>세트</th><th>게임득실</th>'
           +'</tr></thead><tbody>';
         
         standings.forEach(function(s,i){
           var qualify = i<2 ? 'standings-qualify' : '';
-          var totalSets = s.setWin + s.setLose;
-          var rate = totalSets > 0 ? Math.round(s.setWin / totalSets * 100) : 0;
+          var gd = s.gf - s.ga;
+          var setStr = s.setWin+'-'+s.setLose + (s.setDraw?('-'+s.setDraw+'무'):'');
           html += '<tr class="'+qualify+'">'
             +'<td class="standings-rank" style="color:'+color+'">'+(i+1)+'</td>'
-            +'<td class="standings-team">'+s.club+'</td>'
-            +'<td class="standings-win">'+s.matchWin+'</td>'
-            +'<td class="standings-lose">'+s.matchLose+'</td>'
-            +'<td>'+s.setWin+'</td>'
-            +'<td>'+s.setLose+'</td>'
-            +'<td style="color:'+color+';font-weight:700">'+rate+'%</td>'
+            +'<td class="standings-team">'+s.club+(i<2?' <span style="font-size:9px;color:'+color+'">▲4강</span>':'')+'</td>'
+            +'<td><span style="color:#50C878;font-weight:700">'+s.matchWin+'</span>승 <span style="color:#FF6B6B;font-weight:700">'+s.matchLose+'</span>패</td>'
+            +'<td style="color:#A0A8A2">'+setStr+'</td>'
+            +'<td style="color:'+(gd>0?'#50C878':gd<0?'#FF6B6B':'#707075')+';font-weight:700">'+(gd>0?'+':'')+gd+'</td>'
             +'</tr>';
         });
         html += '</tbody></table></div>';
