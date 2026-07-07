@@ -137,6 +137,10 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
 .br-gtitle{font-size:12px;font-weight:800;letter-spacing:1px;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid;}
 .br-gtitle.A{color:#4f9cf9;border-color:#4f9cf9;}
 .br-gtitle.B{color:#f9634f;border-color:#f9634f;}
+.br-gtitle.C{color:#50C878;border-color:#50C878;}
+.br-gtitle.D{color:#FFB43C;border-color:#FFB43C;}
+.br-gtitle.E{color:#a78bfa;border-color:#a78bfa;}
+.br-gtitle.F{color:#FF6B8A;border-color:#FF6B8A;}
 .br-crow{display:flex;gap:6px;margin-bottom:6px;align-items:center;}
 .br-cnum{font-size:11px;color:#707075;width:18px;text-align:right;flex-shrink:0;}
 .br-crow input{flex:1;background:#0C0C0E;border:1px solid #2A2A30;color:#E8E8E8;border-radius:8px;padding:7px 10px;font-size:13px;font-family:inherit;}
@@ -192,9 +196,13 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
 .br-cm{line-height:1.6;}
 .br-vs{color:#2A2A30;font-size:11px;}
 .br-cempty{color:#2A2A30;font-size:12px;display:block;text-align:center;}
-.br-tag-a,.br-tag-b{display:inline-block;padding:1px 5px;border-radius:3px;font-size:10px;font-weight:700;}
+.br-tag-a,.br-tag-b,.br-tag-c,.br-tag-d,.br-tag-e,.br-tag-f{display:inline-block;padding:1px 5px;border-radius:3px;font-size:10px;font-weight:700;}
 .br-tag-a{background:rgba(79,156,249,.15);color:#4f9cf9;}
 .br-tag-b{background:rgba(249,99,79,.15);color:#f9634f;}
+.br-tag-c{background:rgba(80,200,120,.15);color:#50C878;}
+.br-tag-d{background:rgba(255,180,60,.15);color:#FFB43C;}
+.br-tag-e{background:rgba(167,139,250,.15);color:#a78bfa;}
+.br-tag-f{background:rgba(255,107,138,.15);color:#FF6B8A;}
 /* Firebase slot apply panel */
 .br-apply-panel{background:#1A2A10;border:1px solid #2A4A18;border-radius:12px;padding:14px;margin-bottom:14px;display:none;}
 .br-apply-title{font-size:12px;font-weight:800;color:#D2FF4E;margin-bottom:10px;}
@@ -255,25 +263,21 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
     <div class="setup-section">
       <div class="setup-title">참가팀 등록</div>
       <p style="font-size:12px;color:#707075;margin-bottom:12px">대회 시작 전에 참가팀을 등록하면, 코트 관리·배정에서 드롭다운으로 선택할 수 있습니다</p>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <span style="font-size:13px;font-weight:700;color:#D2FF4E">조 수:</span>
+        <select id="groupCountSelect" onchange="changeGroupCount(this.value)" style="background:#1C1C20;border:1px solid #2A2A30;border-radius:8px;color:#E8E8E8;font-size:14px;font-weight:700;padding:8px 16px;font-family:inherit;cursor:pointer">
+          <option value="2">2개조</option>
+          <option value="3">3개조</option>
+          <option value="4">4개조</option>
+          <option value="5">5개조</option>
+          <option value="6">6개조</option>
+        </select>
+        <span style="font-size:11px;color:#707075">조 수를 변경하면 입력란이 재구성됩니다</span>
+      </div>
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
-      <!-- A조 -->
-      <div class="setup-section" style="margin-bottom:0">
-        <div class="setup-title">A조</div>
-        <div id="groupA-inputs"></div>
-        <div style="margin-top:8px">
-          <button class="setup-btn" onclick="addTeamInput('A')">+ 팀 추가</button>
-        </div>
-      </div>
-      <!-- B조 -->
-      <div class="setup-section" style="margin-bottom:0">
-        <div class="setup-title">B조</div>
-        <div id="groupB-inputs"></div>
-        <div style="margin-top:8px">
-          <button class="setup-btn" onclick="addTeamInput('B')">+ 팀 추가</button>
-        </div>
-      </div>
+    <div id="groupsContainer" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+      <!-- Dynamic group inputs will be rendered here -->
     </div>
 
     <div class="setup-row">
@@ -351,10 +355,9 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
       <div class="br-ci"><label>슬롯(분)</label><input type="number" id="br-slotM" value="60" min="15" max="180" step="15"></div>
     </div>
 
-    <!-- Club inputs -->
-    <div class="br-grps">
-      <div class="br-gbox"><div class="br-gtitle A">🔵 A조 클럽</div><div id="br-cA"></div></div>
-      <div class="br-gbox"><div class="br-gtitle B">🔴 B조 클럽</div><div id="br-cB"></div></div>
+    <!-- Club inputs (dynamic) -->
+    <div class="br-grps" id="br-grps-container">
+      <!-- Dynamically rendered by brBuildUI -->
     </div>
 
     <!-- Action buttons -->
@@ -471,7 +474,7 @@ var courtsRef = db.ref('courts');
 var resultsRef = db.ref('results');
 var teamsRef = db.ref('teams');
 
-var events = ['남복','혼복','여복'];
+var events = ['1장조','2장조','3장조'];
 var allTeams = []; // populated from Firebase
 var teamGroups = {}; // {팀명: 'A' or 'B'}
 var completedSlots = {}; // {court1: [1,3], court2: [2]} - 완료된 슬롯 추적
@@ -484,8 +487,70 @@ function toast(msg){
 }
 
 // ============ TEAM REGISTRATION ============
+var GROUP_LABELS = ['A','B','C','D','E','F'];
+var GROUP_COLORS = ['#4f9cf9','#f9634f','#50C878','#FFB43C','#a78bfa','#FF6B8A'];
+var currentGroupCount = 2;
+
+function getGroupCount(){
+  var sel = document.getElementById('groupCountSelect');
+  return sel ? parseInt(sel.value) : 2;
+}
+
+function changeGroupCount(val){
+  var n = parseInt(val);
+  if(isNaN(n) || n < 2 || n > 6) return;
+  currentGroupCount = n;
+  renderGroupInputs(n);
+}
+
+function renderGroupInputs(n){
+  var container = document.getElementById('groupsContainer');
+  if(!container) return;
+  // Collect existing teams before clearing
+  var existingTeams = {};
+  for(var g=0; g<GROUP_LABELS.length; g++){
+    var label = GROUP_LABELS[g];
+    var el = document.getElementById('group'+label+'-inputs');
+    if(el){
+      var teams = [];
+      el.querySelectorAll('input').forEach(function(inp){ if(inp.value.trim()) teams.push(inp.value.trim()); });
+      if(teams.length) existingTeams[label] = teams;
+    }
+  }
+  // Set grid columns
+  container.style.gridTemplateColumns = n <= 3 ? 'repeat('+n+',1fr)' : 'repeat('+Math.min(n,3)+',1fr)';
+  container.innerHTML = '';
+  for(var i=0; i<n; i++){
+    var label = GROUP_LABELS[i];
+    var color = GROUP_COLORS[i];
+    var div = document.createElement('div');
+    div.className = 'setup-section';
+    div.style.marginBottom = '0';
+    div.innerHTML = '<div class="setup-title" style="color:'+color+'">'+label+'조</div>'
+      +'<div id="group'+label+'-inputs"></div>'
+      +'<div style="margin-top:8px">'
+      +'<button class="setup-btn" onclick="addTeamInput(\''+label+'\')">+ 팀 추가</button>'
+      +'</div>';
+    container.appendChild(div);
+    // Restore existing teams
+    if(existingTeams[label]){
+      existingTeams[label].forEach(function(t){ addTeamInputWithValue(label, t); });
+    }
+  }
+}
+
+function addTeamInputWithValue(group, value){
+  var container = document.getElementById('group'+group+'-inputs');
+  if(!container) return;
+  var div = document.createElement('div');
+  div.style.cssText = 'display:flex;gap:6px;margin-bottom:6px';
+  div.innerHTML = '<input class="team-name-input" style="width:100%" value="'+(value||'').replace(/"/g,'&quot;')+'">'
+    +'<button class="setup-btn" style="padding:6px 10px;font-size:11px;color:#FF6B6B" onclick="this.parentElement.remove()">✕</button>';
+  container.appendChild(div);
+}
+
 // ============ 팀 구성 저장/불러오기 (localStorage) ============
-var TEAM_LS_KEY = 'tennis_team_configs_v1';
+var TEAM_LS_KEY = 'tennis_team_configs_v2';
 
 function toggleTeamSavePanel(){
   var p = document.getElementById('teamSavePanel');
@@ -500,12 +565,22 @@ function saveTeamConfig(){
   var nameEl = document.getElementById('teamSaveName');
   var name = nameEl.value.trim();
   if(!name){ toast('저장 이름을 입력해주세요'); return; }
-  var groupA=[], groupB=[];
-  document.querySelectorAll('#groupA-inputs input').forEach(function(inp){ if(inp.value.trim()) groupA.push(inp.value.trim()); });
-  document.querySelectorAll('#groupB-inputs input').forEach(function(inp){ if(inp.value.trim()) groupB.push(inp.value.trim()); });
-  if(!groupA.length && !groupB.length){ toast('팀을 먼저 입력해주세요'); return; }
+  var n = getGroupCount();
+  var groupsData = {};
+  var hasAny = false;
+  for(var i=0; i<n; i++){
+    var label = GROUP_LABELS[i];
+    var teams = [];
+    var el = document.getElementById('group'+label+'-inputs');
+    if(el) el.querySelectorAll('input').forEach(function(inp){ if(inp.value.trim()) teams.push(inp.value.trim()); });
+    groupsData[label] = teams;
+    if(teams.length) hasAny = true;
+  }
+  if(!hasAny){ toast('팀을 먼저 입력해주세요'); return; }
   var configs = getTeamConfigs();
-  configs.unshift({ id: Date.now(), name: name, savedAt: new Date().toLocaleString('ko-KR'), groupA: groupA, groupB: groupB });
+  configs.unshift({ id: Date.now(), name: name, savedAt: new Date().toLocaleString('ko-KR'), groupCount: n, groups: groupsData,
+    // backward compat
+    groupA: groupsData.A||[], groupB: groupsData.B||[] });
   if(configs.length > 20) configs = configs.slice(0,20);
   setTeamConfigs(configs);
   nameEl.value = '';
@@ -518,21 +593,20 @@ function loadTeamConfig(id){
   for(var i=0;i<configs.length;i++){ if(configs[i].id===id){entry=configs[i];break;} }
   if(!entry){ toast('저장 데이터를 찾을 수 없습니다'); return; }
   if(!confirm('"'+entry.name+'" 팀 구성을 불러오시겠습니까?\n현재 입력 내용이 교체됩니다.')) return;
-  var aContainer = document.getElementById('groupA-inputs');
-  var bContainer = document.getElementById('groupB-inputs');
-  aContainer.innerHTML = ''; bContainer.innerHTML = '';
-  entry.groupA.forEach(function(t){
-    var div=document.createElement('div'); div.style.cssText='display:flex;gap:6px;margin-bottom:6px';
-    div.innerHTML='<input class="team-name-input" style="width:100%" value="'+t.replace(/"/g,'&quot;')+'">'
-      +'<button class="setup-btn" style="padding:6px 10px;font-size:11px;color:#FF6B6B" onclick="this.parentElement.remove()">✕</button>';
-    aContainer.appendChild(div);
-  });
-  entry.groupB.forEach(function(t){
-    var div=document.createElement('div'); div.style.cssText='display:flex;gap:6px;margin-bottom:6px';
-    div.innerHTML='<input class="team-name-input" style="width:100%" value="'+t.replace(/"/g,'&quot;')+'">'
-      +'<button class="setup-btn" style="padding:6px 10px;font-size:11px;color:#FF6B6B" onclick="this.parentElement.remove()">✕</button>';
-    bContainer.appendChild(div);
-  });
+  // Determine group count
+  var n = entry.groupCount || 2;
+  document.getElementById('groupCountSelect').value = n;
+  currentGroupCount = n;
+  renderGroupInputs(n);
+  // Fill in teams
+  var groups = entry.groups || {A: entry.groupA||[], B: entry.groupB||[]};
+  for(var g=0; g<n; g++){
+    var label = GROUP_LABELS[g];
+    var teams = groups[label] || [];
+    var container = document.getElementById('group'+label+'-inputs');
+    if(container) container.innerHTML = '';
+    teams.forEach(function(t){ addTeamInputWithValue(label, t); });
+  }
   document.getElementById('teamSavePanel').style.display='none';
   toast('"'+entry.name+'" 불러오기 완료!');
 }
@@ -547,12 +621,20 @@ function renderTeamSavedList(){
   var configs = getTeamConfigs();
   if(!configs.length){ list.innerHTML='<div style="color:#707075;font-size:12px;text-align:center;padding:16px">저장된 팀 구성이 없습니다</div>'; return; }
   list.innerHTML = configs.map(function(e){
+    var n = e.groupCount || 2;
+    var groups = e.groups || {A: e.groupA||[], B: e.groupB||[]};
+    var summary = [];
+    for(var i=0; i<n; i++){
+      var label = GROUP_LABELS[i];
+      var teams = groups[label] || [];
+      if(teams.length) summary.push(label+'조: '+teams.join(', '));
+    }
     return '<div style="display:flex;align-items:center;gap:10px;background:#0C0C0E;border:1px solid #2A2A30;border-radius:8px;padding:10px 14px">'
       +'<div style="flex:1">'
       +'<div style="font-size:13px;font-weight:700;color:#E8E8E8">'+e.name+'</div>'
       +'<div style="font-size:11px;color:#707075;margin-top:2px">'+e.savedAt
       +' &nbsp;·&nbsp; A조: '+e.groupA.join(', ')
-      +' &nbsp;·&nbsp; B조: '+e.groupB.join(', ')+'</div>'
+      +'<div style="font-size:11px;color:#707075;margin-top:2px">'+n+'개조 · '+summary.join(' &nbsp;·&nbsp; ')+'</div>'
       +'</div>'
       +'<button class="setup-btn" style="background:#1A3A10;color:#D2FF4E;border-color:#2A4A18;padding:6px 14px;font-size:11px" onclick="loadTeamConfig('+e.id+')">불러오기</button>'
       +'<button class="setup-btn" style="background:#3A1A10;color:#FF6B6B;border-color:#4A2A18;padding:6px 10px;font-size:11px" onclick="if(confirm(\'삭제?\'))deleteTeamConfig('+e.id+')">🗑</button>'
@@ -561,64 +643,50 @@ function renderTeamSavedList(){
 }
 
 function addTeamInput(group){
+  addTeamInputWithValue(group, '');
+  // Focus the new input
   var container = document.getElementById('group'+group+'-inputs');
-  var idx = container.children.length + 1;
-  var div = document.createElement('div');
-  div.style.cssText = 'display:flex;gap:6px;margin-bottom:6px';
-  div.innerHTML = '<input class="team-name-input" style="width:100%" placeholder="팀 이름 입력" id="team-'+group+'-'+idx+'">'
-    +'<button class="setup-btn" style="padding:6px 10px;font-size:11px;color:#FF6B6B" onclick="this.parentElement.remove()">✕</button>';
-  container.appendChild(div);
+  if(container){
+    var inputs = container.querySelectorAll('input');
+    if(inputs.length) inputs[inputs.length-1].focus();
+  }
 }
 
 function loadDefaultTeams(){
-  var aContainer = document.getElementById('groupA-inputs');
-  var bContainer = document.getElementById('groupB-inputs');
-  aContainer.innerHTML = '';
-  bContainer.innerHTML = '';
-  ['영남A','아테사','일심회','SEMT'].forEach(function(t,i){
-    var div = document.createElement('div');
-    div.style.cssText = 'display:flex;gap:6px;margin-bottom:6px';
-    div.innerHTML = '<input class="team-name-input" style="width:100%" value="'+t+'" id="team-A-'+(i+1)+'">'
-      +'<button class="setup-btn" style="padding:6px 10px;font-size:11px;color:#FF6B6B" onclick="this.parentElement.remove()">✕</button>';
-    aContainer.appendChild(div);
-  });
-  ['영남B','영남C','오구회','팝테니스'].forEach(function(t,i){
-    var div = document.createElement('div');
-    div.style.cssText = 'display:flex;gap:6px;margin-bottom:6px';
-    div.innerHTML = '<input class="team-name-input" style="width:100%" value="'+t+'" id="team-B-'+(i+1)+'">'
-      +'<button class="setup-btn" style="padding:6px 10px;font-size:11px;color:#FF6B6B" onclick="this.parentElement.remove()">✕</button>';
-    bContainer.appendChild(div);
-  });
+  document.getElementById('groupCountSelect').value = 2;
+  currentGroupCount = 2;
+  renderGroupInputs(2);
+  ['영남A','아테사','일심회','SEMT'].forEach(function(t){ addTeamInputWithValue('A', t); });
+  ['영남B','영남C','오구회','팝테니스'].forEach(function(t){ addTeamInputWithValue('B', t); });
   toast('기본 팀 불러오기 완료');
 }
 
 function saveTeams(){
-  var groupA = [];
-  var groupB = [];
-  document.querySelectorAll('#groupA-inputs input').forEach(function(inp){
-    if(inp.value.trim()) groupA.push(inp.value.trim());
-  });
-  document.querySelectorAll('#groupB-inputs input').forEach(function(inp){
-    if(inp.value.trim()) groupB.push(inp.value.trim());
-  });
-  if(groupA.length===0 && groupB.length===0){toast('팀 이름을 입력해주세요');return}
+  var n = getGroupCount();
+  var teamsData = {};
+  var groupsData = {};
+  var totalCount = 0;
+  var summary = [];
   
-  var teamsData = {A:{},B:{}};
-  groupA.forEach(function(t,i){teamsData.A[i]=t});
-  groupB.forEach(function(t,i){teamsData.B[i]=t});
+  for(var i=0; i<n; i++){
+    var label = GROUP_LABELS[i];
+    var teams = [];
+    var el = document.getElementById('group'+label+'-inputs');
+    if(el) el.querySelectorAll('input').forEach(function(inp){ if(inp.value.trim()) teams.push(inp.value.trim()); });
+    teamsData[label] = {};
+    var teamsMap = {};
+    teams.forEach(function(t, idx){ teamsData[label][idx] = t; teamsMap[t] = t; });
+    groupsData[label] = {name: label+'조', teams: teamsMap};
+    totalCount += teams.length;
+    if(teams.length) summary.push(label+'조 '+teams.length+'팀');
+  }
+  
+  if(totalCount === 0){ toast('팀 이름을 입력해주세요'); return; }
+  
   teamsRef.set(teamsData);
-  
-  // Also update groups for standings (팀명 키 유지 — 순위 계산에 사용)
-  var groupsDataA = {}, groupsDataB = {};
-  groupA.forEach(function(t){groupsDataA[t]=t});
-  groupB.forEach(function(t){groupsDataB[t]=t});
-  var groupsData = {
-    A:{name:'A조',teams:groupsDataA},
-    B:{name:'B조',teams:groupsDataB}
-  };
   db.ref('groups').set(groupsData);
   
-  toast('팀 등록 완료! (A조 '+groupA.length+'팀, B조 '+groupB.length+'팀)');
+  toast('팀 등록 완료! ('+summary.join(', ')+')');
 }
 
 function teamSelectOptions(selectedValue){
@@ -638,47 +706,58 @@ teamsRef.on('value',function(snap){
 
   function orderedValues(obj){
     if(!obj) return [];
-    // 숫자 키면 순서 보존, 아니면 그대로
     var keys = Object.keys(obj).sort(function(a,b){ return Number(a)-Number(b); });
     return keys.map(function(k){ return obj[k]; });
   }
 
   if(data){
-    if(data.A){
-      var aTeams = orderedValues(data.A);
-      allTeams = allTeams.concat(aTeams);
-      aTeams.forEach(function(t){ teamGroups[t]='A'; });
-      displayHtml += '<span style="color:#D2FF4E;font-weight:700">A조:</span> '+aTeams.join(', ')+'<br>';
+    var detectedGroups = 0;
+    for(var g=0; g<GROUP_LABELS.length; g++){
+      var label = GROUP_LABELS[g];
+      if(data[label]){
+        detectedGroups++;
+        var teams = orderedValues(data[label]);
+        allTeams = allTeams.concat(teams);
+        teams.forEach(function(t){ teamGroups[t]=label; });
+        displayHtml += '<span style="color:'+GROUP_COLORS[g]+';font-weight:700">'+label+'조:</span> '+teams.join(', ')+'<br>';
+      }
     }
-    if(data.B){
-      var bTeams = orderedValues(data.B);
-      allTeams = allTeams.concat(bTeams);
-      bTeams.forEach(function(t){ teamGroups[t]='B'; });
-      displayHtml += '<span style="color:#D2FF4E;font-weight:700">B조:</span> '+bTeams.join(', ');
+    // Update group count selector
+    if(detectedGroups > 0){
+      var sel = document.getElementById('groupCountSelect');
+      if(sel && parseInt(sel.value) !== detectedGroups){
+        sel.value = detectedGroups;
+        currentGroupCount = detectedGroups;
+      }
     }
   }
   var el = document.getElementById('registeredTeams');
   if(el) el.innerHTML = displayHtml || '아직 등록된 팀이 없습니다';
   
   // Load team inputs if empty
-  var aContainer = document.getElementById('groupA-inputs');
-  if(aContainer && aContainer.children.length===0 && data){
-    if(data.A) orderedValues(data.A).forEach(function(t){
-      var div = document.createElement('div');
-      div.style.cssText='display:flex;gap:6px;margin-bottom:6px';
-      div.innerHTML='<input class="team-name-input" style="width:100%" value="'+t+'">'
-        +'<button class="setup-btn" style="padding:6px 10px;font-size:11px;color:#FF6B6B" onclick="this.parentElement.remove()">✕</button>';
-      aContainer.appendChild(div);
-    });
-    if(data.B){
-      var bContainer = document.getElementById('groupB-inputs');
-      orderedValues(data.B).forEach(function(t){
-        var div = document.createElement('div');
-        div.style.cssText='display:flex;gap:6px;margin-bottom:6px';
-        div.innerHTML='<input class="team-name-input" style="width:100%" value="'+t+'">'
-          +'<button class="setup-btn" style="padding:6px 10px;font-size:11px;color:#FF6B6B" onclick="this.parentElement.remove()">✕</button>';
-        bContainer.appendChild(div);
-      });
+  if(data){
+    var anyLoaded = false;
+    for(var g2=0; g2<GROUP_LABELS.length; g2++){
+      var lbl = GROUP_LABELS[g2];
+      var container = document.getElementById('group'+lbl+'-inputs');
+      if(container && container.children.length===0 && data[lbl]){
+        orderedValues(data[lbl]).forEach(function(t){ addTeamInputWithValue(lbl, t); });
+        anyLoaded = true;
+      }
+    }
+    // If no containers exist yet, render them
+    if(!anyLoaded){
+      var detected = 0;
+      for(var g3=0; g3<GROUP_LABELS.length; g3++){
+        if(data[GROUP_LABELS[g3]]) detected++;
+      }
+      if(detected > 0 && !document.getElementById('groupA-inputs')){
+        renderGroupInputs(detected);
+        for(var g4=0; g4<detected; g4++){
+          var lb = GROUP_LABELS[g4];
+          if(data[lb]) orderedValues(data[lb]).forEach(function(t){ addTeamInputWithValue(lb, t); });
+        }
+      }
     }
   }
 });
@@ -691,7 +770,7 @@ function initCourts(n){
       name:'코트 '+i,
       teamA:'',teamB:'',
       scoreA:0,scoreB:0,
-      event:'남복',group:'',
+      event:'1장조',group:'',
       status:'waiting'
     };
   }
@@ -714,7 +793,7 @@ function initCourtsFromBracket(){
         name: '코트 '+i,
         teamA: '', teamB: '',
         scoreA: 0, scoreB: 0,
-        event: '남복', group: '',
+        event: '1장조', group: '',
         status: 'waiting'
       };
     }
@@ -831,7 +910,7 @@ function finishMatch(courtId){
       toast('⚠️ 다른 조 팀 결과는 저장할 수 없습니다 ('+teamGroups[d.teamA]+'조 vs '+teamGroups[d.teamB]+'조)');
       return;
     }
-    var tA=d.teamA, tB=d.teamB, grp=d.group, cName=d.name;
+    var tA=d.teamA, tB=d.teamB, grp=d.group, cName=d.name, ev=d.event||'';
 
     // 이미 저장된 결과가 있는지 확인
     resultsRef.once('value',function(rsnap){
@@ -842,13 +921,13 @@ function finishMatch(courtId){
         if(r.court===cName){
           var tm=(r.teamA===tA&&r.teamB===tB)||(r.teamA===tB&&r.teamB===tA);
           var gm=(!grp||grp===r.group);
-          if(tm&&gm) existingKey=key;
+          var em=(!ev||ev===r.event); // 장조도 일치해야 같은 경기
+          if(tm&&gm&&em) existingKey=key;
         }
       });
 
       if(existingKey){
-        // 이미 결과 있음 → 교체 확인
-        if(!confirm('이 슬롯은 이미 결과가 저장되어 있습니다.\n\n기존 결과를 새 점수('+tA+' '+d.scoreA+':'+d.scoreB+' '+tB+')로\n교체하시겠습니까?')) return;
+        if(!confirm('이미 결과가 저장되어 있습니다.\n새 점수('+tA+' '+d.scoreA+':'+d.scoreB+' '+tB+')로 교체하시겠습니까?')) return;
         resultsRef.child(existingKey).update({
           scoreA:d.scoreA, scoreB:d.scoreB,
           time:new Date().toLocaleTimeString('ko-KR'),
@@ -856,26 +935,67 @@ function finishMatch(courtId){
         });
         toast('결과 교체 완료! '+tA+' '+d.scoreA+':'+d.scoreB+' '+tB);
       } else {
-        // 신규 저장
         resultsRef.push({
           court:cName,
           teamA:tA, teamB:tB,
           scoreA:d.scoreA, scoreB:d.scoreB,
-          event:d.event, group:grp,
+          event:ev, group:grp,
           time:new Date().toLocaleTimeString('ko-KR'),
           timestamp:firebase.database.ServerValue.TIMESTAMP
         });
         toast(tA+' '+d.scoreA+':'+d.scoreB+' '+tB+' 결과 저장!');
       }
       courtsRef.child(courtId).update({status:'done'});
+      
+      // ★ 2선승제 자동 진행
+      autoProgress2Win(courtId, tA, tB, grp, ev);
     });
+  });
+}
+
+// 2선승제 상태 확인: 결과 저장 후 승자 판정만 알림 (자동 배정 없음)
+// 관리자가 다음 팀/장조를 직접 코트관리에서 선택
+function autoProgress2Win(courtId, teamA, teamB, group, event){
+  var clubA = teamA.replace(/\s*\d+장조$/,'').trim();
+  var clubB = teamB.replace(/\s*\d+장조$/,'').trim();
+  if(!clubA || !clubB){
+    // 팀명이 없으면 그냥 종료
+    return;
+  }
+  
+  resultsRef.once('value',function(rsnap){
+    var rdata = rsnap.val()||{};
+    var winsA=0, winsB=0, matchCount=0;
+    
+    Object.values(rdata).forEach(function(r){
+      if(r.skipped) return;
+      var rCA = (r.teamA||'').replace(/\s*\d+장조$/,'').trim();
+      var rCB = (r.teamB||'').replace(/\s*\d+장조$/,'').trim();
+      var same = (rCA===clubA && rCB===clubB) || (rCA===clubB && rCB===clubA);
+      if(!same) return;
+      matchCount++;
+      if(r.scoreA > r.scoreB){
+        if(rCA===clubA) winsA++; else winsB++;
+      } else if(r.scoreB > r.scoreA){
+        if(rCB===clubA) winsA++; else winsB++;
+      }
+    });
+    
+    // 승자 판정 알림만 (자동 배정 X)
+    if(winsA >= 2 || winsB >= 2){
+      var winner = winsA >= 2 ? clubA : clubB;
+      var score = winsA >= 2 ? winsA+':'+winsB : winsB+':'+winsA;
+      toast('🏆 '+winner+' 승리! ('+score+') — '+clubA+' vs '+clubB+' 매치업 종료');
+    } else if(winsA === 1 && winsB === 1 && matchCount === 2){
+      toast('⚡ 1:1 동점! '+clubA+' vs '+clubB+' 3장조 결정전 필요');
+    }
   });
 }
 
 function resetCourt(courtId){
   if(!confirm('코트 '+courtId.replace('court','')+' 를 완전히 초기화하시겠습니까?\n팀, 점수, 상태가 모두 삭제됩니다.')) return;
   courtsRef.child(courtId).update({
-    teamA:'',teamB:'',scoreA:0,scoreB:0,event:'남복',group:'',status:'waiting'
+    teamA:'',teamB:'',scoreA:0,scoreB:0,event:'1장조',group:'',status:'waiting'
   });
   toast('코트 '+courtId.replace('court','')+' 초기화 완료');
 }
@@ -990,6 +1110,42 @@ function switchTab(tab,btn){
   document.querySelectorAll('.admin-section').forEach(function(s){s.classList.remove('active')});
   document.getElementById('sec-'+tab).classList.add('active');
   if(btn) btn.classList.add('active');
+  // 대진표 탭 열릴 때 자동으로 팀 불러오기
+  if(tab === 'bracket' && allTeams.length > 0){
+    brSyncFromTeams();
+  }
+}
+
+// 팀 등록 데이터를 대진표에 자동 반영
+function brSyncFromTeams(){
+  var gCount = getGroupCount();
+  document.getElementById('br-nClubs').value = 0;
+  // 각 조의 팀 수 중 최대값
+  var maxN = 0;
+  for(var g=0; g<gCount; g++){
+    var label = GROUP_LABELS[g];
+    var el = document.getElementById('group'+label+'-inputs');
+    if(el){
+      var count = 0;
+      el.querySelectorAll('input').forEach(function(inp){ if(inp.value.trim()) count++; });
+      if(count > maxN) maxN = count;
+    }
+  }
+  if(maxN < 2) maxN = 4;
+  document.getElementById('br-nClubs').value = maxN;
+  brBuildUI();
+  // Fill in team names
+  for(var g2=0; g2<gCount; g2++){
+    var label2 = GROUP_LABELS[g2];
+    var srcEl = document.getElementById('group'+label2+'-inputs');
+    var brEl = document.getElementById('br-c'+label2);
+    if(!srcEl || !brEl) continue;
+    var srcInputs = srcEl.querySelectorAll('input');
+    var brInputs = brEl.querySelectorAll('input');
+    srcInputs.forEach(function(src, i){
+      if(brInputs[i] && src.value.trim()) brInputs[i].value = src.value.trim();
+    });
+  }
 }
 
 // ============ SCHEDULE (코트 배정) ============
@@ -1113,15 +1269,93 @@ function calcStandings(groupTeams,results){
 
   var arr=Object.values(stats);
   arr.sort(function(a,b){
-    if(b.gd!==a.gd) return b.gd-a.gd;              // 1. 득실차
-    if(b.win!==a.win) return b.win-a.win;            // 2. 승 수
-    return h2hWin(b.team,a.team)-h2hWin(a.team,b.team); // 3. 상대전적
+    if(b.gd!==a.gd) return b.gd-a.gd;
+    if(b.win!==a.win) return b.win-a.win;
+    return h2hWin(b.team,a.team)-h2hWin(a.team,b.team);
   });
   return arr;
 }
 
+// 매치업(클럽대클럽) 단위 순위 계산
+function calcMatchupStandings(groupTeams, results){
+  var clubs = Object.keys(groupTeams);
+  // 매치업 결과 집계: matchups[클럽A][클럽B] = {wins, losses, jomatches}
+  var matchups = {};
+  var clubStats = {}; // 클럽별 매치업 승패
+  
+  clubs.forEach(function(c){
+    matchups[c] = {};
+    clubStats[c] = {club:c, matchWin:0, matchLose:0, setWin:0, setLose:0, matchesPlayed:0};
+    clubs.forEach(function(c2){
+      if(c !== c2) matchups[c][c2] = {jomatchesWon:0, jomatchesLost:0, matches:[]};
+    });
+  });
+  
+  if(!results) return {matchups:matchups, standings:Object.values(clubStats)};
+  
+  // 각 장조 경기 결과 → 매치업 데이터에 반영
+  Object.values(results).forEach(function(r){
+    if(r.skipped) return;
+    var tA = r.teamA, tB = r.teamB;
+    if(!tA || !tB) return;
+    var clubA = tA.replace(/\s*\d+장조$/,'').trim();
+    var clubB = tB.replace(/\s*\d+장조$/,'').trim();
+    if(!matchups[clubA] || !matchups[clubB]) return;
+    
+    var sA = r.scoreA||0, sB = r.scoreB||0;
+    var jo = (r.event||'') || (tA.match(/\d+장조/)||[''])[0];
+    
+    if(sA > sB){
+      matchups[clubA][clubB].jomatchesWon++;
+      matchups[clubB][clubA].jomatchesLost++;
+    } else if(sB > sA){
+      matchups[clubB][clubA].jomatchesWon++;
+      matchups[clubA][clubB].jomatchesLost++;
+    }
+    matchups[clubA][clubB].matches.push({jo:jo, sA:sA, sB:sB, myWin:sA>sB});
+    matchups[clubB][clubA].matches.push({jo:jo, sA:sB, sB:sA, myWin:sB>sA});
+  });
+  
+  // 클럽별 매치업 승패 집계 (2선승제)
+  clubs.forEach(function(cA){
+    clubs.forEach(function(cB){
+      if(cA >= cB) return; // 각 매치업 1번만
+      var mA = matchups[cA][cB];
+      if(mA.matches.length === 0) return;
+      
+      clubStats[cA].setWin += mA.jomatchesWon;
+      clubStats[cA].setLose += mA.jomatchesLost;
+      clubStats[cB].setWin += mA.jomatchesLost;
+      clubStats[cB].setLose += mA.jomatchesWon;
+      clubStats[cA].matchesPlayed++;
+      clubStats[cB].matchesPlayed++;
+      
+      // 매치업 승패 판정 (2승 이상)
+      if(mA.jomatchesWon >= 2){
+        clubStats[cA].matchWin++;
+        clubStats[cB].matchLose++;
+      } else if(mA.jomatchesLost >= 2){
+        clubStats[cB].matchWin++;
+        clubStats[cA].matchLose++;
+      }
+    });
+  });
+  
+  // 순위 정렬: 매치승 > 세트득실
+  var standings = Object.values(clubStats);
+  standings.sort(function(a,b){
+    if(b.matchWin !== a.matchWin) return b.matchWin - a.matchWin;
+    var gdA = a.setWin - a.setLose;
+    var gdB = b.setWin - b.setLose;
+    if(gdB !== gdA) return gdB - gdA;
+    return b.setWin - a.setWin;
+  });
+  
+  return {matchups:matchups, standings:standings, clubs:clubs};
+}
+
 function renderStandings(){
-  groupsRef.once('value',function(gsnap){
+  db.ref('groups').once('value',function(gsnap){
     var groups=gsnap.val();
     if(!groups){
       document.getElementById('standingsArea').innerHTML='<div class="result-empty">조 편성을 먼저 초기화해주세요</div>';
@@ -1132,41 +1366,94 @@ function renderStandings(){
       var allResults=rsnap.val()||{};
       var html='';
       
-      ['A','B'].forEach(function(gKey){
+      GROUP_LABELS.forEach(function(gKey, gIdx){
         var g=groups[gKey];
         if(!g) return;
         var teams=g.teams||{};
-        var standings=calcStandings(teams,allResults);
+        var color = GROUP_COLORS[gIdx] || '#D2FF4E';
+        var res = calcMatchupStandings(teams, allResults);
+        var clubs = res.clubs;
+        var matchups = res.matchups;
+        var standings = res.standings;
         
-        html+='<div class="standings-group">'
-          +'<div class="standings-group-header">'+g.name+' ('+Object.keys(teams).join(', ')+')</div>'
-          +'<table class="standings-table"><thead><tr>'
-          +'<th>순위</th><th style="text-align:left">팀</th><th>득실차</th><th>승</th><th>패</th><th>득</th><th>실</th><th>경기수</th>'
+        html += '<div class="standings-group">';
+        html += '<div class="standings-group-header" style="color:'+color+'">'+g.name+' — 매치업 결과표</div>';
+        
+        // 매치업 크로스 테이블 (클럽 vs 클럽)
+        html += '<table class="standings-table" style="margin-bottom:16px"><thead><tr>';
+        html += '<th style="text-align:center;background:#1C1C20"></th>';
+        clubs.forEach(function(c){
+          html += '<th style="text-align:center;font-size:11px;color:'+color+'">'+c+'</th>';
+        });
+        html += '<th style="text-align:center;font-size:10px;color:#8A8A8E">매치승</th>';
+        html += '<th style="text-align:center;font-size:10px;color:#8A8A8E">매치패</th>';
+        html += '</tr></thead><tbody>';
+        
+        clubs.forEach(function(cA){
+          html += '<tr>';
+          html += '<td style="font-weight:800;color:'+color+';background:#1C1C20;text-align:center;font-size:12px">'+cA+'</td>';
+          clubs.forEach(function(cB){
+            if(cA === cB){
+              html += '<td style="background:#0C0C0E;text-align:center;color:#3A3A3E">—</td>';
+            } else {
+              var m = matchups[cA][cB];
+              if(m.matches.length === 0){
+                html += '<td style="text-align:center;color:#5A5A5E;font-size:11px">-</td>';
+              } else {
+                var mWon = m.jomatchesWon >= 2;
+                var mLost = m.jomatchesLost >= 2;
+                var color2 = mWon?'#50C878':mLost?'#FF6B6B':'#FFB43C';
+                var bg = mWon?'rgba(80,200,120,.08)':mLost?'rgba(255,107,107,.08)':'rgba(255,180,60,.08)';
+                var scoreText = m.jomatchesWon+':'+m.jomatchesLost;
+                // 상세: 1장조/2장조/3장조 결과
+                var detailParts = m.matches.map(function(mm){
+                  var mark = mm.myWin?'○':'●';
+                  return '<span style="color:'+(mm.myWin?'#50C878':'#FF6B6B')+'">'+mark+'</span>';
+                });
+                html += '<td style="text-align:center;background:'+bg+'">'
+                  +'<div style="font-weight:800;color:'+color2+';font-size:14px">'+scoreText+'</div>'
+                  +'<div style="font-size:10px;margin-top:2px">'+detailParts.join(' ')+'</div></td>';
+              }
+            }
+          });
+          // 클럽 통계
+          var st = standings.filter(function(s){return s.club===cA})[0]||{};
+          html += '<td style="text-align:center;color:#50C878;font-weight:800">'+(st.matchWin||0)+'</td>';
+          html += '<td style="text-align:center;color:#FF6B6B;font-weight:800">'+(st.matchLose||0)+'</td>';
+          html += '</tr>';
+        });
+        html += '</tbody></table>';
+        
+        // 최종 순위표
+        html += '<div style="font-size:11px;font-weight:800;color:'+color+';margin-bottom:6px;letter-spacing:2px">최종 순위</div>';
+        html += '<table class="standings-table"><thead><tr>'
+          +'<th>순위</th><th style="text-align:left">클럽</th><th>매치승</th><th>매치패</th><th>세트승</th><th>세트패</th><th>세트득실</th>'
           +'</tr></thead><tbody>';
         
         standings.forEach(function(s,i){
-          var qualify=i<2?'standings-qualify':'';
-          html+='<tr class="'+qualify+'">'
-            +'<td class="standings-rank">'+(i+1)+'</td>'
-            +'<td class="standings-team">'+s.team+'</td>'
-            +'<td style="color:'+(s.gd>0?'#D2FF4E':s.gd<0?'#FF6B6B':'#707075')+';font-weight:700">'+(s.gd>0?'+':'')+s.gd+'</td>'
-            +'<td class="standings-win">'+s.win+'</td>'
-            +'<td class="standings-lose">'+s.lose+'</td>'
-            +'<td>'+s.gf+'</td><td>'+s.ga+'</td>'
-            +'<td>'+s.matches+'</td>'
+          var qualify = i<2 ? 'standings-qualify' : '';
+          var gd = s.setWin - s.setLose;
+          html += '<tr class="'+qualify+'">'
+            +'<td class="standings-rank" style="color:'+color+'">'+(i+1)+'</td>'
+            +'<td class="standings-team">'+s.club+'</td>'
+            +'<td class="standings-win">'+s.matchWin+'</td>'
+            +'<td class="standings-lose">'+s.matchLose+'</td>'
+            +'<td>'+s.setWin+'</td>'
+            +'<td>'+s.setLose+'</td>'
+            +'<td style="color:'+(gd>0?'#50C878':gd<0?'#FF6B6B':'#707075')+';font-weight:700">'+(gd>0?'+':'')+gd+'</td>'
             +'</tr>';
         });
-        html+='</tbody></table></div>';
+        html += '</tbody></table></div>';
       });
       
-      document.getElementById('standingsArea').innerHTML=html;
+      document.getElementById('standingsArea').innerHTML=html||'<div class="result-empty">조 편성을 먼저 초기화해주세요</div>';
     });
   });
 }
 
 // Auto-refresh standings when results change
 resultsRef.on('value',function(){renderStandings()});
-groupsRef.on('value',function(){renderStandings()});
+db.ref('groups').on('value',function(){renderStandings()});
 
 
 // ============ SLOT AUTO-ASSIGN ============
@@ -1215,7 +1502,7 @@ db.ref('bracket').on('value', function(snap) {
     if (!newSlots[slotNum]) newSlots[slotNum] = { time: m.time, courts: {} };
     newSlots[slotNum].courts[courtKey] = {
       teamA: m.club1, teamB: m.club2,
-      event: '남복', group: (m.group||'') + ' ' + (m.ttype||'')
+      event: '1장조', group: (m.group||'') + ' ' + (m.ttype||'')
     };
   });
   SLOTS = newSlots;
@@ -1233,7 +1520,7 @@ db.ref('bracket').on('value', function(snap) {
             name: '코트 ' + i,
             teamA: '', teamB: '',
             scoreA: 0, scoreB: 0,
-            event: '남복', group: '',
+            event: '1장조', group: '',
             status: 'waiting'
           });
         }
@@ -1381,7 +1668,8 @@ function brRenderSlotApply(d) {
   times.forEach(function(t) {
     var matches = byTime[t];
     var summary = matches.map(function(m) {
-      var color = m.gk === 'A' ? '#4f9cf9' : '#f9634f';
+      var gIdx = GROUP_LABELS.indexOf(m.gk);
+      var color = gIdx >= 0 ? GROUP_COLORS[gIdx] : '#707075';
       return '<span style="color:' + color + ';font-weight:700">' + m.club1 + '</span>'
         + '<span style="color:#707075"> vs </span>'
         + '<span style="color:' + color + ';font-weight:700">' + m.club2 + '</span>'
@@ -1407,7 +1695,7 @@ function brApplySlot(time) {
     if (courtNum) {
       nextData['court' + courtNum] = {
         teamA: m.club1, teamB: m.club2,
-        event: '남복',
+        event: '1장조',
         group: m.group + ' ' + m.ttype
       };
     }
@@ -1442,7 +1730,7 @@ function brUpdateSlots(d) {
     if (!newSlots[slotNum]) newSlots[slotNum] = { time: m.time, courts: {} };
     newSlots[slotNum].courts[courtKey] = {
       teamA: m.club1, teamB: m.club2,
-      event: '남복', group: (m.group||'') + ' ' + (m.ttype||'')
+      event: '1장조', group: (m.group||'') + ' ' + (m.ttype||'')
     };
   });
   SLOTS = newSlots;
@@ -1472,20 +1760,44 @@ function brShowMsg(text, type) {
 // Build club input UI
 function brBuildUI() {
   var n = parseInt(document.getElementById('br-nClubs').value) || 4;
-  ['A','B'].forEach(function(g) {
-    var wrap = document.getElementById('br-c' + g);
-    var prev = [];
-    wrap.querySelectorAll('input').forEach(function(el){ prev.push(el.value); });
-    wrap.innerHTML = '';
-    for (var i = 0; i < n; i++) {
-      var def = prev[i] || (g+'조클럽'+(i+1));
+  var gCount = getGroupCount();
+  var container = document.getElementById('br-grps-container');
+  // Set grid columns
+  container.style.gridTemplateColumns = gCount <= 3 ? 'repeat('+gCount+',1fr)' : 'repeat('+Math.min(gCount,3)+',1fr)';
+  
+  // Preserve existing values
+  var prevData = {};
+  for(var g=0; g<GROUP_LABELS.length; g++){
+    var label = GROUP_LABELS[g];
+    var el = document.getElementById('br-c'+label);
+    if(el){
+      var vals = [];
+      el.querySelectorAll('input').forEach(function(inp){ vals.push(inp.value); });
+      if(vals.length) prevData[label] = vals;
+    }
+  }
+  
+  container.innerHTML = '';
+  var GROUP_EMOJIS = ['🔵','🔴','🟢','🟡','🟣','🩷'];
+  for(var g=0; g<gCount; g++){
+    var label = GROUP_LABELS[g];
+    var emoji = GROUP_EMOJIS[g];
+    var box = document.createElement('div');
+    box.className = 'br-gbox';
+    box.innerHTML = '<div class="br-gtitle '+label+'">'+emoji+' '+label+'조 클럽</div><div id="br-c'+label+'"></div>';
+    container.appendChild(box);
+    
+    var wrap = document.getElementById('br-c'+label);
+    var prev = prevData[label] || [];
+    for(var i=0; i<n; i++){
+      var def = prev[i] || (label+'조클럽'+(i+1));
       var row = document.createElement('div');
       row.className = 'br-crow';
       row.innerHTML = '<span class="br-cnum">'+(i+1)+'.</span>'
         +'<input type="text" value="'+def.replace(/"/g,'&quot;')+'" placeholder="클럽명">';
       wrap.appendChild(row);
     }
-  });
+  }
 }
 
 // Load teams from Firebase into club inputs
@@ -1497,16 +1809,37 @@ function brLoadFromFirebase() {
       if(!obj) return [];
       return Object.keys(obj).sort(function(a,b){return Number(a)-Number(b);}).map(function(k){return obj[k];});
     }
-    var aTeams = orderedValues(data.A);
-    var bTeams = orderedValues(data.B);
-    var maxN = Math.max(aTeams.length, bTeams.length, 2);
+    // Detect group count from data
+    var gCount = 0;
+    var maxN = 2;
+    var groupTeams = {};
+    for(var g=0; g<GROUP_LABELS.length; g++){
+      var label = GROUP_LABELS[g];
+      if(data[label]){
+        gCount++;
+        var teams = orderedValues(data[label]);
+        groupTeams[label] = teams;
+        if(teams.length > maxN) maxN = teams.length;
+      }
+    }
+    if(gCount === 0){ brShowMsg('Firebase에 등록된 팀이 없습니다.', 'err'); return; }
+    
+    // Update group count selector
+    document.getElementById('groupCountSelect').value = gCount;
+    currentGroupCount = gCount;
     document.getElementById('br-nClubs').value = maxN;
     brBuildUI();
-    var aInputs = document.getElementById('br-cA').querySelectorAll('input');
-    var bInputs = document.getElementById('br-cB').querySelectorAll('input');
-    aTeams.forEach(function(t, i){ if(aInputs[i]) aInputs[i].value = t; });
-    bTeams.forEach(function(t, i){ if(bInputs[i]) bInputs[i].value = t; });
-    brShowMsg('팀 불러오기 완료! (A조 '+aTeams.length+'팀, B조 '+bTeams.length+'팀)', 'ok');
+    
+    // Fill in teams
+    var summary = [];
+    for(var g2=0; g2<gCount; g2++){
+      var label2 = GROUP_LABELS[g2];
+      var teams2 = groupTeams[label2] || [];
+      var inputs = document.getElementById('br-c'+label2).querySelectorAll('input');
+      teams2.forEach(function(t, i){ if(inputs[i]) inputs[i].value = t; });
+      summary.push(label2+'조 '+teams2.length+'팀');
+    }
+    brShowMsg('팀 불러오기 완료! ('+summary.join(', ')+')', 'ok');
   });
 }
 
@@ -1542,95 +1875,45 @@ function brGetRoundPairs(n) {
 function brMakeMatchesByRound(gd, nTeams) {
   var clubs = gd.clubs;
   var roundPairs = brGetRoundPairs(clubs.length);
-  var id = 0;
+  var bundleId = 0;
+  // 1코트 1매치업: 1장조→2장조→3장조(필요시) 순서대로 진행
+  // 대진표에는 전체 경기 표시, 3조는 "필요시"로 표기
   return roundPairs.map(function(pairs, r) {
-    var roundMatches = [];
-    for (var ti = 0; ti < nTeams; ti++) {
-      pairs.forEach(function(pair) {
-        var c1 = clubs[pair[0]], c2 = clubs[pair[1]];
-        if (c1 && c2) roundMatches.push({
-          id: gd.key+'_'+(id++), group: gd.name, gk: gd.key,
-          club1: c1.name, team1: c1.name+' '+(ti+1)+'조',
-          club2: c2.name, team2: c2.name+' '+(ti+1)+'조',
-          ttype: (ti+1)+'조', round: r
+    var roundBundles = [];
+    pairs.forEach(function(pair) {
+      var c1 = clubs[pair[0]], c2 = clubs[pair[1]];
+      if (!c1 || !c2) return;
+      var matches = [];
+      for (var ti = 0; ti < nTeams; ti++) {
+        matches.push({
+          id: gd.key+'_b'+bundleId+'_m'+ti, group: gd.name, gk: gd.key,
+          club1: c1.name, team1: c1.name+' '+(ti+1)+'장조',
+          club2: c2.name, team2: c2.name+' '+(ti+1)+'장조',
+          ttype: (ti+1)+'장조'+(ti===2?' (필요시)':''), round: r
         });
+      }
+      // 1코트 = 1매치업 (번들 matches는 표시용, 실제 코트는 1개)
+      roundBundles.push({
+        bundleId: gd.key+'_b'+(bundleId++),
+        club1: c1.name, club2: c2.name,
+        group: gd.name, gk: gd.key,
+        matches: matches, round: r,
+        courtsNeeded: 1  // 1코트만 사용 (순서대로 진행)
       });
-    }
-    return roundMatches;
+    });
+    return roundBundles;
   });
 }
 
-// 코트 배정:
-//   라운드 순서 유지 (flat queue → 앞에서부터 꺼내면 자연히 라운드 순 유지)
-//   빈 코트 생기면 상대 조 다음 라운드 경기 당겨서 즉시 채움
-//   5코트: 1,2→A / 4,5→B / 3코트→슬롯마다 A↔B 교대
-function brSchedule(roundsA, roundsB, nCourts, startT, slotM) {
-  var slots = [], slotIdx = 0;
-
-  // 라운드 순서 유지한 flat queue
-  var qA = [], qB = [];
-  roundsA.forEach(function(r){ r.forEach(function(m){ qA.push(m); }); });
-  roundsB.forEach(function(r){ r.forEach(function(m){ qB.push(m); }); });
-
-  var done = {};
-
-  function remQ(q) { return q.filter(function(m){ return !done[m.id]; }); }
-
-  var maxIter = 500;
-  while (maxIter-- > 0) {
-    var rA = remQ(qA), rB = remQ(qB);
-    if (rA.length === 0 && rB.length === 0) break;
-
-    // 코트 할당
-    var cA, cB;
-    if (rA.length === 0) {
-      cA = []; cB = [1,2,3,4,5];
-    } else if (rB.length === 0) {
-      cA = [1,2,3,4,5]; cB = [];
-    } else if (nCourts === 5) {
-      if (slotIdx % 2 === 0) { cA = [1,2,3]; cB = [4,5]; }
-      else                    { cA = [1,2];   cB = [3,4,5]; }
-    } else {
-      var nA = Math.max(1, Math.min(nCourts-1,
-        Math.round(nCourts * rA.length / (rA.length + rB.length))));
-      cA = []; for (var i=1;i<=nA;i++) cA.push(i);
-      cB = []; for (var i=nA+1;i<=nCourts;i++) cB.push(i);
-    }
-
-    var used = {};
-    function pick(list, n) {
-      var out = [];
-      for (var i = 0; i < list.length && out.length < n; i++) {
-        var m = list[i];
-        if (!done[m.id] && !used[m.team1] && !used[m.team2]) {
-          out.push(m); used[m.team1]=true; used[m.team2]=true;
-        }
-      }
-      return out;
-    }
-
-    var pA = pick(rA, cA.length);
-    var pB = pick(rB, cB.length);
-
-    // 빈 코트 → 상대 조 (다음 라운드 포함) 에서 채우기
-    var spA = cA.length - pA.length;
-    var spB = cB.length - pB.length;
-    if (spA > 0) { var ex = pick(rB, spA); pB = pB.concat(ex); cB = cB.concat(cA.slice(pA.length, pA.length+ex.length)); }
-    if (spB > 0) { var ex = pick(rA, spB); pA = pA.concat(ex); cA = cA.concat(cB.slice(pB.length, pB.length+ex.length)); }
-
-    if (pA.length + pB.length === 0) break;
-
-    var time = brFmtTime(startT, slotIdx, slotM);
-    pA.forEach(function(m,i){ done[m.id]=true; slots.push({slot:slotIdx+1,time:time,court:(cA[i]||i+1)+'번코트',group:m.group,gk:m.gk,club1:m.club1,team1:m.team1,club2:m.club2,team2:m.team2,ttype:m.ttype}); });
-    pB.forEach(function(m,i){ done[m.id]=true; slots.push({slot:slotIdx+1,time:time,court:(cB[i]||i+1)+'번코트',group:m.group,gk:m.gk,club1:m.club1,team1:m.team1,club2:m.club2,team2:m.team2,ttype:m.ttype}); });
-    slotIdx++;
-  }
-  return {slots:slots, numSlots:slotIdx};
-}
-
 function brGetColor(clubName, gds, pa, pb) {
+  var palettes = [pa, pb,
+    ['#50C878','#2E8B57','#228B22','#006400','#3CB371','#66CDAA','#8FBC8F','#98FB98'],
+    ['#FFB43C','#FF8C00','#FFA500','#FF7F50','#E8963F','#D2691E','#CD853F','#DEB887'],
+    ['#a78bfa','#8B5CF6','#7C3AED','#6D28D9','#9F7AEA','#B794F4','#C4B5FD','#DDD6FE'],
+    ['#FF6B8A','#E85A78','#D44A68','#C03A58','#F77F9A','#FFA0B4','#FFC0CB','#FFD1DC']
+  ];
   for(var gi=0;gi<gds.length;gi++){
-    var pal=gi===0?pa:pb, clubs=gds[gi].clubs;
+    var pal=palettes[gi%palettes.length], clubs=gds[gi].clubs;
     for(var ci=0;ci<clubs.length;ci++) if(clubs[ci].name===clubName) return pal[ci%pal.length];
   }
   return pa[0];
@@ -1642,30 +1925,133 @@ function brGenerate() {
     var nTeams=parseInt(document.getElementById('br-nTeams').value)||3;
     var startT=document.getElementById('br-startT').value||'09:00';
     var slotM=parseInt(document.getElementById('br-slotM').value)||60;
-    var gds=['A','B'].map(function(g){
-      var inputs=document.getElementById('br-c'+g).querySelectorAll('input');
+    var gCount=getGroupCount();
+    var gds=[];
+    for(var g=0;g<gCount;g++){
+      var label=GROUP_LABELS[g];
+      var el=document.getElementById('br-c'+label);
+      if(!el) continue;
+      var inputs=el.querySelectorAll('input');
       var clubs=[];
-      inputs.forEach(function(inp,ci){clubs.push({name:inp.value.trim()||(g+'조클럽'+(ci+1))});});
-      return {name:g+'조',key:g,clubs:clubs};
-    });
-    var result=brSchedule(brMakeMatchesByRound(gds[0],nTeams),brMakeMatchesByRound(gds[1],nTeams),nCourts,startT,slotM);
+      inputs.forEach(function(inp,ci){clubs.push({name:inp.value.trim()||(label+'조클럽'+(ci+1))});});
+      gds.push({name:label+'조',key:label,clubs:clubs});
+    }
+    // Generate rounds for each group
+    var allRounds=gds.map(function(gd){return brMakeMatchesByRound(gd,nTeams);});
+    // Schedule all groups together
+    var result=brScheduleMulti(allRounds,gds,nCourts,startT,slotM);
     var ver=BR_HISTORY.length+1;
     var sd={ver:ver,slots:result.slots,numSlots:result.numSlots,nCourts:nCourts,nTeams:nTeams,gds:gds,startT:startT,slotM:slotM};
     BR_HISTORY.push(sd); BR_CUR=BR_HISTORY.length-1;
     brRenderTabs(); brRenderResult(sd);
     brShowMsg('대진표 #'+ver+' 생성 완료! ('+result.slots.length+'경기 / '+result.numSlots+'슬롯)', 'ok');
     brPublishSilent(sd);
-    // groups + teams 노드 업데이트 → 순위표 자동 갱신
-    var gData={}, tData={A:{},B:{}};
-    sd.gds.forEach(function(gd,gi){
-      var gKey=gd.key||(gi===0?'A':'B');
+    // groups + teams 노드 업데이트
+    var gData={}, tData={};
+    sd.gds.forEach(function(gd){
+      var gKey=gd.key;
       var tObj={};
+      tData[gKey]={};
       gd.clubs.forEach(function(cl,ci){tObj[cl.name]=cl.name; tData[gKey][ci]=cl.name;});
       gData[gKey]={name:gd.name,teams:tObj};
     });
     db.ref('groups').set(gData);
     db.ref('teams').set(tData);
   } catch(e) { brShowMsg('오류: '+e.message,'err'); }
+}
+
+// 스케줄러: 1코트 1매치업, 조별 코트 구역 배정
+// 대진표에는 전체 경기(1조,2조,3조) 표시 / 실제 운영은 2선승제
+function brScheduleMulti(allRounds, gds, nCourts, startT, slotM) {
+  var slots = [], slotIdx = 0;
+  var gCount = allRounds.length;
+  
+  // 1매치업 = 1코트 → 최대 동시 매치업 수 = 코트 수
+  var maxBundlesPerSlot = nCourts;
+  
+  // 코트 구역 배정
+  var numZones = Math.min(gCount, nCourts);
+  var zones = [];
+  var courtsPerZone = Math.floor(nCourts / numZones);
+  var courtIdx = 1;
+  for(var z=0; z<numZones; z++){
+    var extra = (z < nCourts % numZones) ? 1 : 0;
+    var courts = [];
+    for(var ci=0; ci<courtsPerZone+extra; ci++) courts.push(courtIdx++);
+    zones.push({courts: courts, groups: [], turn: 0});
+  }
+  for(var g=0; g<gCount; g++){
+    var zIdx = Math.floor(g * numZones / gCount);
+    zones[zIdx].groups.push(g);
+  }
+  
+  // Flatten round bundles into queues per group
+  var queues = allRounds.map(function(rounds){
+    var q = [];
+    rounds.forEach(function(r){ r.forEach(function(b){ q.push(b); }); });
+    return q;
+  });
+  
+  var done = {};
+  function remQ(q){ return q.filter(function(b){ return !done[b.bundleId]; }); }
+  
+  var maxIter = 500;
+  while(maxIter-- > 0){
+    var remaining = queues.map(function(q){ return remQ(q); });
+    var totalRemaining = 0;
+    remaining.forEach(function(r){ totalRemaining += r.length; });
+    if(totalRemaining === 0) break;
+    
+    var time = brFmtTime(startT, slotIdx, slotM);
+    var usedClubs = {};
+    var slotMatches = [];
+    var anyPicked = false;
+    
+    // 각 구역에서 코트 수만큼 매치업 배정
+    for(var zi=0; zi<zones.length; zi++){
+      var zone = zones[zi];
+      if(zone.groups.length === 0) continue;
+      var courtSlot = 0; // 이 구역에서 사용한 코트 수
+      
+      for(var attempt=0; attempt<zone.groups.length * 10 && courtSlot<zone.courts.length; attempt++){
+        var gIdx = zone.groups[(zone.turn + attempt) % zone.groups.length];
+        if(remaining[gIdx].length === 0) continue;
+        
+        var picked = false;
+        for(var bi=0; bi<remaining[gIdx].length; bi++){
+          var bundle = remaining[gIdx][bi];
+          if(done[bundle.bundleId]) continue;
+          if(usedClubs[bundle.club1] || usedClubs[bundle.club2]) continue;
+          
+          done[bundle.bundleId] = true;
+          usedClubs[bundle.club1] = true;
+          usedClubs[bundle.club2] = true;
+          var courtNum = zone.courts[courtSlot];
+          courtSlot++;
+          
+          // 대진표에 전체 경기 표시 (1조, 2조, 3조)
+          bundle.matches.forEach(function(m){
+            slotMatches.push({
+              slot: slotIdx+1, time: time, court: courtNum+'번코트',
+              group: m.group, gk: m.gk,
+              club1: m.club1, team1: m.team1,
+              club2: m.club2, team2: m.team2,
+              ttype: m.ttype
+            });
+          });
+          picked = true;
+          anyPicked = true;
+          break;
+        }
+        if(picked) zone.turn = (zone.turn + 1) % zone.groups.length;
+      }
+    }
+    
+    if(!anyPicked) break;
+    slots = slots.concat(slotMatches);
+    slotIdx++;
+  }
+  return {slots:slots, numSlots:slotIdx};
 }
 
 function brRenderTabs() {
@@ -1686,19 +2072,50 @@ function brRenderTabs() {
 
 function brRenderResult(d) {
   document.getElementById('br-result').style.display='block';
-  var totMin=d.numSlots*d.slotM;
-  var dh=Math.floor(totMin/60),dm=totMin%60;
-  var endT=brFmtTime(d.startT,d.numSlots,d.slotM);
-  var maxC=d.numSlots*d.nCourts;
-  var util=maxC>0?Math.round(d.slots.length/maxC*100):0;
+  
+  // 2선승제 반영: 매치업당 최소 2경기, 최대 3경기
+  // 매치업 수 = slots.length / matches_per_bundle (=3)
+  var totalMatchups = 0;
+  var slotMap = {};
+  d.slots.forEach(function(m){
+    var key = m.time+'|'+m.court+'|'+m.club1+'|'+m.club2;
+    if(!slotMap[key]) { slotMap[key] = true; totalMatchups++; }
+  });
+  // 매치업당 개별 경기 시간(=slotM), 매치업 전체 시간 = 2~3 * slotM
+  var minMatchTime = 2 * d.slotM; // 2:0 나올 때
+  var maxMatchTime = 3 * d.slotM; // 1:1 결정전까지
+  
+  // 슬롯당 소요 시간 (매치업 전체 시간, 최대치 기준)
+  var perSlotMin = maxMatchTime; // 슬롯 하나 = 매치업 하나 완료
+  
+  // 실제 슬롯 수는 대진표의 매치업이 코트에 배정된 수
+  var actualSlots = d.numSlots;
+  var totMinMax = actualSlots * maxMatchTime;
+  var totMinMin = actualSlots * minMatchTime;
+  
+  var dh_max = Math.floor(totMinMax/60), dm_max = totMinMax%60;
+  var dh_min = Math.floor(totMinMin/60), dm_min = totMinMin%60;
+  
+  var endT_max = brFmtTime(d.startT, actualSlots * 3, d.slotM);
+  var endT_min = brFmtTime(d.startT, actualSlots * 2, d.slotM);
+  
+  var maxC=actualSlots*d.nCourts;
+  var util=maxC>0?Math.round(totalMatchups/maxC*100):0;
   document.getElementById('br-vn').textContent='대진표 #'+d.ver;
   document.getElementById('br-vi').innerHTML=(d.savedName?'<span style="color:#fbbf24;font-weight:700;margin-right:8px">📂'+d.savedName+'</span>':'')
-    +'총 '+d.slots.length+'경기 · '+d.numSlots+'슬롯 · 가동률 '+util+'%';
+    +'총 '+totalMatchups+'매치업 · '+actualSlots+'슬롯 · 가동률 '+util+'%';
   function card(v,l,g){return '<div class="br-sc"><div class="br-sv'+(g?' g':'')+'" >'+v+'</div><div class="br-sl">'+l+'</div></div>';}
+  
+  var timeStr = dh_min+'h'+(dm_min?dm_min+'m':'') + ' ~ ' + dh_max+'h'+(dm_max?dm_max+'m':'');
+  var timeRangeStr = d.startT+' ~ ' + endT_min + '/' + endT_max;
+  
   document.getElementById('br-stats').innerHTML=
-    card(d.slots.length,'총 경기 수')+card(d.numSlots,'시간 슬롯')+
-    card(dh+'h'+(dm?dm+'m':''),'총 소요시간',true)+
-    card(d.startT+' ~ '+endT,'운영 시간')+card(util+'%','코트 가동률',true)+card(maxC-d.slots.length,'빈 코트 수');
+    card(totalMatchups,'총 매치업 수')+
+    card(actualSlots,'시간 슬롯')+
+    card(timeStr,'소요시간 (최소~최대)',true)+
+    card(timeRangeStr,'종료 예상 (2:0 / 1:1)')+
+    card(d.slotM+'분','경기당 시간')+
+    card(maxMatchTime+'분','매치업 최대');
   var leg='<span style="font-size:11px;color:#707075;margin-right:4px">클럽 색상:</span>';
   d.gds.forEach(function(gd,gi){
     var pal=gi===0?BR_DARK_A:BR_DARK_B;
@@ -1710,7 +2127,11 @@ function brRenderResult(d) {
   document.getElementById('br-legend').innerHTML=leg;
   // Grid
   var sm={};
-  d.slots.forEach(function(m){if(!sm[m.time])sm[m.time]={};sm[m.time][m.court]=m;});
+  d.slots.forEach(function(m){
+    if(!sm[m.time]) sm[m.time]={};
+    if(!sm[m.time][m.court]) sm[m.time][m.court]=[];
+    sm[m.time][m.court].push(m);
+  });
   var times=[];
   for(var s=0;s<d.numSlots;s++) times.push(brFmtTime(d.startT,s,d.slotM));
   var courts=[];
@@ -1723,22 +2144,34 @@ function brRenderResult(d) {
     if(inner) el.innerHTML=inner; else el.textContent=text;
     parent.appendChild(el);
   }
-  addCell(grid,'시간','br-cc hdr');
+  addCell(grid,'라운드','br-cc hdr');
   courts.forEach(function(c){addCell(grid,c,'br-cc hdr');});
   times.forEach(function(t,ti){
     var isLast=ti===times.length-1;
-    addCell(grid,t,'br-cc ctime'+(isLast?' last':''));
+    var slotLabel = '슬롯 '+(ti+1)+'<br><span style="font-size:9px;color:#8A8A8E">'+(d.slotM*2)+'~'+(d.slotM*3)+'분</span>';
+    addCell(grid,'','br-cc ctime'+(isLast?' last':''), slotLabel);
     courts.forEach(function(c){
-      var m=sm[t]&&sm[t][c];
-      if(m){
-        var col1=brGetColor(m.club1,d.gds,BR_DARK_A,BR_DARK_B);
-        var col2=brGetColor(m.club2,d.gds,BR_DARK_A,BR_DARK_B);
-        var tag=m.gk==='A'?'<span class="br-tag-a">'+m.group+'</span>':'<span class="br-tag-b">'+m.group+'</span>';
-        addCell(grid,'','br-cc'+(isLast?' last':''),
-          '<div class="br-cm">'+tag+' <span style="font-size:10px;color:#707075">'+m.ttype+'</span><br>'
-          +'<span style="color:'+col1+';font-weight:700">'+m.club1+'</span>'
+      var matches=sm[t]&&sm[t][c];
+      if(matches && matches.length > 0){
+        var m0=matches[0];
+        var col1=brGetColor(m0.club1,d.gds,BR_DARK_A,BR_DARK_B);
+        var col2=brGetColor(m0.club2,d.gds,BR_DARK_A,BR_DARK_B);
+        var gIdx=GROUP_LABELS.indexOf(m0.gk);
+        var tagClass=gIdx>=0?'br-tag-'+GROUP_LABELS[gIdx].toLowerCase():'br-tag-a';
+        var tag='<span class="'+tagClass+'">'+m0.group+'</span>';
+        // 매치업 헤더 (클럽명)
+        var cellHtml='<div class="br-cm">'+tag+'<br>'
+          +'<span style="color:'+col1+';font-weight:700">'+m0.club1+'</span>'
           +'<span class="br-vs"> vs </span>'
-          +'<span style="color:'+col2+';font-weight:700">'+m.club2+'</span></div>');
+          +'<span style="color:'+col2+';font-weight:700">'+m0.club2+'</span>';
+        // 각 조 경기 목록
+        cellHtml+='<div style="margin-top:4px;font-size:10px;color:#8A8A8E;line-height:1.6">';
+        matches.forEach(function(m){
+          var isConditional = m.ttype && m.ttype.indexOf('필요시') >= 0;
+          cellHtml+='<div style="'+(isConditional?'color:#FFB43C;':'')+'">'+m.ttype+': '+m.team1+' vs '+m.team2+'</div>';
+        });
+        cellHtml+='</div></div>';
+        addCell(grid,'','br-cc'+(isLast?' last':''),cellHtml);
       } else {
         addCell(grid,'','br-cc'+(isLast?' last':''),'<span class="br-cempty">—</span>');
       }
@@ -1753,7 +2186,7 @@ function brDlExcel() {
   if (!BR_HISTORY.length) { brShowMsg('먼저 대진표를 생성해주세요.', 'err'); return; }
   var d = BR_HISTORY[BR_CUR];
   var sm={};
-  d.slots.forEach(function(m){if(!sm[m.time])sm[m.time]={};sm[m.time][m.court]=m;});
+  d.slots.forEach(function(m){if(!sm[m.time])sm[m.time]={};if(!sm[m.time][m.court])sm[m.time][m.court]=[];sm[m.time][m.court].push(m);});
   var times=[];
   for(var s=0;s<d.numSlots;s++) times.push(brFmtTime(d.startT,s,d.slotM));
   var courts=[];
@@ -1792,8 +2225,14 @@ function brDlExcel() {
   times.forEach(function(t){
     var cells=cell(t,'sTime');
     courts.forEach(function(c){
-      var m=sm[t]&&sm[t][c];
-      if(m){var sid=styleMap[m.club1]||'sEmpty';cells+=cell('['+m.group+' '+m.ttype+']\n'+m.club1+'  vs  '+m.club2,sid);}
+      var matches=sm[t]&&sm[t][c];
+      if(matches && matches.length > 0){
+        var m0=matches[0];
+        var sid=styleMap[m0.club1]||'sEmpty';
+        var label='['+m0.group+']\n'+m0.club1+' vs '+m0.club2+'\n';
+        matches.forEach(function(m){label+=m.ttype+'\n';});
+        cells+=cell(label.trim(),sid);
+      }
       else cells+=cell('—','sEmpty');
     });
     xml+=row(cells,52);
@@ -1900,7 +2339,7 @@ function brLoadSchedule(id){
   // 4. 코트 초기화 → courtsRef.on() 발화 → renderAllCourts → 슬롯 버튼 표시
   var courtData={};
   for(var i=1;i<=parseInt(sd.nCourts);i++){
-    courtData['court'+i]={name:'코트 '+i,teamA:'',teamB:'',scoreA:0,scoreB:0,event:'남복',group:'',status:'waiting'};
+    courtData['court'+i]={name:'코트 '+i,teamA:'',teamB:'',scoreA:0,scoreB:0,event:'1장조',group:'',status:'waiting'};
   }
   courtsRef.set(courtData, function(){
     // 코트 렌더 완료 후 completedSlots 재계산 (결과 삭제 후이므로 빈값)
@@ -2189,6 +2628,9 @@ photosRef.orderByChild('timestamp').on('value',function(snap){
   });
   container.innerHTML=html;
 });
+
+// ============ INIT: Render group inputs on page load ============
+renderGroupInputs(currentGroupCount);
 </script>
 </body>
 </html>
