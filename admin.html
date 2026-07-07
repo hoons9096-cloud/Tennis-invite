@@ -1341,14 +1341,26 @@ function calcMatchupStandings(groupTeams, results){
     });
   });
   
-  // 순위 정렬: 매치승 > 세트득실
+  // 순위 정렬: 매치승 > 세트패 (적을수록 좋음) > 상대전적
   var standings = Object.values(clubStats);
+  
+  function h2hMatchWin(cA, cB){
+    var m = matchups[cA] && matchups[cA][cB];
+    if(!m || m.matches.length === 0) return 0;
+    if(m.jomatchesWon >= 2) return 1;
+    if(m.jomatchesLost >= 2) return -1;
+    return 0;
+  }
+  
   standings.sort(function(a,b){
+    // 1순위: 매치 승 수 (많을수록 상위)
     if(b.matchWin !== a.matchWin) return b.matchWin - a.matchWin;
-    var gdA = a.setWin - a.setLose;
-    var gdB = b.setWin - b.setLose;
-    if(gdB !== gdA) return gdB - gdA;
-    return b.setWin - a.setWin;
+    // 2순위: 세트 패 수 (적을수록 상위 = 압도적 승리)
+    if(a.setLose !== b.setLose) return a.setLose - b.setLose;
+    // 3순위: 세트 승 수 (참고 지표)
+    if(b.setWin !== a.setWin) return b.setWin - a.setWin;
+    // 4순위: 상대전적
+    return h2hMatchWin(b.club, a.club) - h2hMatchWin(a.club, b.club);
   });
   
   return {matchups:matchups, standings:standings, clubs:clubs};
