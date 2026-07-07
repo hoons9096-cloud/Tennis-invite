@@ -458,10 +458,10 @@ function renderPublicStandings(){
           +'<th>①클럽매치<br>승-패</th><th>②매치<br>패</th><th>매치승<br>(참고)</th>'
           +'</tr></thead><tbody>';
         standings.forEach(function(s,i){
-          var q=i<2?'st-qualify':'';
+          var q='';
           html+='<tr class="'+q+'">'
             +'<td class="st-rank" style="color:'+color+'">'+(i+1)+'</td>'
-            +'<td class="st-team">'+s.club+(i<2?' 🏆':'')+'</td>'
+            +'<td class="st-team">'+s.club+'</td>'
             +'<td style="font-size:14px"><span style="color:#50C878;font-weight:800">'+s.matchWin+'</span><span style="color:#5A5A5E">-</span><span style="color:#FF6B6B;font-weight:800">'+s.matchLose+'</span></td>'
             +'<td style="color:#FF6B6B;font-weight:700">'+s.setLose+'</td>'
             +'<td style="color:#707075">'+s.setWin+'</td></tr>';

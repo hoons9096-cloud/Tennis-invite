@@ -1543,10 +1543,10 @@ function renderStandings(){
           +'</tr></thead><tbody>';
         
         standings.forEach(function(s,i){
-          var qualify = i<2 ? 'standings-qualify' : '';
+          var qualify = '';
           html += '<tr class="'+qualify+'">'
             +'<td class="standings-rank" style="color:'+color+'">'+(i+1)+'</td>'
-            +'<td class="standings-team">'+s.club+(i<2?' <span style="font-size:9px;color:'+color+'">▲4강</span>':'')+'</td>'
+            +'<td class="standings-team">'+s.club+'</td>'
             +'<td style="font-size:14px"><span style="color:#50C878;font-weight:800">'+s.matchWin+'</span><span style="color:#5A5A5E">-</span><span style="color:#FF6B6B;font-weight:800">'+s.matchLose+'</span></td>'
             +'<td style="color:#FF6B6B;font-weight:700">'+s.setLose+'</td>'
             +'<td style="color:#707075">'+s.setWin+'</td>'
