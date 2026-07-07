@@ -154,8 +154,18 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
         </div>
         <div style="display:flex;gap:14px;align-items:flex-start;background:#0C0C0E;border-radius:10px;padding:14px 16px">
           <span style="color:#D2FF4E;font-weight:900;font-size:22px;line-height:1.1">③</span>
-          <div><div style="color:#fff;font-weight:700;font-size:15px">상대전적</div>
-          <div style="color:#909096;font-size:13px;margin-top:3px">위 둘이 같으면 직접 맞대결 결과로 결정</div></div>
+          <div><div style="color:#fff;font-weight:700;font-size:15px">승자승 (상대전적)</div>
+          <div style="color:#909096;font-size:13px;margin-top:3px">동률 팀끼리 맞대결 결과로 결정<br>3팀 이상 동률이면 그들끼리의 승수로 비교</div></div>
+        </div>
+        <div style="display:flex;gap:14px;align-items:flex-start;background:#0C0C0E;border-radius:10px;padding:14px 16px">
+          <span style="color:#D2FF4E;font-weight:900;font-size:22px;line-height:1.1">④</span>
+          <div><div style="color:#fff;font-weight:700;font-size:15px">게임 득실차</div>
+          <div style="color:#909096;font-size:13px;margin-top:3px">승자승으로도 안 갈리면 전체 경기의<br>득점−실점이 큰 팀이 상위</div></div>
+        </div>
+        <div style="display:flex;gap:14px;align-items:flex-start;background:#0C0C0E;border-radius:10px;padding:14px 16px">
+          <span style="color:#D2FF4E;font-weight:900;font-size:22px;line-height:1.1">⑤</span>
+          <div><div style="color:#fff;font-weight:700;font-size:15px">다득점</div>
+          <div style="color:#909096;font-size:13px;margin-top:3px">그래도 같으면 총 득점이 많은 팀이 상위</div></div>
         </div>
       </div>
     </div>
@@ -415,14 +425,51 @@ function calcMatchupStandings(groupTeams, results){
   }
   
   var standings = Object.values(clubStats);
+
+  // 동률 그룹 내 상대전적(승자승) 계산: 해당 그룹 팀들끼리의 클럽매치 승만 집계
+  function h2hWinsWithin(club, group){
+    var w = 0;
+    group.forEach(function(other){
+      if(other.club === club) return;
+      if(h2hMatchWin(club, other.club) === 1) w++;
+    });
+    return w;
+  }
+
+  // 기본 정렬: 클럽매치 승 → 매치 패(적을수록 상위)
   standings.sort(function(a,b){
-    // 1순위: 클럽매치 승 수
     if(b.matchWin !== a.matchWin) return b.matchWin - a.matchWin;
-    // 2순위: 매치 패 (적을수록 상위 = 압도적 승리)
     if(a.setLose !== b.setLose) return a.setLose - b.setLose;
-    // 3순위: 상대전적
-    return h2hMatchWin(b.club, a.club) - h2hMatchWin(a.club, b.club);
+    return 0;
   });
+
+  // 1·2순위가 완전히 같은 팀들(동률 그룹)을 묶어 세부 기준으로 재정렬
+  var i = 0;
+  while(i < standings.length){
+    var j = i + 1;
+    while(j < standings.length &&
+          standings[j].matchWin === standings[i].matchWin &&
+          standings[j].setLose === standings[i].setLose){
+      j++;
+    }
+    if(j - i >= 2){
+      var group = standings.slice(i, j);
+      group.sort(function(a,b){
+        // 3순위: 동률 팀들끼리의 상대전적(승자승, 미니리그)
+        var hw = h2hWinsWithin(b.club, group) - h2hWinsWithin(a.club, group);
+        if(hw !== 0) return hw;
+        // 4순위: 게임 득실차 (전체 경기 기준)
+        var gdA = a.gf - a.ga, gdB = b.gf - b.ga;
+        if(gdB !== gdA) return gdB - gdA;
+        // 5순위: 다득점
+        if(b.gf !== a.gf) return b.gf - a.gf;
+        return 0;
+      });
+      for(var k = 0; k < group.length; k++) standings[i + k] = group[k];
+    }
+    i = j;
+  }
+
   
   return {matchups:matchups, standings:standings, clubs:clubs};
 }
@@ -508,7 +555,7 @@ function renderPublicStandings(){
             +'<td style="color:#707075">'+s.setWin+'</td></tr>';
         });
         html+='</tbody></table>';
-        html+='<div style="font-size:9px;color:#707075;margin-top:5px;line-height:1.5">순위: ①클럽매치 승 → ②매치 패(적을수록) → ③상대전적</div>';
+        html+='<div style="font-size:9px;color:#707075;margin-top:5px;line-height:1.5">순위: ①클럽매치 승 → ②매치 패(적을수록) → ③동률 팀 간 승자승 → ④게임 득실차 → ⑤다득점</div>';
         html+='</div>';
       });
       container.innerHTML=html||'<div class="empty"><span class="empty-icon">🏆</span><div class="empty-text">아직 순위 정보가 없습니다</div></div>';
