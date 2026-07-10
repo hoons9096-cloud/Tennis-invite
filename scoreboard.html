@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>월촌구장배 테니스대회 - 실시간 스코어보드</title>
+<meta property="og:title" content="🎾 월촌구장배 테니스대회 실시간 스코어보드">
+<meta property="og:description" content="경기 진행 상황을 실시간으로 확인하세요!">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-height:100vh}
+
+.header{background:#151518;border-bottom:2px solid #D2FF4E;padding:16px 20px;text-align:center;position:sticky;top:0;z-index:100}
+.header h1{font-size:20px;font-weight:900;color:#D2FF4E}
+.header p{font-size:11px;color:#707075;margin-top:2px}
+
+/* Tabs */
+.tabs{display:flex;justify-content:center;gap:4px;padding:12px 12px;background:#0C0C0E;position:sticky;top:62px;z-index:99;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tab{padding:8px 16px;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid #2A2A30;color:#707075;transition:all .2s;background:transparent;white-space:nowrap;flex-shrink:0}
+.tab.active{background:#D2FF4E;color:#0C0C0E;border-color:#D2FF4E}
+
+.container{max-width:900px;margin:0 auto;padding:16px}
+
+/* === LIVE SCORES === */
+.section-title{font-size:13px;font-weight:800;color:#D2FF4E;letter-spacing:3px;margin-bottom:12px;padding-left:4px}
+
+.live-courts{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;margin-bottom:24px}
+
+.live-card{background:#151518;border:1px solid #2A2A30;border-radius:14px;overflow:hidden;transition:all .3s}
+.live-card.active{border-color:#D2FF4E;box-shadow:0 0 24px rgba(210,255,78,.06)}
+.live-card.done{opacity:.7}
+
+.live-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#1C1C20}
+.live-court-name{font-size:12px;font-weight:700;color:#D2FF4E}
+.live-event{font-size:10px;color:#707075;font-weight:600}
+.live-status{font-size:9px;padding:2px 8px;border-radius:10px;font-weight:700}
+.live-status.live{background:rgba(255,60,60,.15);color:#FF4444;animation:pulse 2s infinite}
+.live-status.done{background:rgba(210,255,78,.1);color:#D2FF4E}
+.live-status.waiting{background:rgba(112,112,117,.15);color:#707075}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+.live-body{padding:14px}
+.live-team{display:flex;align-items:center;justify-content:space-between;padding:6px 0}
+.live-team-name{font-size:15px;font-weight:700;color:#E8E8E8}
+.live-team-name.winner{color:#D2FF4E}
+.live-score{font-family:'Bebas Neue',sans-serif;font-size:36px;font-weight:400;color:#FFFFFF;line-height:1}
+.live-score.winner{color:#D2FF4E}
+.live-vs{text-align:center;font-size:10px;color:#2A2A30;font-weight:700;padding:2px 0}
+.live-group{text-align:center;font-size:10px;color:#505055;margin-top:6px;padding-top:6px;border-top:1px solid #1C1C20}
+
+/* === RESULTS === */
+.results-table{width:100%;border-collapse:separate;border-spacing:0;margin-bottom:24px}
+.results-table th{background:#1C1C20;color:#D2FF4E;font-size:11px;font-weight:700;padding:10px 12px;text-align:left;letter-spacing:1px;border-bottom:1px solid #2A2A30}
+.results-table td{background:#151518;padding:10px 12px;font-size:13px;border-bottom:1px solid #1C1C20}
+.results-table tr:hover td{background:#1A1A1E}
+.result-score{font-family:'Bebas Neue',sans-serif;font-size:20px;color:#FFFFFF}
+.result-winner{color:#D2FF4E;font-weight:700}
+
+/* Empty state */
+.empty{text-align:center;padding:60px 20px;color:#707075}
+.empty-icon{font-size:40px;margin-bottom:12px;display:block}
+.empty-text{font-size:14px}
+
+/* Auto refresh indicator */
+.refresh-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#D2FF4E;margin-right:6px;animation:pulse 2s infinite}
+
+/* Hide sections */
+.section{display:none}
+.section.active{display:block}
+
+/* Schedule display */
+.next-banner{background:#1A2A10;border:1px solid #2A3A18;border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+.next-label{font-size:11px;font-weight:700;color:#D2FF4E;letter-spacing:2px}
+.next-value{font-size:14px;font-weight:800;color:#E8E8E8}
+.next-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-bottom:20px}
+.next-card{background:#151518;border:1px solid #2A2A30;border-radius:10px;padding:12px;text-align:center}
+.next-court{font-size:11px;font-weight:800;color:#D2FF4E;margin-bottom:6px}
+.next-teams{font-size:13px;font-weight:700;color:#E8E8E8;margin-bottom:2px}
+.next-meta{font-size:10px;color:#707075}
+
+/* Standings */
+.st-group{background:#151518;border:1px solid #2A2A30;border-radius:12px;margin-bottom:16px;overflow:hidden}
+.st-group-hdr{background:#1C1C20;padding:10px 16px;font-size:13px;font-weight:800;color:#D2FF4E}
+.st-tbl{width:100%;border-collapse:collapse}
+.st-tbl th{font-size:10px;font-weight:700;color:#707075;padding:8px 10px;text-align:center;border-bottom:1px solid #2A2A30}
+.st-tbl td{font-size:13px;padding:8px 10px;text-align:center;border-bottom:1px solid #1C1C20}
+.st-tbl tr:hover td{background:#1A1A1E}
+.st-rank{font-weight:900;color:#D2FF4E;font-size:15px}
+.st-team{font-weight:700;color:#E8E8E8;text-align:left!important}
+.st-qualify{background:rgba(210,255,78,.04)!important}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🎾 월촌구장배 테니스대회</h1>
+  <p><span class="refresh-dot"></span>실시간 업데이트 중 · 2026.4.25</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('live',this)">실시간 스코어</div>
+  <div class="tab" onclick="showTab('standings',this)">순위표</div>
+  <div class="tab" onclick="showTab('final',this)">🏆 본선</div>
+  <div class="tab" onclick="showTab('results',this)">경기 결과</div>
+  <div class="tab" onclick="showTab('rule',this)">📖 순위 규칙</div>
+</div>
+
+<div class="container">
+
+  <!-- Live Scores -->
+  <div class="section active" id="sec-live">
+    <div class="section-title">LIVE COURTS</div>
+    <div class="live-courts" id="liveCourts">
+      <div class="empty"><span class="empty-icon">🎾</span><div class="empty-text">아직 경기가 시작되지 않았습니다</div></div>
+    </div>
+  </div>
+
+  
+  <!-- Standings -->
+  <div class="section" id="sec-standings">
+    <div class="section-title">조별 순위표</div>
+    <div id="standingsDisplay">
+      <div class="empty"><span class="empty-icon">🏆</span><div class="empty-text">아직 순위 정보가 없습니다</div></div>
+    </div>
+  </div>
+
+  <!-- 본선 토너먼트 -->
+  <div class="section" id="sec-final">
+    <div class="section-title">본선 토너먼트</div>
+    <div id="finalDisplay">
+      <div class="empty"><span class="empty-icon">🏆</span><div class="empty-text">아직 본선 대진표가 게시되지 않았습니다</div></div>
+    </div>
+  </div>
+
+  <!-- 순위 규칙 탭 -->
+  <div class="section" id="sec-rule">
+    <div class="section-title">순위 결정 규칙</div>
+
+    <div style="background:#151518;border:1px solid #2A2A30;border-radius:14px;padding:22px 20px;margin-bottom:16px">
+      <div style="font-size:14px;font-weight:800;color:#D2FF4E;margin-bottom:12px;letter-spacing:1px">📋 경기 방식</div>
+      <div style="font-size:14px;color:#C8C8CC;line-height:2">
+        • 예선: 조별 <b style="color:#fff">풀리그</b> (같은 조끼리 모두 대결)<br>
+        • 클럽 대 클럽은 <b style="color:#fff">3매치(1·2·3장조)</b>로 승부<br>
+        • <b style="color:#50C878">2매치 먼저 이기면</b> 그 클럽 승리 (2선승제)<br>
+        &nbsp;&nbsp;→ 2:0이면 3장조는 생략<br>
+        • 각 매치는 <b style="color:#fff">6게임 단판</b>
+      </div>
+    </div>
+
+    <div style="background:#151518;border:1px solid #2A2A30;border-radius:14px;padding:22px 20px;margin-bottom:16px">
+      <div style="font-size:14px;font-weight:800;color:#D2FF4E;margin-bottom:14px;letter-spacing:1px">🏆 순위 결정 순서</div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;gap:14px;align-items:flex-start;background:#0C0C0E;border-radius:10px;padding:14px 16px">
+          <span style="color:#D2FF4E;font-weight:900;font-size:22px;line-height:1.1">①</span>
+          <div><div style="color:#fff;font-weight:700;font-size:15px">클럽매치 승수</div>
+          <div style="color:#909096;font-size:13px;margin-top:3px">이긴 클럽매치가 많은 팀이 상위</div></div>
+        </div>
+        <div style="display:flex;gap:14px;align-items:flex-start;background:#0C0C0E;border-radius:10px;padding:14px 16px">
+          <span style="color:#D2FF4E;font-weight:900;font-size:22px;line-height:1.1">②</span>
+          <div><div style="color:#fff;font-weight:700;font-size:15px">매치 패 (적을수록 상위)</div>
+          <div style="color:#909096;font-size:13px;margin-top:3px">2:0으로 이긴 팀이 2:1로 이긴 팀보다 위<br>(적게 질수록 강하다는 의미)</div></div>
+        </div>
+        <div style="display:flex;gap:14px;align-items:flex-start;background:#0C0C0E;border-radius:10px;padding:14px 16px">
+          <span style="color:#D2FF4E;font-weight:900;font-size:22px;line-height:1.1">③</span>
+          <div><div style="color:#fff;font-weight:700;font-size:15px">승자승 (상대전적)</div>
+          <div style="color:#909096;font-size:13px;margin-top:3px">동률 팀끼리 맞대결 결과로 결정<br>3팀 이상 동률이면 그들끼리의 승수로 비교</div></div>
+        </div>
+        <div style="display:flex;gap:14px;align-items:flex-start;background:#0C0C0E;border-radius:10px;padding:14px 16px">
+          <span style="color:#D2FF4E;font-weight:900;font-size:22px;line-height:1.1">④</span>
+          <div><div style="color:#fff;font-weight:700;font-size:15px">게임 득실차</div>
+          <div style="color:#909096;font-size:13px;margin-top:3px">승자승으로도 안 갈리면 전체 경기의<br>득점−실점이 큰 팀이 상위</div></div>
+        </div>
+        <div style="display:flex;gap:14px;align-items:flex-start;background:#0C0C0E;border-radius:10px;padding:14px 16px">
+          <span style="color:#D2FF4E;font-weight:900;font-size:22px;line-height:1.1">⑤</span>
+          <div><div style="color:#fff;font-weight:700;font-size:15px">다득점</div>
+          <div style="color:#909096;font-size:13px;margin-top:3px">그래도 같으면 총 득점이 많은 팀이 상위</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:rgba(210,255,78,.06);border:1px solid rgba(210,255,78,.2);border-radius:14px;padding:18px 20px">
+      <div style="font-size:13px;color:#D2FF4E;font-weight:800;margin-bottom:8px">💡 예시</div>
+      <div style="font-size:14px;color:#C8C8CC;line-height:1.9">
+        A팀 3승 (매치패 1) vs B팀 3승 (매치패 3)<br>
+        → <b style="color:#50C878">A팀이 상위</b> (매치를 덜 내줌)
+      </div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="section" id="sec-results">
+    <div class="section-title">경기 결과</div>
+    <div id="resultsArea">
+      <div class="empty"><span class="empty-icon">📋</span><div class="empty-text">아직 완료된 경기가 없습니다</div></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyBLEGto1SK7JiowYJJCuBCfpBsjrkiqklM",
+  authDomain: "tennis-score-a3654.firebaseapp.com",
+  databaseURL: "https://tennis-score-a3654-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "tennis-score-a3654",
+  storageBucket: "tennis-score-a3654.firebasestorage.app",
+  messagingSenderId: "361320303748",
+  appId: "1:361320303748:web:0238102b53e7209cef86d1"
+});
+
+var db = firebase.database();
+
+function showTab(tab,el){
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active')});
+  document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active')});
+  if(el) el.classList.add('active');
+  document.getElementById('sec-'+tab).classList.add('active');
+}
+
+// Live courts
+db.ref('courts').on('value',function(snap){
+  var data=snap.val();
+  var container=document.getElementById('liveCourts');
+  if(!data){
+    container.innerHTML='<div class="empty"><span class="empty-icon">🎾</span><div class="empty-text">아직 경기가 시작되지 않았습니다</div></div>';
+    return;
+  }
+  
+  var html='';
+  Object.keys(data).sort().forEach(function(key){
+    var d=data[key];
+    var statusClass=d.status==='live'?'live':d.status==='done'?'done':'waiting';
+    var statusText=d.status==='live'?'● LIVE':d.status==='done'?'종료':'대기';
+    var isWinnerA=d.status==='done'&&d.scoreA>d.scoreB;
+    var isWinnerB=d.status==='done'&&d.scoreB>d.scoreA;
+    
+    html+='<div class="live-card '+(d.status==='live'?'active':d.status==='done'?'done':'')+'">'
+      +'<div class="live-header">'
+      +'<span class="live-court-name">'+d.name+'</span>'
+      +'<div><span class="live-event">'+(d.event||'')+'</span> <span class="live-status '+statusClass+'">'+statusText+'</span></div>'
+      +'</div>'
+      +'<div class="live-body">'
+      +'<div class="live-team"><span class="live-team-name '+(isWinnerA?'winner':'')+'">'+(d.teamA||'—')+'</span><span class="live-score '+(isWinnerA?'winner':'')+'">'+(d.scoreA||0)+'</span></div>'
+      +'<div class="live-vs">VS</div>'
+      +'<div class="live-team"><span class="live-team-name '+(isWinnerB?'winner':'')+'">'+(d.teamB||'—')+'</span><span class="live-score '+(isWinnerB?'winner':'')+'">'+(d.scoreB||0)+'</span></div>'
+      +(d.group?'<div class="live-group">'+d.group+'</div>':'')
+      +'</div></div>';
+  });
+  container.innerHTML=html;
+});
+
+// Results
+db.ref('results').orderByChild('timestamp').on('value',function(snap){
+  var data=snap.val();
+  var area=document.getElementById('resultsArea');
+  if(!data){
+    area.innerHTML='<div class="empty"><span class="empty-icon">📋</span><div class="empty-text">아직 완료된 경기가 없습니다</div></div>';
+    return;
+  }
+  
+  // Convert to array and sort by timestamp desc
+  var results=[];
+  Object.keys(data).forEach(function(key){results.push(data[key])});
+  results.sort(function(a,b){return(b.timestamp||0)-(a.timestamp||0)});
+  
+  var html='<table class="results-table"><thead><tr>'
+    +'<th>시간</th><th>코트</th><th>종목</th><th>팀 A</th><th>스코어</th><th>팀 B</th><th>조</th>'
+    +'</tr></thead><tbody>';
+  
+  results.forEach(function(r){
+    var winA=r.scoreA>r.scoreB;
+    var winB=r.scoreB>r.scoreA;
+    var isSkipped=r.skipped?true:false;
+    html+='<tr style="'+(isSkipped?'opacity:.5':'')+'">'
+      +'<td>'+(r.time||'')+'</td>'
+      +'<td>'+(r.court||'')+'</td>'
+      +'<td>'+(r.event||'')+'</td>'
+      +'<td class="'+(winA&&!isSkipped?'result-winner':'')+'">'+(r.teamA||'')+'</td>'
+      +'<td><span class="result-score">'+(isSkipped?'<span style="font-size:11px;color:#FFB43C">2선승 생략</span>':(r.scoreA||0)+' : '+(r.scoreB||0))+'</span></td>'
+      +'<td class="'+(winB&&!isSkipped?'result-winner':'')+'">'+(r.teamB||'')+'</td>'
+      +'<td>'+(r.group||'')+'</td>'
+      +'</tr>';
+  });
+  
+  html+='</tbody></table>';
+  area.innerHTML=html;
+});
+
+// Schedule display
+db.ref('schedule').on('value',function(snap){
+  var data=snap.val();
+  var container=document.getElementById('schedDisplay');
+  if(!data){
+    container.innerHTML='<div class="empty"><span class="empty-icon">📋</span><div class="empty-text">아직 배정 정보가 없습니다</div></div>';
+    return;
+  }
+  var meta=data.meta||{};
+  var next=data.next||{};
+  
+  var html='';
+  if(meta.currentRound||meta.nextRound){
+    html+='<div class="next-banner">';
+    if(meta.currentRound) html+='<div><div class="next-label">현재</div><div class="next-value">'+meta.currentRound+'</div></div>';
+    if(meta.nextRound) html+='<div><div class="next-label">다음</div><div class="next-value">'+meta.nextRound+'</div></div>';
+    html+='</div>';
+  }
+  
+  var keys=Object.keys(next).sort();
+  if(keys.length>0){
+    html+='<div class="next-grid">';
+    keys.forEach(function(key){
+      var c=next[key];
+      html+='<div class="next-card">'
+        +'<div class="next-court">'+key.replace('court','코트 ')+'</div>'
+        +'<div class="next-teams">'+(c.teamA||'?')+' vs '+(c.teamB||'?')+'</div>'
+        +'<div class="next-meta">'+(c.event||'')+' · '+(c.group||'')+'</div>'
+        +'</div>';
+    });
+    html+='</div>';
+  } else {
+    html+='<div class="empty"><span class="empty-icon">📋</span><div class="empty-text">다음 타임 배정 대기 중</div></div>';
+  }
+  container.innerHTML=html;
+});
+
+// Standings
+function calcStandings(groupTeams,results){
+  var stats={};
+  Object.keys(groupTeams).forEach(function(t){
+    stats[t]={team:t,win:0,lose:0,gf:0,ga:0,gd:0,matches:0};
+  });
+  if(!results) return Object.values(stats);
+  Object.keys(results).forEach(function(key){
+    var r=results[key];
+    var tA=r.teamA,tB=r.teamB;
+    if(!stats[tA]||!stats[tB]) return;
+    var sA=r.scoreA||0,sB=r.scoreB||0;
+    stats[tA].gf+=sA;stats[tA].ga+=sB;stats[tA].matches++;
+    stats[tB].gf+=sB;stats[tB].ga+=sA;stats[tB].matches++;
+    if(sA>sB){stats[tA].win++;stats[tB].lose++}
+    else if(sB>sA){stats[tB].win++;stats[tA].lose++}
+  });
+  Object.values(stats).forEach(function(s){s.gd=s.gf-s.ga});
+  var arr=Object.values(stats);
+  arr.sort(function(a,b){
+    if(b.win!==a.win) return b.win-a.win;
+    if(b.gd!==a.gd) return b.gd-a.gd;
+    return b.gf-a.gf;
+  });
+  return arr;
+}
+
+function calcMatchupStandings(groupTeams, results){
+  var clubs = Object.keys(groupTeams);
+  var matchups = {};
+  var clubStats = {};
+  
+  clubs.forEach(function(c){
+    matchups[c] = {};
+    clubStats[c] = {club:c, matchWin:0, matchLose:0, setWin:0, setLose:0, setDraw:0, gf:0, ga:0, matchesPlayed:0};
+    clubs.forEach(function(c2){
+      if(c !== c2) matchups[c][c2] = {jomatchesWon:0, jomatchesLost:0, jomatchesDraw:0, matches:[]};
+    });
+  });
+  
+  if(!results) return {matchups:matchups, standings:Object.values(clubStats), clubs:clubs};
+  
+  Object.values(results).forEach(function(r){
+    if(r.skipped) return;
+    var tA = r.teamA, tB = r.teamB;
+    if(!tA || !tB) return;
+    var clubA = tA.replace(/\s*\d+장조$/,'').trim();
+    var clubB = tB.replace(/\s*\d+장조$/,'').trim();
+    if(!matchups[clubA] || !matchups[clubB]) return;
+    
+    var sA = r.scoreA||0, sB = r.scoreB||0;
+    
+    if(sA > sB){
+      matchups[clubA][clubB].jomatchesWon++;
+      matchups[clubB][clubA].jomatchesLost++;
+    } else if(sB > sA){
+      matchups[clubB][clubA].jomatchesWon++;
+      matchups[clubA][clubB].jomatchesLost++;
+    } else {
+      matchups[clubA][clubB].jomatchesDraw++;
+      matchups[clubB][clubA].jomatchesDraw++;
+    }
+    matchups[clubA][clubB].matches.push({sA:sA, sB:sB, myWin:sA>sB, draw:sA===sB});
+    matchups[clubB][clubA].matches.push({sA:sB, sB:sA, myWin:sB>sA, draw:sA===sB});
+  });
+  
+  clubs.forEach(function(cA){
+    clubs.forEach(function(cB){
+      if(cA >= cB) return;
+      var mA = matchups[cA][cB];
+      if(mA.matches.length === 0) return;
+      
+      clubStats[cA].setWin += mA.jomatchesWon;
+      clubStats[cA].setLose += mA.jomatchesLost;
+      clubStats[cA].setDraw += mA.jomatchesDraw;
+      clubStats[cB].setWin += mA.jomatchesLost;
+      clubStats[cB].setLose += mA.jomatchesWon;
+      clubStats[cB].setDraw += mA.jomatchesDraw;
+      clubStats[cA].matchesPlayed++;
+      clubStats[cB].matchesPlayed++;
+      
+      mA.matches.forEach(function(mm){
+        clubStats[cA].gf += mm.sA; clubStats[cA].ga += mm.sB;
+      });
+      matchups[cB][cA].matches.forEach(function(mm){
+        clubStats[cB].gf += mm.sA; clubStats[cB].ga += mm.sB;
+      });
+      
+      if(mA.jomatchesWon >= 2){
+        clubStats[cA].matchWin++;
+        clubStats[cB].matchLose++;
+      } else if(mA.jomatchesLost >= 2){
+        clubStats[cB].matchWin++;
+        clubStats[cA].matchLose++;
+      }
+    });
+  });
+  
+  function h2hMatchWin(cA, cB){
+    var m = matchups[cA] && matchups[cA][cB];
+    if(!m || m.matches.length === 0) return 0;
+    if(m.jomatchesWon >= 2) return 1;
+    if(m.jomatchesLost >= 2) return -1;
+    return 0;
+  }
+  
+  var standings = Object.values(clubStats);
+
+  // 동률 그룹 내 상대전적(승자승) 계산: 해당 그룹 팀들끼리의 클럽매치 승만 집계
+  function h2hWinsWithin(club, group){
+    var w = 0;
+    group.forEach(function(other){
+      if(other.club === club) return;
+      if(h2hMatchWin(club, other.club) === 1) w++;
+    });
+    return w;
+  }
+
+  // 기본 정렬: 클럽매치 승 → 매치 패(적을수록 상위)
+  standings.sort(function(a,b){
+    if(b.matchWin !== a.matchWin) return b.matchWin - a.matchWin;
+    if(a.setLose !== b.setLose) return a.setLose - b.setLose;
+    return 0;
+  });
+
+  // 1·2순위가 완전히 같은 팀들(동률 그룹)을 묶어 세부 기준으로 재정렬
+  var i = 0;
+  while(i < standings.length){
+    var j = i + 1;
+    while(j < standings.length &&
+          standings[j].matchWin === standings[i].matchWin &&
+          standings[j].setLose === standings[i].setLose){
+      j++;
+    }
+    if(j - i >= 2){
+      var group = standings.slice(i, j);
+      group.sort(function(a,b){
+        // 3순위: 동률 팀들끼리의 상대전적(승자승, 미니리그)
+        var hw = h2hWinsWithin(b.club, group) - h2hWinsWithin(a.club, group);
+        if(hw !== 0) return hw;
+        // 4순위: 게임 득실차 (전체 경기 기준)
+        var gdA = a.gf - a.ga, gdB = b.gf - b.ga;
+        if(gdB !== gdA) return gdB - gdA;
+        // 5순위: 다득점
+        if(b.gf !== a.gf) return b.gf - a.gf;
+        return 0;
+      });
+      for(var k = 0; k < group.length; k++) standings[i + k] = group[k];
+    }
+    i = j;
+  }
+
+  
+  return {matchups:matchups, standings:standings, clubs:clubs};
+}
+
+var SB_GROUP_LABELS = ['A','B','C','D','E','F'];
+var SB_GROUP_COLORS = ['#4f9cf9','#f9634f','#50C878','#FFB43C','#a78bfa','#FF6B8A'];
+
+function renderPublicStandings(){
+  db.ref('groups').once('value',function(gsnap){
+    var groups=gsnap.val();
+    var container=document.getElementById('standingsDisplay');
+    if(!groups){
+      container.innerHTML='<div class="empty"><span class="empty-icon">🏆</span><div class="empty-text">아직 순위 정보가 없습니다</div></div>';
+      return;
+    }
+    db.ref('results').once('value',function(rsnap){
+      var allResults=rsnap.val()||{};
+      var html='';
+      SB_GROUP_LABELS.forEach(function(gKey, gIdx){
+        var g=groups[gKey];
+        if(!g) return;
+        var teams=g.teams||{};
+        var color = SB_GROUP_COLORS[gIdx] || '#D2FF4E';
+        var res = calcMatchupStandings(teams, allResults);
+        var clubs = res.clubs;
+        var matchups = res.matchups;
+        var standings = res.standings;
+        
+        html += '<div class="st-group">';
+        html += '<div class="st-group-hdr" style="color:'+color+'">'+g.name+' — 클럽매치 결과</div>';
+        
+        // 매치업 크로스 테이블
+        html += '<table class="st-tbl" style="margin-bottom:16px"><thead><tr>';
+        html += '<th></th>';
+        clubs.forEach(function(c){
+          html += '<th style="color:'+color+';font-size:10px">'+c+'</th>';
+        });
+        html += '<th style="font-size:9px">클럽매치<br>승</th>';
+        html += '<th style="font-size:9px">클럽매치<br>패</th>';
+        html += '</tr></thead><tbody>';
+        
+        clubs.forEach(function(cA){
+          html += '<tr>';
+          html += '<td style="font-weight:800;color:'+color+';background:#1C1C20;text-align:left;font-size:11px">'+cA+'</td>';
+          clubs.forEach(function(cB){
+            if(cA === cB){
+              html += '<td style="background:#0C0C0E;color:#3A3A3E">—</td>';
+            } else {
+              var m = matchups[cA][cB];
+              if(m.matches.length === 0){
+                html += '<td style="color:#5A5A5E;font-size:11px">-</td>';
+              } else {
+                var mWon = m.jomatchesWon >= 2;
+                var mLost = m.jomatchesLost >= 2;
+                var color2 = mWon?'#50C878':mLost?'#FF6B6B':'#FFB43C';
+                var bg = mWon?'rgba(80,200,120,.08)':mLost?'rgba(255,107,107,.08)':'rgba(255,180,60,.08)';
+                var scoreText = m.jomatchesWon+':'+m.jomatchesLost;
+                html += '<td style="background:'+bg+'">'
+                  +'<div style="font-weight:800;color:'+color2+';font-size:14px">'+scoreText+'</div></td>';
+              }
+            }
+          });
+          var st = standings.filter(function(s){return s.club===cA})[0]||{};
+          html += '<td style="color:#50C878;font-weight:800">'+(st.matchWin||0)+'</td>';
+          html += '<td style="color:#FF6B6B;font-weight:800">'+(st.matchLose||0)+'</td>';
+          html += '</tr>';
+        });
+        html += '</tbody></table>';
+        
+        // 최종 순위 (순위 결정 순서대로)
+        html += '<div style="font-size:10px;font-weight:800;color:'+color+';margin-bottom:6px;letter-spacing:2px">최종 순위</div>';
+        html += '<table class="st-tbl"><thead><tr>'
+          +'<th>순위</th><th style="text-align:left">클럽</th>'
+          +'<th>①클럽매치<br>승-패</th><th>②매치<br>패</th><th>매치승<br>(참고)</th>'
+          +'</tr></thead><tbody>';
+        standings.forEach(function(s,i){
+          var q='';
+          html+='<tr class="'+q+'">'
+            +'<td class="st-rank" style="color:'+color+'">'+(i+1)+'</td>'
+            +'<td class="st-team">'+s.club+'</td>'
+            +'<td style="font-size:14px"><span style="color:#50C878;font-weight:800">'+s.matchWin+'</span><span style="color:#5A5A5E">-</span><span style="color:#FF6B6B;font-weight:800">'+s.matchLose+'</span></td>'
+            +'<td style="color:#FF6B6B;font-weight:700">'+s.setLose+'</td>'
+            +'<td style="color:#707075">'+s.setWin+'</td></tr>';
+        });
+        html+='</tbody></table>';
+        html+='<div style="font-size:9px;color:#707075;margin-top:5px;line-height:1.5">순위: ①클럽매치 승 → ②매치 패(적을수록) → ③동률 팀 간 승자승 → ④게임 득실차 → ⑤다득점</div>';
+        html+='</div>';
+      });
+      container.innerHTML=html||'<div class="empty"><span class="empty-icon">🏆</span><div class="empty-text">아직 순위 정보가 없습니다</div></div>';
+    });
+  });
+}
+db.ref('results').on('value',function(){renderPublicStandings()});
+db.ref('groups').on('value',function(){renderPublicStandings()});
+
+// ===== 본선 토너먼트 표시 =====
+db.ref('finalBracket').on('value',function(snap){
+  var b=snap.val();
+  var el=document.getElementById('finalDisplay');
+  if(!el) return;
+  // Firebase가 배열을 객체로 돌려줄 수 있으므로 배열로 정규화
+  function toArr(v){
+    if(!v) return [];
+    if(Array.isArray(v)) return v;
+    return Object.keys(v).sort(function(a,b){return Number(a)-Number(b);}).map(function(k){return v[k];});
+  }
+  var seeds = toArr(b && b.seeds);
+  if(!b || seeds.length===0){
+    var dbg = '';
+    if(b){
+      // 데이터는 있는데 seeds를 못 읽는 경우 — 실제 구조를 보여줌
+      dbg = '<div style="margin-top:12px;padding:10px;background:#1A1A1E;border-radius:8px;font-size:10px;color:#707075;text-align:left;word-break:break-all">'
+        +'<b style="color:#FFD24E">디버그:</b> finalBracket 데이터는 존재하지만 seeds를 못 읽었습니다.<br>'
+        +'최상위 키: '+Object.keys(b).join(', ')+'<br>'
+        +'seeds 타입: '+(typeof (b.seeds))+' / 값: '+JSON.stringify(b.seeds).slice(0,200)
+        +'</div>';
+    } else {
+      dbg = '<div style="margin-top:12px;padding:10px;background:#1A1A1E;border-radius:8px;font-size:10px;color:#707075">'
+        +'<b style="color:#FFD24E">디버그:</b> finalBracket 경로에 데이터가 없습니다 (null).<br>'
+        +'→ 어드민에서 "본선 대진표 생성"을 눌러 저장했는지 확인하세요.</div>';
+    }
+    el.innerHTML='<div class="empty"><span class="empty-icon">🏆</span><div class="empty-text">아직 본선 대진표가 게시되지 않았습니다</div></div>'+dbg;
+    return;
+  }
+  var r1 = toArr(b.r1), sf = toArr(b.sf);
+  function tag(s){
+    if(!s) return '<span style="color:#5A5A5E">미정</span>';
+    return '<b style="color:#D2FF4E">['+(s.seed||'')+'] '+(s.club||'')+'</b> <span style="color:#707075;font-size:11px">('+(s.group||'')+' '+(s.rankInGroup||'')+'위)</span>';
+  }
+  var h='';
+  // 진출 6팀 시드
+  h+='<div style="background:#151518;border:1px solid #2A2A30;border-radius:14px;padding:18px;margin-bottom:14px">';
+  h+='<div style="font-size:13px;font-weight:800;color:#D2FF4E;margin-bottom:10px;letter-spacing:1px">🎾 본선 진출 6팀 (시드)</div>';
+  seeds.forEach(function(s){
+    if(!s) return;
+    h+='<div style="display:flex;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid #1C1C20">'
+      +'<span style="min-width:26px;height:26px;line-height:26px;text-align:center;border-radius:50%;font-weight:900;background:'+(s.bye?'#332800':'#1C1C20')+';color:'+(s.bye?'#FFD24E':'#909096')+'">'+(s.seed||'')+'</span>'
+      +'<span style="flex:1;color:#E8E8E8;font-weight:700">'+(s.club||'')+' <span style="color:#707075;font-size:11px;font-weight:400">'+(s.group||'')+' '+(s.rankInGroup||'')+'위</span></span>'
+      +(s.bye?'<span style="color:#FFD24E;font-weight:800;font-size:11px">부전승</span>':'')
+      +'</div>';
+  });
+  h+='</div>';
+
+  // 대진
+  h+='<div style="background:#151518;border:1px solid #2A2A30;border-radius:14px;padding:18px">';
+  h+='<div style="font-size:12px;font-weight:800;color:#909096;margin-bottom:6px">8강</div>';
+  r1.forEach(function(m){
+    if(!m) return;
+    h+='<div style="font-size:14px;color:#E8E8E8;padding:8px 12px;background:#0C0C0E;border-radius:8px;margin-bottom:6px">'+(m.match||'')+'<br>'+tag(m.a)+' <span style="color:#5A5A5E">vs</span> '+tag(m.b)+'</div>';
+  });
+  h+='<div style="font-size:12px;font-weight:800;color:#909096;margin:12px 0 6px">4강</div>';
+  sf.forEach(function(m){
+    if(!m) return;
+    h+='<div style="font-size:14px;color:#E8E8E8;padding:8px 12px;background:#0C0C0E;border-radius:8px;margin-bottom:6px">'+(m.match||'')+'<br>'+tag(m.a)+' <span style="color:#FFD24E;font-size:11px">부전승</span> <span style="color:#5A5A5E">vs</span> <span style="color:#909096">'+(m.bFrom||'')+'</span></div>';
+  });
+  h+='<div style="font-size:12px;font-weight:800;color:#D2FF4E;margin:12px 0 6px">결승</div>';
+  h+='<div style="font-size:14px;color:#E8E8E8;padding:10px 12px;background:#1A2A10;border:1px solid #2A4A18;border-radius:8px">🏆 '+(b.final?b.final.match:'결승')+'<br><span style="color:#909096">'+(b.final?b.final.aFrom:'')+'</span> <span style="color:#5A5A5E">vs</span> <span style="color:#909096">'+(b.final?b.final.bFrom:'')+'</span></div>';
+  h+='</div>';
+  el.innerHTML=h;
+});
+</script>
+</body>
+</html>
