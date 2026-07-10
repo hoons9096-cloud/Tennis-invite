@@ -2627,12 +2627,44 @@ function saveResult(key){
   var newB=parseInt(sb.value)||0;
   resultsRef.child(key).update({scoreA:newA,scoreB:newB});
   toast('점수 수정 완료! ('+newA+':'+newB+')');
+  // 거꾸로 연동: 코트 status 재동기화
+  setTimeout(function(){ syncCourtStatusFromResults(); }, 300);
 }
 
 function deleteResult(key){
   if(!confirm('이 경기 결과를 삭제하시겠습니까?')) return;
   resultsRef.child(key).remove();
   toast('경기 결과 삭제 완료');
+  // 거꾸로 연동: 코트 status 재동기화
+  setTimeout(function(){ syncCourtStatusFromResults(); }, 300);
+}
+
+// 결과 상태에 맞춰 각 코트의 status(종료/대기)를 재조정
+// - 현재 코트에 세팅된 팀쌍의 매치업이 미확정으로 바뀌면 '종료'를 '대기'로 되돌림
+function syncCourtStatusFromResults(){
+  if(!latestCourtsData) return;
+  var norm=function(t){return (t||'').replace(/\s*\d+장조$/,'').trim();};
+  Object.keys(latestCourtsData).forEach(function(courtId){
+    var d=latestCourtsData[courtId];
+    if(!d || d.status!=='done' || !d.teamA || !d.teamB) return;
+    var cA=norm(d.teamA), cB=norm(d.teamB), wA=0, wB=0, played=0;
+    var res=latestResults||{};
+    Object.keys(res).forEach(function(k){
+      var r=res[k]; if(r.skipped) return;
+      var rk=r.court?r.court.replace('코트 ','court').replace('코트','court').trim():'';
+      if(rk!==courtId) return;
+      var rca=norm(r.teamA), rcb=norm(r.teamB);
+      if(!((rca===cA&&rcb===cB)||(rca===cB&&rcb===cA))) return;
+      played++;
+      if((r.scoreA||0)>(r.scoreB||0)){ if(rca===cA)wA++; else wB++; }
+      else if((r.scoreB||0)>(r.scoreA||0)){ if(rcb===cA)wA++; else wB++; }
+    });
+    var decided=(wA>=2||wB>=2||played>=3);
+    if(!decided){
+      // 매치업이 더 이상 확정이 아니면 코트를 대기 상태로 되돌림
+      courtsRef.child(courtId).update({status:'waiting'});
+    }
+  });
 }
 
 // 결과에서 슬롯 번호 찾기
