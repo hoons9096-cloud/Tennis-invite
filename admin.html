@@ -2002,6 +2002,34 @@ function applySlotToCourt(courtId, num){
 
   var isDone=(completedSlots[courtId]||[]).indexOf(num)!==-1;
 
+  // 이 슬롯에 저장된 경기 기록 조회
+  var info = slotMatchInfo(courtId, num);
+  if(info && info.played>0){
+    // 장조별 점수 텍스트 구성
+    var lines=[];
+    ['1장조','2장조','3장조'].forEach(function(ev){
+      if(info.games[ev]){
+        var g=info.games[ev];
+        var mark = g.a>g.b ? '◀' : g.b>g.a ? '▶' : '=';
+        lines.push('  '+ev+':  '+info.teamA+' '+g.a+' : '+g.b+' '+info.teamB+'  '+(g.a>g.b?'('+info.teamA+' 승)':g.b>g.a?'('+info.teamB+' 승)':'(무)'));
+      }
+    });
+    var statusTxt = info.decided
+      ? '✅ 매치 종료 — '+(info.winsA>info.winsB?info.teamA:info.teamB)+' 승 ('+Math.max(info.winsA,info.winsB)+':'+Math.min(info.winsA,info.winsB)+')'
+      : '⏳ 진행 중 ('+info.winsA+':'+info.winsB+', '+info.played+'/3장조)';
+
+    var msg='📋 슬롯 '+num+' ('+slot.time+') 경기 기록\n'
+      +'━━━━━━━━━━━━━━━━━━\n'
+      +info.teamA+' vs '+info.teamB+'\n\n'
+      +lines.join('\n')+'\n\n'
+      +statusTxt+'\n'
+      +'━━━━━━━━━━━━━━━━━━\n\n'
+      +'이 슬롯을 코트에 불러올까요?\n'
+      +(isDone ? '(확인 시 기존 기록을 삭제하고 다시 세팅합니다)' : '(확인 시 코트에 팀이 세팅됩니다)');
+
+    if(!confirm(msg)) return; // 기록만 보고 취소 가능
+  }
+
   courtsRef.child(courtId).once('value',function(csnap){
     var cd=csnap.val()||{};
     if(cd.status==='live'){
@@ -2016,32 +2044,25 @@ function _doApplySlot(courtId, num, c, slot, isDone){
   var tA=findTeam(c.teamA), tB=findTeam(c.teamB);
 
   if(isDone){
-    // 기존 결과 점수 먼저 조회 후 확인창에 표시
+    // 기존 결과 삭제 후 재세팅 (확인은 applySlotToCourt에서 이미 받음)
     resultsRef.once('value',function(snap){
       var data=snap.val()||{};
-      var existingKey=null, existingScore='';
+      var norm=function(t){return (t||'').replace(/\s*\d+장조$/,'').trim();};
+      var cA=norm(tA), cB=norm(tB);
       Object.keys(data).forEach(function(key){
         var r=data[key];
         if(r.court===courtName){
-          var tm=(r.teamA===tA&&r.teamB===tB)||(r.teamA===tB&&r.teamB===tA);
-          var gm=(!c.group||c.group===r.group);
-          if(tm&&gm){ existingKey=key; existingScore=r.teamA+' '+r.scoreA+' : '+r.scoreB+' '+r.teamB; }
+          var rCA=norm(r.teamA), rCB=norm(r.teamB);
+          var tm=(rCA===cA&&rCB===cB)||(rCA===cB&&rCB===cA);
+          if(tm) resultsRef.child(key).remove();
         }
       });
 
-      var msg='슬롯 '+num+' ('+slot.time+') 기존 결과를 수정하시겠습니까?\n\n'
-        +'📋 기존 결과: '+(existingScore||'정보 없음')+'\n\n'
-        +'확인 시 기존 결과가 삭제되고 코트가 다시 세팅됩니다.';
-
-      if(!confirm(msg)) return;
-
-      if(existingKey) resultsRef.child(existingKey).remove();
-
       courtsRef.child(courtId).update({
-        teamA:tA, teamB:tB, event:c.event, group:c.group,
+        teamA:tA, teamB:tB, event:'1장조', group:c.group,
         scoreA:0, scoreB:0, status:'waiting'
       });
-      toast(courtName+' → 슬롯 '+num+' ('+slot.time+') 재세팅 완료!');
+      toast(courtName+' → 슬롯 '+num+' ('+slot.time+') 재세팅 완료! (기존 기록 삭제됨)');
     });
   } else {
     courtsRef.child(courtId).update({
