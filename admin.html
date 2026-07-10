@@ -342,7 +342,10 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
     <div class="setup-section" style="margin-top:20px;border:1px solid #2A4A18;background:#0E1608">
       <div class="setup-title" style="color:#D2FF4E">🏆 본선 토너먼트 (6팀 · 각 조 1·2위)</div>
       <p style="font-size:12px;color:#707075;margin-bottom:10px">각 조 1·2위 6팀을 성적순으로 시드 배정합니다. 상위 2팀은 8강 부전승, 같은 조 팀은 4강까지 재대결하지 않도록 배치합니다.</p>
-      <button class="setup-btn" style="background:#1A3A10;color:#D2FF4E;border-color:#2A4A18" onclick="generateFinalBracket()">본선 대진표 생성</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="setup-btn" style="background:#1A3A10;color:#D2FF4E;border-color:#2A4A18" onclick="generateFinalBracket()">본선 대진표 생성</button>
+        <button class="setup-btn" style="background:#3A1A10;color:#FF6B6B;border-color:#4A2A18" onclick="resetFinalBracket()">🗑 본선 리셋</button>
+      </div>
       <div id="finalBracketArea" style="margin-top:14px"></div>
     </div>
   </div>
@@ -1745,6 +1748,40 @@ function generateFinalBracket(){
     if(!groups){ toast('⚠️ 조 편성을 먼저 해주세요'); return; }
     resultsRef.once('value',function(rsnap){
       var allResults=rsnap.val()||{};
+
+      // === 예선 완료 여부 검사 ===
+      // 각 조 풀리그: N팀이면 총 매치업 = N*(N-1)/2, 각 매치업은 2선승(2장조 이상)으로 확정되어야 함
+      var totalNeeded=0, totalDone=0, incompleteList=[];
+      GROUP_LABELS.forEach(function(gKey){
+        var g=groups[gKey];
+        if(!g) return;
+        var teamsObj=g.teams||{};
+        var clubs=Object.keys(teamsObj);
+        var res=calcMatchupStandings(teamsObj, allResults);
+        var mu=res.matchups;
+        for(var i=0;i<clubs.length;i++){
+          for(var j=i+1;j<clubs.length;j++){
+            totalNeeded++;
+            var m=mu[clubs[i]] && mu[clubs[i]][clubs[j]];
+            var decided = m && (m.jomatchesWon>=2 || m.jomatchesLost>=2 || m.matches.length>=3);
+            if(decided) totalDone++;
+            else incompleteList.push((g.name||gKey)+': '+clubs[i]+' vs '+clubs[j]);
+          }
+        }
+      });
+
+      if(totalNeeded>0 && totalDone<totalNeeded){
+        document.getElementById('finalBracketArea').innerHTML=
+          '<div style="color:#FF6B6B;font-size:12px;padding:12px;background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.3);border-radius:8px;line-height:1.7">'
+          +'⚠️ <b>예선이 아직 끝나지 않았습니다.</b> ('+totalDone+'/'+totalNeeded+' 경기 완료)<br>'
+          +'모든 예선 경기가 끝나야 순위가 확정되어 본선 대진을 만들 수 있습니다.<br><br>'
+          +'<b>미완료 경기:</b><br>&nbsp;&nbsp;'+incompleteList.slice(0,8).join('<br>&nbsp;&nbsp;')
+          +(incompleteList.length>8?('<br>&nbsp;&nbsp;… 외 '+(incompleteList.length-8)+'경기'):'')
+          +'</div>';
+        toast('⚠️ 예선 미완료 ('+totalDone+'/'+totalNeeded+') — 본선 생성 불가');
+        return;
+      }
+
       var winners=[], runners=[]; // 조 1위 / 조 2위 모음
       var groupCount=0;
       GROUP_LABELS.forEach(function(gKey){
@@ -1836,6 +1873,16 @@ function generateFinalBracket(){
         }
       });
     });
+  });
+}
+
+function resetFinalBracket(){
+  if(!confirm('본선 대진표를 삭제하시겠습니까?\n\n생성된 본선 시드·대진이 모두 지워지고, 스코어보드의 본선 탭도 비워집니다.\n(예선 경기 결과는 영향받지 않습니다)')) return;
+  db.ref('finalBracket').remove(function(err){
+    if(err){ toast('⚠️ 본선 리셋 실패: '+err.message); return; }
+    var area=document.getElementById('finalBracketArea');
+    if(area) area.innerHTML='<div style="color:#707075;font-size:12px;padding:10px">본선 대진표가 삭제되었습니다.</div>';
+    toast('🗑 본선 대진표 리셋 완료 (스코어보드에서도 제거됨)');
   });
 }
 
