@@ -587,7 +587,20 @@ db.ref('finalBracket').on('value',function(snap){
   }
   var seeds = toArr(b && b.seeds);
   if(!b || seeds.length===0){
-    el.innerHTML='<div class="empty"><span class="empty-icon">🏆</span><div class="empty-text">아직 본선 대진표가 게시되지 않았습니다</div></div>';
+    var dbg = '';
+    if(b){
+      // 데이터는 있는데 seeds를 못 읽는 경우 — 실제 구조를 보여줌
+      dbg = '<div style="margin-top:12px;padding:10px;background:#1A1A1E;border-radius:8px;font-size:10px;color:#707075;text-align:left;word-break:break-all">'
+        +'<b style="color:#FFD24E">디버그:</b> finalBracket 데이터는 존재하지만 seeds를 못 읽었습니다.<br>'
+        +'최상위 키: '+Object.keys(b).join(', ')+'<br>'
+        +'seeds 타입: '+(typeof (b.seeds))+' / 값: '+JSON.stringify(b.seeds).slice(0,200)
+        +'</div>';
+    } else {
+      dbg = '<div style="margin-top:12px;padding:10px;background:#1A1A1E;border-radius:8px;font-size:10px;color:#707075">'
+        +'<b style="color:#FFD24E">디버그:</b> finalBracket 경로에 데이터가 없습니다 (null).<br>'
+        +'→ 어드민에서 "본선 대진표 생성"을 눌러 저장했는지 확인하세요.</div>';
+    }
+    el.innerHTML='<div class="empty"><span class="empty-icon">🏆</span><div class="empty-text">아직 본선 대진표가 게시되지 않았습니다</div></div>'+dbg;
     return;
   }
   var r1 = toArr(b.r1), sf = toArr(b.sf);

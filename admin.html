@@ -1799,24 +1799,42 @@ function generateFinalBracket(){
         pairs=[pairs[1],pairs[0]];
       }
 
+      // Firebase는 undefined를 거부 → 시드 객체를 순수 데이터로 정제
+      function cleanSeed(s){
+        if(!s) return null;
+        return {
+          seed: s.seed||0, bye: !!s.bye,
+          club: s.club||'', group: s.group||'', groupKey: s.groupKey||'',
+          rankInGroup: s.rankInGroup||0,
+          matchWin: s.matchWin||0, matchLose: s.matchLose||0,
+          setLose: s.setLose||0, gf: s.gf||0, ga: s.ga||0
+        };
+      }
+      var cleanSeeds = seeds.map(cleanSeed);
+
       var bracket={
         type:'final6', createdAt:Date.now(),
-        seeds:seeds,
+        seeds:cleanSeeds,
         r1:[
-          {match:'8강 1경기', a:pairs[0][0], b:pairs[0][1]},
-          {match:'8강 2경기', a:pairs[1][0], b:pairs[1][1]}
+          {match:'8강 1경기', a:cleanSeed(pairs[0][0]), b:cleanSeed(pairs[0][1])},
+          {match:'8강 2경기', a:cleanSeed(pairs[1][0]), b:cleanSeed(pairs[1][1])}
         ],
         sf:[
-          {match:'4강 1경기', a:top, bFrom:'8강 1경기 승자'},
-          {match:'4강 2경기', a:bottom, bFrom:'8강 2경기 승자'}
+          {match:'4강 1경기', a:cleanSeed(top), bFrom:'8강 1경기 승자'},
+          {match:'4강 2경기', a:cleanSeed(bottom), bFrom:'8강 2경기 승자'}
         ],
         final:{match:'결승', aFrom:'4강 1경기 승자', bFrom:'4강 2경기 승자'}
       };
 
       renderFinalBracket(bracket);
-      // 스코어보드 연동용으로 저장
-      db.ref('finalBracket').set(bracket);
-      toast('🏆 본선 대진표 생성 완료! (스코어보드에도 게시됨)');
+      // 스코어보드 연동용으로 저장 (에러 확인)
+      db.ref('finalBracket').set(bracket, function(err){
+        if(err){
+          toast('⚠️ 본선 저장 실패: '+err.message);
+        } else {
+          toast('🏆 본선 대진표 생성 완료! (스코어보드에도 게시됨)');
+        }
+      });
     });
   });
 }
