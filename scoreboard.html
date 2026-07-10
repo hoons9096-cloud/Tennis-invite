@@ -127,7 +127,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
 
   <!-- 본선 토너먼트 -->
   <div class="section" id="sec-final">
-    <div class="section-title">본선 토너먼트 <span style="font-size:10px;color:#2A4A18">v2</span></div>
+    <div class="section-title">본선 토너먼트</div>
     <div id="finalDisplay">
       <div class="empty"><span class="empty-icon">🏆</span><div class="empty-text">아직 본선 대진표가 게시되지 않았습니다</div></div>
     </div>
@@ -213,12 +213,21 @@ firebase.initializeApp({
 });
 
 var db = firebase.database();
+var _lastFinalBracket=null;
 
 function showTab(tab,el){
   document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active')});
   document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active')});
   if(el) el.classList.add('active');
-  document.getElementById('sec-'+tab).classList.add('active');
+  var sec=document.getElementById('sec-'+tab);
+  if(sec) sec.classList.add('active');
+  // 본선 탭 열 때 최신 데이터로 재조회
+  if(tab==='final'){
+    db.ref('finalBracket').once('value').then(function(snap){
+      _lastFinalBracket=snap.val();
+      renderFinalBracketPublic(_lastFinalBracket);
+    }).catch(function(){});
+  }
 }
 
 // Live courts
@@ -575,18 +584,9 @@ db.ref('results').on('value',function(){renderPublicStandings()});
 db.ref('groups').on('value',function(){renderPublicStandings()});
 
 // ===== 본선 토너먼트 표시 =====
-db.ref('finalBracket').on('value',function(snap){
-  var b=snap.val();
-  console.log('[본선 v2] finalBracket 수신:', b);
+function renderFinalBracketPublic(b){
   var el=document.getElementById('finalDisplay');
   if(!el) return;
-  // 화면 진단용: Firebase 원본 데이터를 항상 상단에 표시
-  var rawBox='<div style="background:#1A1A2E;border:1px solid #4444AA;border-radius:8px;padding:12px;margin-bottom:14px;font-size:11px;color:#AAB;word-break:break-all;line-height:1.6">'
-    +'<b style="color:#88F">🔍 진단 정보 (Firebase 원본)</b><br>'
-    +'데이터 유무: <b style="color:'+(b?'#5C8':'#F66')+'">'+(b?'있음 ✓':'없음 (null) ✗')+'</b><br>'
-    +(b?('최상위 키: '+Object.keys(b).join(', ')+'<br>seeds 타입: '+(Array.isArray(b.seeds)?'배열':typeof b.seeds)+' ('+(b.seeds?(Array.isArray(b.seeds)?b.seeds.length+'개':Object.keys(b.seeds).length+'키'):'없음')+')'):'→ admin에서 저장이 안 되었거나 다른 경로에 저장됨')
-    +'</div>';
-  // Firebase가 배열을 객체로 돌려줄 수 있으므로 배열로 정규화
   function toArr(v){
     if(!v) return [];
     if(Array.isArray(v)) return v;
@@ -594,20 +594,7 @@ db.ref('finalBracket').on('value',function(snap){
   }
   var seeds = toArr(b && b.seeds);
   if(!b || seeds.length===0){
-    var dbg = '';
-    if(b){
-      // 데이터는 있는데 seeds를 못 읽는 경우 — 실제 구조를 보여줌
-      dbg = '<div style="margin-top:12px;padding:10px;background:#1A1A1E;border-radius:8px;font-size:10px;color:#707075;text-align:left;word-break:break-all">'
-        +'<b style="color:#FFD24E">디버그:</b> finalBracket 데이터는 존재하지만 seeds를 못 읽었습니다.<br>'
-        +'최상위 키: '+Object.keys(b).join(', ')+'<br>'
-        +'seeds 타입: '+(typeof (b.seeds))+' / 값: '+JSON.stringify(b.seeds).slice(0,200)
-        +'</div>';
-    } else {
-      dbg = '<div style="margin-top:12px;padding:10px;background:#1A1A1E;border-radius:8px;font-size:10px;color:#707075">'
-        +'<b style="color:#FFD24E">디버그:</b> finalBracket 경로에 데이터가 없습니다 (null).<br>'
-        +'→ 어드민에서 "본선 대진표 생성"을 눌러 저장했는지 확인하세요.</div>';
-    }
-    el.innerHTML=rawBox+'<div class="empty"><span class="empty-icon">🏆</span><div class="empty-text">아직 본선 대진표가 게시되지 않았습니다</div></div>'+dbg;
+    el.innerHTML='<div class="empty"><span class="empty-icon">🏆</span><div class="empty-text">아직 본선 대진표가 게시되지 않았습니다</div></div>';
     return;
   }
   var r1 = toArr(b.r1), sf = toArr(b.sf);
@@ -616,7 +603,6 @@ db.ref('finalBracket').on('value',function(snap){
     return '<b style="color:#D2FF4E">['+(s.seed||'')+'] '+(s.club||'')+'</b> <span style="color:#707075;font-size:11px">('+(s.group||'')+' '+(s.rankInGroup||'')+'위)</span>';
   }
   var h='';
-  // 진출 6팀 시드
   h+='<div style="background:#151518;border:1px solid #2A2A30;border-radius:14px;padding:18px;margin-bottom:14px">';
   h+='<div style="font-size:13px;font-weight:800;color:#D2FF4E;margin-bottom:10px;letter-spacing:1px">🎾 본선 진출 6팀 (시드)</div>';
   seeds.forEach(function(s){
@@ -628,8 +614,6 @@ db.ref('finalBracket').on('value',function(snap){
       +'</div>';
   });
   h+='</div>';
-
-  // 대진
   h+='<div style="background:#151518;border:1px solid #2A2A30;border-radius:14px;padding:18px">';
   h+='<div style="font-size:12px;font-weight:800;color:#909096;margin-bottom:6px">8강</div>';
   r1.forEach(function(m){
@@ -644,7 +628,12 @@ db.ref('finalBracket').on('value',function(snap){
   h+='<div style="font-size:12px;font-weight:800;color:#D2FF4E;margin:12px 0 6px">결승</div>';
   h+='<div style="font-size:14px;color:#E8E8E8;padding:10px 12px;background:#1A2A10;border:1px solid #2A4A18;border-radius:8px">🏆 '+(b.final?b.final.match:'결승')+'<br><span style="color:#909096">'+(b.final?b.final.aFrom:'')+'</span> <span style="color:#5A5A5E">vs</span> <span style="color:#909096">'+(b.final?b.final.bFrom:'')+'</span></div>';
   h+='</div>';
-  el.innerHTML=rawBox+h;
+  el.innerHTML=h;
+}
+
+db.ref('finalBracket').on('value',function(snap){
+  _lastFinalBracket=snap.val();
+  renderFinalBracketPublic(_lastFinalBracket);
 });
 </script>
 </body>
