@@ -311,9 +311,20 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
       <div class="setup-row">
         <button class="setup-btn" onclick="initCourtsFromBracket()">대진표 기준 코트 초기화</button>
         <button class="setup-btn" onclick="resetAll()">전체 리셋</button>
+        <button class="setup-btn" onclick="toggleCourtSavePanel()">💾 코트 기록 저장 / 불러오기</button>
       </div>
       <div id="courtBracketInfo" style="margin-top:10px;padding:8px 12px;background:#0C1A08;border:1px solid #1A3010;border-radius:8px;font-size:12px;color:#707075">
         📡 연동 대진표: <span id="courtBracketInfoText">확인 중...</span>
+      </div>
+      <!-- 코트 기록 저장/불러오기 패널 -->
+      <div id="courtSavePanel" style="display:none;margin-top:12px;padding:14px;background:#0C0C0E;border:1px solid #2A2A30;border-radius:10px">
+        <div style="font-size:12px;font-weight:800;color:#a78bfa;margin-bottom:8px">💾 코트 기록 저장 / 불러오기</div>
+        <p style="font-size:11px;color:#707075;margin-bottom:10px">현재 코트 상태(팀·점수·장조·상태)와 경기 결과를 스냅샷으로 저장합니다. 브라우저에 저장됩니다.</p>
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <input id="courtSaveName" class="team-name-input" style="flex:1;font-size:12px" placeholder="저장 이름 (예: 예선 종료 시점)">
+          <button class="setup-btn" style="background:#2A1A40;color:#a78bfa;border-color:#3A2A60;flex-shrink:0" onclick="saveCourtSnapshot()">💾 현재 상태 저장</button>
+        </div>
+        <div id="courtSavedList" style="display:flex;flex-direction:column;gap:6px;max-height:260px;overflow-y:auto"></div>
       </div>
     </div>
     <div class="courts" id="courts"></div>
@@ -326,6 +337,14 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
       <p style="font-size:12px;color:#707075;margin-bottom:8px">경기 결과를 기반으로 자동 계산됩니다 · 상위 2팀 본선 진출 · 팀 등록 탭에서 조 편성</p>
     </div>
     <div id="standingsArea"></div>
+
+    <!-- 본선 토너먼트 자동 생성 -->
+    <div class="setup-section" style="margin-top:20px;border:1px solid #2A4A18;background:#0E1608">
+      <div class="setup-title" style="color:#D2FF4E">🏆 본선 토너먼트 (6팀 · 각 조 1·2위)</div>
+      <p style="font-size:12px;color:#707075;margin-bottom:10px">각 조 1·2위 6팀을 성적순으로 시드 배정합니다. 상위 2팀은 8강 부전승, 같은 조 팀은 4강까지 재대결하지 않도록 배치합니다.</p>
+      <button class="setup-btn" style="background:#1A3A10;color:#D2FF4E;border-color:#2A4A18" onclick="generateFinalBracket()">본선 대진표 생성</button>
+      <div id="finalBracketArea" style="margin-top:14px"></div>
+    </div>
   </div>
 
   <!-- Tab 4: Results -->
@@ -638,6 +657,91 @@ function renderTeamSavedList(){
       +'</div>'
       +'<button class="setup-btn" style="background:#1A3A10;color:#D2FF4E;border-color:#2A4A18;padding:6px 14px;font-size:11px;flex-shrink:0" onclick="loadTeamConfig('+e.id+')">불러오기</button>'
       +'<button class="setup-btn" style="background:#3A1A10;color:#FF6B6B;border-color:#4A2A18;padding:6px 10px;font-size:11px;flex-shrink:0" onclick="if(confirm(\'삭제?\'))deleteTeamConfig('+e.id+')">🗑</button>'
+      +'</div>';
+  }).join('');
+}
+
+// ============ 코트 기록 저장/불러오기 (localStorage) ============
+var COURT_LS_KEY = 'tennis_court_snapshots_v1';
+
+function toggleCourtSavePanel(){
+  var p = document.getElementById('courtSavePanel');
+  p.style.display = (p.style.display==='none'||p.style.display==='') ? 'block' : 'none';
+  if(p.style.display==='block') renderCourtSavedList();
+}
+
+function getCourtSnapshots(){ try{ return JSON.parse(localStorage.getItem(COURT_LS_KEY)||'[]'); }catch(e){return [];} }
+function setCourtSnapshots(arr){ localStorage.setItem(COURT_LS_KEY, JSON.stringify(arr)); }
+
+function saveCourtSnapshot(){
+  var nameEl=document.getElementById('courtSaveName');
+  var name=nameEl.value.trim();
+  if(!name){ toast('저장 이름을 입력해주세요'); return; }
+  // 현재 코트 + 결과를 Firebase에서 읽어 스냅샷 저장 (연결된 최신값 보장)
+  courtsRef.once('value',function(csnap){
+    resultsRef.once('value',function(rsnap){
+      var courts=csnap.val()||{};
+      var results=rsnap.val()||{};
+      var courtCount=Object.keys(courts).length;
+      var resultCount=Object.keys(results).length;
+      var snaps=getCourtSnapshots();
+      snaps.unshift({
+        id:Date.now(), name:name, savedAt:new Date().toLocaleString('ko-KR'),
+        courtCount:courtCount, resultCount:resultCount,
+        courts:courts, results:results
+      });
+      if(snaps.length>20) snaps=snaps.slice(0,20);
+      setCourtSnapshots(snaps);
+      nameEl.value='';
+      renderCourtSavedList();
+      toast('"'+name+'" 코트 기록 저장 완료! (코트 '+courtCount+' · 결과 '+resultCount+'건)');
+    });
+  });
+}
+
+function loadCourtSnapshot(id){
+  var snaps=getCourtSnapshots(), entry=null;
+  for(var i=0;i<snaps.length;i++){ if(snaps[i].id===id){entry=snaps[i];break;} }
+  if(!entry){ toast('저장 데이터를 찾을 수 없습니다'); return; }
+  if(!confirm('"'+entry.name+'" 코트 기록을 불러오시겠습니까?\n\n⚠️ 현재 코트 상태와 경기 결과가 모두 이 시점으로 교체됩니다.\n(코트 '+(entry.courtCount||0)+'개 · 결과 '+(entry.resultCount||0)+'건)')) return;
+  // 코트·결과를 통째로 교체
+  courtsRef.set(entry.courts||{});
+  resultsRef.set(entry.results||{});
+  document.getElementById('courtSavePanel').style.display='none';
+  toast('"'+entry.name+'" 불러오기 완료! 코트·결과가 복원되었습니다.');
+}
+
+function deleteCourtSnapshot(id){
+  setCourtSnapshots(getCourtSnapshots().filter(function(e){return e.id!==id;}));
+  renderCourtSavedList();
+}
+
+function renderCourtSavedList(){
+  var list=document.getElementById('courtSavedList');
+  if(!list) return;
+  var snaps=getCourtSnapshots();
+  if(!snaps.length){ list.innerHTML='<div style="color:#707075;font-size:12px;text-align:center;padding:16px">저장된 코트 기록이 없습니다</div>'; return; }
+  list.innerHTML=snaps.map(function(e){
+    // 코트별 요약 (팀 / 점수 / 상태)
+    var courtLines=[];
+    var cks=Object.keys(e.courts||{}).sort(function(a,b){return parseInt(a.replace('court',''))-parseInt(b.replace('court',''));});
+    cks.forEach(function(ck){
+      var c=e.courts[ck];
+      if(!c) return;
+      var st=c.status==='done'?'종료':c.status==='live'?'LIVE':'대기';
+      if(c.teamA||c.teamB){
+        courtLines.push((c.name||ck)+': '+(c.teamA||'-')+' '+(c.scoreA||0)+':'+(c.scoreB||0)+' '+(c.teamB||'-')+' <span style="color:#707075">['+(c.event||'')+'·'+st+']</span>');
+      }
+    });
+    var summary = courtLines.length ? courtLines.join('<br>') : '<span style="color:#5A5A5E">진행 중인 코트 없음</span>';
+    return '<div style="display:flex;align-items:center;gap:10px;background:#0C0C0E;border:1px solid #2A2A30;border-radius:8px;padding:10px 14px">'
+      +'<div style="flex:1;min-width:0">'
+      +'<div style="font-size:13px;font-weight:700;color:#E8E8E8">'+e.name+'</div>'
+      +'<div style="font-size:10px;color:#505055;margin-top:2px">'+e.savedAt+' · 코트 '+(e.courtCount||0)+'개 · 결과 '+(e.resultCount||0)+'건</div>'
+      +'<div style="font-size:11px;color:#909096;margin-top:4px;line-height:1.6;word-break:break-word">'+summary+'</div>'
+      +'</div>'
+      +'<button class="setup-btn" style="background:#1A3A10;color:#D2FF4E;border-color:#2A4A18;padding:6px 14px;font-size:11px;flex-shrink:0" onclick="loadCourtSnapshot('+e.id+')">불러오기</button>'
+      +'<button class="setup-btn" style="background:#3A1A10;color:#FF6B6B;border-color:#4A2A18;padding:6px 10px;font-size:11px;flex-shrink:0" onclick="if(confirm(\'삭제?\'))deleteCourtSnapshot('+e.id+')">🗑</button>'
       +'</div>';
   }).join('');
 }
@@ -1623,6 +1727,143 @@ function renderStandings(){
       document.getElementById('standingsArea').innerHTML=html||'<div class="result-empty">조 편성을 먼저 초기화해주세요</div>';
     });
   });
+}
+
+// ============ 본선 토너먼트 (6팀: 각 조 1·2위) ============
+// 크로스 그룹 시드 정렬 기준: ①매치승 ②매치패(적을수록) ③게임 득실차 ④다득점
+function _seedCmp(a,b){
+  if((b.matchWin||0)!==(a.matchWin||0)) return (b.matchWin||0)-(a.matchWin||0);
+  if((a.setLose||0)!==(b.setLose||0)) return (a.setLose||0)-(b.setLose||0);
+  var gdA=(a.gf||0)-(a.ga||0), gdB=(b.gf||0)-(b.ga||0);
+  if(gdB!==gdA) return gdB-gdA;
+  return (b.gf||0)-(a.gf||0);
+}
+
+function generateFinalBracket(){
+  db.ref('groups').once('value',function(gsnap){
+    var groups=gsnap.val();
+    if(!groups){ toast('⚠️ 조 편성을 먼저 해주세요'); return; }
+    resultsRef.once('value',function(rsnap){
+      var allResults=rsnap.val()||{};
+      var winners=[], runners=[]; // 조 1위 / 조 2위 모음
+      var groupCount=0;
+      GROUP_LABELS.forEach(function(gKey){
+        var g=groups[gKey];
+        if(!g) return;
+        groupCount++;
+        var res=calcMatchupStandings(g.teams||{}, allResults);
+        var st=res.standings;
+        if(st[0]) winners.push(Object.assign({}, st[0], {group:g.name||gKey, groupKey:gKey, rankInGroup:1}));
+        if(st[1]) runners.push(Object.assign({}, st[1], {group:g.name||gKey, groupKey:gKey, rankInGroup:2}));
+      });
+
+      if(groupCount!==3 || winners.length<3 || runners.length<3){
+        document.getElementById('finalBracketArea').innerHTML=
+          '<div style="color:#FF6B6B;font-size:12px;padding:10px;background:rgba(255,107,107,.08);border-radius:8px">'
+          +'⚠️ 3개 조 × 각 2팀(총 6팀)이 필요합니다. 현재 조 수: '+groupCount+', 1위 '+winners.length+'팀 · 2위 '+runners.length+'팀.<br>'
+          +'예선 경기 결과가 충분히 입력되어 각 조 순위가 확정되어야 합니다.</div>';
+        return;
+      }
+
+      // 성적순 시드 배정: 1위 3팀 → 시드1~3, 2위 3팀 → 시드4~6
+      winners.sort(_seedCmp);
+      runners.sort(_seedCmp);
+      var seeds=[
+        Object.assign({seed:1,bye:true}, winners[0]),
+        Object.assign({seed:2,bye:true}, winners[1]),
+        Object.assign({seed:3,bye:false}, winners[2]),
+        Object.assign({seed:4,bye:false}, runners[0]),
+        Object.assign({seed:5,bye:false}, runners[1]),
+        Object.assign({seed:6,bye:false}, runners[2])
+      ];
+      var byName={}; seeds.forEach(function(s){ byName[s.seed]=s; });
+
+      // 1라운드(8강): 4번vs5번, 3번vs6번. 같은 조 재대결 회피 시도
+      var lowSeeds=[byName[3],byName[4],byName[5],byName[6]];
+      // 기본 페어링: (4,5) & (3,6)
+      var pairs=[[byName[4],byName[5]],[byName[3],byName[6]]];
+      function sameGroup(p){ return p[0].groupKey===p[1].groupKey; }
+      if(sameGroup(pairs[0])||sameGroup(pairs[1])){
+        // 대안 페어링: (4,6) & (3,5)
+        var alt=[[byName[4],byName[6]],[byName[3],byName[5]]];
+        if(!sameGroup(alt[0]) && !sameGroup(alt[1])) pairs=alt;
+      }
+
+      // 4강 구조: 시드1 vs (pairs[0] 승자), 시드2 vs (pairs[1] 승자)
+      // 같은 조 회피: 시드1과 pairs[0] 승자후보가 같은 조면 pairs 교체
+      var top=byName[1], bottom=byName[2];
+      function pairHasGroup(p,gk){ return p[0].groupKey===gk||p[1].groupKey===gk; }
+      // 시드1의 조가 pairs[0]에, 시드2의 조가 pairs[1]에 겹치면 스왑 시도
+      if((pairHasGroup(pairs[0],top.groupKey)||pairHasGroup(pairs[1],bottom.groupKey))
+         && !(pairHasGroup(pairs[1],top.groupKey)||pairHasGroup(pairs[0],bottom.groupKey))){
+        pairs=[pairs[1],pairs[0]];
+      }
+
+      var bracket={
+        type:'final6', createdAt:Date.now(),
+        seeds:seeds,
+        r1:[
+          {match:'8강 1경기', a:pairs[0][0], b:pairs[0][1]},
+          {match:'8강 2경기', a:pairs[1][0], b:pairs[1][1]}
+        ],
+        sf:[
+          {match:'4강 1경기', a:top, bFrom:'8강 1경기 승자'},
+          {match:'4강 2경기', a:bottom, bFrom:'8강 2경기 승자'}
+        ],
+        final:{match:'결승', aFrom:'4강 1경기 승자', bFrom:'4강 2경기 승자'}
+      };
+
+      renderFinalBracket(bracket);
+      // 스코어보드 연동용으로 저장
+      db.ref('finalBracket').set(bracket);
+      toast('🏆 본선 대진표 생성 완료! (스코어보드에도 게시됨)');
+    });
+  });
+}
+
+function _seedTag(s){
+  if(!s) return '<span style="color:#5A5A5E">미정</span>';
+  return '<span style="color:#D2FF4E;font-weight:800">['+s.seed+'] '+s.club+'</span>'
+    +' <span style="color:#707075;font-size:10px">('+s.group+' '+s.rankInGroup+'위)</span>';
+}
+
+function renderFinalBracket(b){
+  var area=document.getElementById('finalBracketArea');
+  var h='';
+  // 시드 요약
+  h+='<div style="background:#0C0C0E;border:1px solid #2A2A30;border-radius:10px;padding:12px 14px;margin-bottom:12px">';
+  h+='<div style="font-size:11px;font-weight:800;color:#D2FF4E;margin-bottom:8px;letter-spacing:1px">시드 배정 (성적순)</div>';
+  b.seeds.forEach(function(s){
+    h+='<div style="font-size:12px;color:#C8C8CC;padding:3px 0;display:flex;gap:8px;align-items:center">'
+      +'<span style="min-width:22px;text-align:center;font-weight:900;color:'+(s.bye?'#FFD24E':'#909096')+'">'+s.seed+'</span>'
+      +'<span style="flex:1">'+s.club+' <span style="color:#707075;font-size:10px">('+s.group+' '+s.rankInGroup+'위 · 매치 '+(s.matchWin||0)+'승 / 득실 '+((s.gf||0)-(s.ga||0))+')</span></span>'
+      +(s.bye?'<span style="color:#FFD24E;font-weight:800;font-size:10px">부전승</span>':'')
+      +'</div>';
+  });
+  h+='</div>';
+
+  // 대진 흐름
+  h+='<div style="background:#0C0C0E;border:1px solid #2A2A30;border-radius:10px;padding:14px">';
+  h+='<div style="font-size:11px;font-weight:800;color:#D2FF4E;margin-bottom:10px;letter-spacing:1px">본선 대진</div>';
+
+  h+='<div style="font-size:10px;color:#707075;font-weight:700;margin:6px 0 3px">8강 (1라운드)</div>';
+  b.r1.forEach(function(m){
+    h+='<div style="font-size:13px;color:#E8E8E8;padding:6px 10px;background:#151518;border-radius:6px;margin-bottom:4px">'
+      +m.match+': '+_seedTag(m.a)+' <span style="color:#5A5A5E">vs</span> '+_seedTag(m.b)+'</div>';
+  });
+
+  h+='<div style="font-size:10px;color:#707075;font-weight:700;margin:10px 0 3px">4강 (부전승 2팀 합류)</div>';
+  b.sf.forEach(function(m){
+    h+='<div style="font-size:13px;color:#E8E8E8;padding:6px 10px;background:#151518;border-radius:6px;margin-bottom:4px">'
+      +m.match+': '+_seedTag(m.a)+' <span style="color:#FFD24E;font-size:10px">부전승</span> <span style="color:#5A5A5E">vs</span> <span style="color:#909096">'+m.bFrom+'</span></div>';
+  });
+
+  h+='<div style="font-size:10px;color:#707075;font-weight:700;margin:10px 0 3px">결승</div>';
+  h+='<div style="font-size:13px;color:#E8E8E8;padding:6px 10px;background:#1A2A10;border:1px solid #2A4A18;border-radius:6px">'
+    +'🏆 '+b.final.match+': <span style="color:#909096">'+b.final.aFrom+'</span> <span style="color:#5A5A5E">vs</span> <span style="color:#909096">'+b.final.bFrom+'</span></div>';
+  h+='</div>';
+
+  area.innerHTML=h;
 }
 
 // Auto-refresh standings when results change
