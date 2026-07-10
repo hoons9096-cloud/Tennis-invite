@@ -101,6 +101,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
 <div class="tabs">
   <div class="tab active" onclick="showTab('live',this)">실시간 스코어</div>
   <div class="tab" onclick="showTab('standings',this)">순위표</div>
+  <div class="tab" onclick="showTab('final',this)">🏆 본선</div>
   <div class="tab" onclick="showTab('results',this)">경기 결과</div>
   <div class="tab" onclick="showTab('rule',this)">📖 순위 규칙</div>
 </div>
@@ -121,6 +122,14 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
     <div class="section-title">조별 순위표</div>
     <div id="standingsDisplay">
       <div class="empty"><span class="empty-icon">🏆</span><div class="empty-text">아직 순위 정보가 없습니다</div></div>
+    </div>
+  </div>
+
+  <!-- 본선 토너먼트 -->
+  <div class="section" id="sec-final">
+    <div class="section-title">본선 토너먼트</div>
+    <div id="finalDisplay">
+      <div class="empty"><span class="empty-icon">🏆</span><div class="empty-text">아직 본선 대진표가 게시되지 않았습니다</div></div>
     </div>
   </div>
 
@@ -564,6 +573,48 @@ function renderPublicStandings(){
 }
 db.ref('results').on('value',function(){renderPublicStandings()});
 db.ref('groups').on('value',function(){renderPublicStandings()});
+
+// ===== 본선 토너먼트 표시 =====
+db.ref('finalBracket').on('value',function(snap){
+  var b=snap.val();
+  var el=document.getElementById('finalDisplay');
+  if(!el) return;
+  if(!b || !b.seeds){
+    el.innerHTML='<div class="empty"><span class="empty-icon">🏆</span><div class="empty-text">아직 본선 대진표가 게시되지 않았습니다</div></div>';
+    return;
+  }
+  function tag(s){
+    if(!s) return '<span style="color:#5A5A5E">미정</span>';
+    return '<b style="color:#D2FF4E">['+s.seed+'] '+s.club+'</b> <span style="color:#707075;font-size:11px">('+s.group+' '+s.rankInGroup+'위)</span>';
+  }
+  var h='';
+  // 진출 6팀 시드
+  h+='<div style="background:#151518;border:1px solid #2A2A30;border-radius:14px;padding:18px;margin-bottom:14px">';
+  h+='<div style="font-size:13px;font-weight:800;color:#D2FF4E;margin-bottom:10px;letter-spacing:1px">🎾 본선 진출 6팀 (시드)</div>';
+  b.seeds.forEach(function(s){
+    h+='<div style="display:flex;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid #1C1C20">'
+      +'<span style="min-width:26px;height:26px;line-height:26px;text-align:center;border-radius:50%;font-weight:900;background:'+(s.bye?'#332800':'#1C1C20')+';color:'+(s.bye?'#FFD24E':'#909096')+'">'+s.seed+'</span>'
+      +'<span style="flex:1;color:#E8E8E8;font-weight:700">'+s.club+' <span style="color:#707075;font-size:11px;font-weight:400">'+s.group+' '+s.rankInGroup+'위</span></span>'
+      +(s.bye?'<span style="color:#FFD24E;font-weight:800;font-size:11px">부전승</span>':'')
+      +'</div>';
+  });
+  h+='</div>';
+
+  // 대진
+  h+='<div style="background:#151518;border:1px solid #2A2A30;border-radius:14px;padding:18px">';
+  h+='<div style="font-size:12px;font-weight:800;color:#909096;margin-bottom:6px">8강</div>';
+  (b.r1||[]).forEach(function(m){
+    h+='<div style="font-size:14px;color:#E8E8E8;padding:8px 12px;background:#0C0C0E;border-radius:8px;margin-bottom:6px">'+m.match+'<br>'+tag(m.a)+' <span style="color:#5A5A5E">vs</span> '+tag(m.b)+'</div>';
+  });
+  h+='<div style="font-size:12px;font-weight:800;color:#909096;margin:12px 0 6px">4강</div>';
+  (b.sf||[]).forEach(function(m){
+    h+='<div style="font-size:14px;color:#E8E8E8;padding:8px 12px;background:#0C0C0E;border-radius:8px;margin-bottom:6px">'+m.match+'<br>'+tag(m.a)+' <span style="color:#FFD24E;font-size:11px">부전승</span> <span style="color:#5A5A5E">vs</span> <span style="color:#909096">'+m.bFrom+'</span></div>';
+  });
+  h+='<div style="font-size:12px;font-weight:800;color:#D2FF4E;margin:12px 0 6px">결승</div>';
+  h+='<div style="font-size:14px;color:#E8E8E8;padding:10px 12px;background:#1A2A10;border:1px solid #2A4A18;border-radius:8px">🏆 '+(b.final?b.final.match:'결승')+'<br><span style="color:#909096">'+(b.final?b.final.aFrom:'')+'</span> <span style="color:#5A5A5E">vs</span> <span style="color:#909096">'+(b.final?b.final.bFrom:'')+'</span></div>';
+  h+='</div>';
+  el.innerHTML=h;
+});
 </script>
 </body>
 </html>
