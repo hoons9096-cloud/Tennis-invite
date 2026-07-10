@@ -127,7 +127,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
 
   <!-- 본선 토너먼트 -->
   <div class="section" id="sec-final">
-    <div class="section-title">본선 토너먼트</div>
+    <div class="section-title">본선 토너먼트 <span style="font-size:10px;color:#2A4A18">v2</span></div>
     <div id="finalDisplay">
       <div class="empty"><span class="empty-icon">🏆</span><div class="empty-text">아직 본선 대진표가 게시되지 않았습니다</div></div>
     </div>
@@ -577,8 +577,15 @@ db.ref('groups').on('value',function(){renderPublicStandings()});
 // ===== 본선 토너먼트 표시 =====
 db.ref('finalBracket').on('value',function(snap){
   var b=snap.val();
+  console.log('[본선 v2] finalBracket 수신:', b);
   var el=document.getElementById('finalDisplay');
   if(!el) return;
+  // 화면 진단용: Firebase 원본 데이터를 항상 상단에 표시
+  var rawBox='<div style="background:#1A1A2E;border:1px solid #4444AA;border-radius:8px;padding:12px;margin-bottom:14px;font-size:11px;color:#AAB;word-break:break-all;line-height:1.6">'
+    +'<b style="color:#88F">🔍 진단 정보 (Firebase 원본)</b><br>'
+    +'데이터 유무: <b style="color:'+(b?'#5C8':'#F66')+'">'+(b?'있음 ✓':'없음 (null) ✗')+'</b><br>'
+    +(b?('최상위 키: '+Object.keys(b).join(', ')+'<br>seeds 타입: '+(Array.isArray(b.seeds)?'배열':typeof b.seeds)+' ('+(b.seeds?(Array.isArray(b.seeds)?b.seeds.length+'개':Object.keys(b.seeds).length+'키'):'없음')+')'):'→ admin에서 저장이 안 되었거나 다른 경로에 저장됨')
+    +'</div>';
   // Firebase가 배열을 객체로 돌려줄 수 있으므로 배열로 정규화
   function toArr(v){
     if(!v) return [];
@@ -600,7 +607,7 @@ db.ref('finalBracket').on('value',function(snap){
         +'<b style="color:#FFD24E">디버그:</b> finalBracket 경로에 데이터가 없습니다 (null).<br>'
         +'→ 어드민에서 "본선 대진표 생성"을 눌러 저장했는지 확인하세요.</div>';
     }
-    el.innerHTML='<div class="empty"><span class="empty-icon">🏆</span><div class="empty-text">아직 본선 대진표가 게시되지 않았습니다</div></div>'+dbg;
+    el.innerHTML=rawBox+'<div class="empty"><span class="empty-icon">🏆</span><div class="empty-text">아직 본선 대진표가 게시되지 않았습니다</div></div>'+dbg;
     return;
   }
   var r1 = toArr(b.r1), sf = toArr(b.sf);
@@ -637,7 +644,7 @@ db.ref('finalBracket').on('value',function(snap){
   h+='<div style="font-size:12px;font-weight:800;color:#D2FF4E;margin:12px 0 6px">결승</div>';
   h+='<div style="font-size:14px;color:#E8E8E8;padding:10px 12px;background:#1A2A10;border:1px solid #2A4A18;border-radius:8px">🏆 '+(b.final?b.final.match:'결승')+'<br><span style="color:#909096">'+(b.final?b.final.aFrom:'')+'</span> <span style="color:#5A5A5E">vs</span> <span style="color:#909096">'+(b.final?b.final.bFrom:'')+'</span></div>';
   h+='</div>';
-  el.innerHTML=h;
+  el.innerHTML=rawBox+h;
 });
 </script>
 </body>
