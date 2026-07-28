@@ -1409,15 +1409,47 @@ function assignNextMatchup(courtId){
         break;
       }
       
+      // ★ 이 코트 몫이 없거나 막혀 있으면 전체 대진에서 당겨오기
+      //    우선순위: 밀린 3장조(1:1 등 진행 중 매치업) → 아직 시작 안 한 매치업
+      //    → "3장조를 빈 코트로 흘려보내기" — 정적 전용 코트보다 항상 빠름
+      var pulled = false;
+      if(!next){
+        var candidates = [];
+        var seenMu = {};
+        slotNums.forEach(function(s2){
+          var courtsMap = (SLOTS[s2] && SLOTS[s2].courts) || {};
+          Object.keys(courtsMap).forEach(function(ck){
+            var sd2 = courtsMap[ck];
+            if(!sd2 || !sd2.teamA || !sd2.teamB) return;
+            var c1 = sd2.teamA.replace(/\s*\d+장조$/,'').trim();
+            var c2 = sd2.teamB.replace(/\s*\d+장조$/,'').trim();
+            var muKey = [c1,c2].sort().join('|');
+            if(seenMu[muKey]) return;
+            seenMu[muKey] = true;
+            var st2 = matchupStatus(c1, c2);
+            if(st2.done) return;
+            if(busyClubs[c1] || busyClubs[c2]) return;
+            candidates.push({slot:s2, club1:c1, club2:c2, group:sd2.group||'', st:st2});
+          });
+        });
+        // 진행 중(장조 일부 완료 = 3장조 대기 포함) 매치업을 최우선, 그다음 원래 슬롯 순서
+        candidates.sort(function(a,b){
+          var pa=(a.st.w1+a.st.w2)>0?1:0, pb=(b.st.w1+b.st.w2)>0?1:0;
+          if(pb!==pa) return pb-pa;
+          return a.slot-b.slot;
+        });
+        if(candidates.length){ next = candidates[0]; pulled = true; }
+      }
+
       if(!next){
         toast(blockedMsg || '🎉 이 코트의 모든 경기가 완료되었습니다!');
         return;
       }
-      
+
       // 다음 장조 결정
       var playedCount = next.st.w1 + next.st.w2;
       var nextJo = Math.min(playedCount + 1, 3);
-      
+
       courtsRef.child(courtId).update({
         teamA: next.club1,
         teamB: next.club2,
@@ -1426,9 +1458,9 @@ function assignNextMatchup(courtId){
         group: next.group,
         status: 'waiting'
       });
-      
+
       var statusMsg = playedCount > 0 ? ' (현재 '+next.st.w1+':'+next.st.w2+', '+nextJo+'장조부터)' : '';
-      toast('▶ 슬롯'+next.slot+' '+next.club1+' vs '+next.club2+' 배정!'+statusMsg);
+      toast('▶ '+(pulled?'[당겨옴] ':'슬롯'+next.slot+' ')+next.club1+' vs '+next.club2+' 배정!'+statusMsg);
     });
   });
 }
@@ -1569,6 +1601,7 @@ function renderCourt(courtId, data){
     +'<div class="court-actions">'
     +'<button class="action-btn start" onclick="startMatch(\''+courtId+'\')">시작(선택)</button>'
     +'<button class="action-btn finish" onclick="finishMatch(\''+courtId+'\')">결과 저장</button>'
+    +'<button class="action-btn" style="background:#1A2A40;color:#4f9cf9;border:1px solid #2A3A60" onclick="assignNextMatchup(\''+courtId+'\')">▶ 다음 경기</button>'
     +'<button class="action-btn reset" onclick="resetCourt(\''+courtId+'\')">리셋</button>'
     +'</div>'
     +'</div>';
