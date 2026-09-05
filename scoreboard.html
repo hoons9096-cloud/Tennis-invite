@@ -259,6 +259,50 @@ var _lastFinalBracket=null;
 var _sbBracket=null;        // 게시된 대진표 캐시
 var _sbResultsCache=null;   // 결과 캐시 (대진표 탭 상태 표시용)
 
+function clubBaseName(t){
+  return (t||'').replace(/\s*\d+장조$/,'').trim();
+}
+
+function resultEventNo(ev){
+  var n=parseInt(ev||'',10);
+  return isNaN(n) ? 0 : n;
+}
+
+function firstTwoMatchState(results, teamA, teamB, excludeKey){
+  var clubA=clubBaseName(teamA), clubB=clubBaseName(teamB);
+  var st={clubA:clubA, clubB:clubB, winsA:0, winsB:0, played:0};
+  if(!clubA || !clubB) return st;
+  Object.keys(results||{}).forEach(function(key){
+    if(excludeKey && key===excludeKey) return;
+    var r=results[key];
+    if(!r || r.skipped || resultEventNo(r.event)>=3) return;
+    var rA=clubBaseName(r.teamA), rB=clubBaseName(r.teamB);
+    var same=(rA===clubA&&rB===clubB)||(rA===clubB&&rB===clubA);
+    if(!same) return;
+    st.played++;
+    if((r.scoreA||0)>(r.scoreB||0)){
+      if(rA===clubA) st.winsA++; else st.winsB++;
+    } else if((r.scoreB||0)>(r.scoreA||0)){
+      if(rB===clubA) st.winsA++; else st.winsB++;
+    }
+  });
+  return st;
+}
+
+function thirdGameGuard(results, teamA, teamB, ev, excludeKey){
+  if(resultEventNo(ev)!==3) return {blocked:false};
+  var st=firstTwoMatchState(results, teamA, teamB, excludeKey);
+  if(st.winsA>=2 || st.winsB>=2) return {blocked:true};
+  if(st.played<2) return {blocked:true};
+  if(st.winsA===1 && st.winsB===1) return {blocked:false};
+  return {blocked:true};
+}
+
+function shouldCountResult(results, key, r){
+  if(!r || r.skipped) return false;
+  return !thirdGameGuard(results, r.teamA, r.teamB, r.event, key).blocked;
+}
+
 function isLeague12PublicContext(){
   return !!(_sbBracket && (
     _sbBracket.mode==='league12' ||
@@ -343,12 +387,19 @@ db.ref('results').orderByChild('timestamp').on('value',function(snap){
     return;
   }
   
-  // Convert to array and sort by timestamp desc
-  var results=[];
-  Object.keys(data).forEach(function(key){results.push(data[key])});
-  results.sort(function(a,b){return(b.timestamp||0)-(a.timestamp||0)});
-  
-  var html='<table class="results-table"><thead><tr>'
+	  // Convert to array and sort by timestamp desc
+	  var results=[];
+	  Object.keys(data).forEach(function(key){
+	    var r=data[key];
+	    if(r && (r.skipped || shouldCountResult(data, key, r))) results.push(r);
+	  });
+	  results.sort(function(a,b){return(b.timestamp||0)-(a.timestamp||0)});
+	  if(!results.length){
+	    area.innerHTML='<div class="empty"><span class="empty-icon">📋</span><div class="empty-text">아직 완료된 경기가 없습니다</div></div>';
+	    return;
+	  }
+	  
+	  var html='<table class="results-table"><thead><tr>'
     +'<th>시간</th><th>코트</th><th>종목</th><th>팀 A</th><th>스코어</th><th>팀 B</th><th>조</th>'
     +'</tr></thead><tbody>';
   
@@ -462,10 +513,10 @@ function renderPublicSchedule(){
 
   // 클럽매치 진행 상태 계산 (결과 대조)
   var norm=function(t){return (t||'').replace(/\s*\d+장조$/,'').trim();};
-  function matchupStatus(c1,c2){
-    var res=_sbResultsCache||{}; var w1=0,w2=0,pl=0;
-    Object.keys(res).forEach(function(k){
-      var r=res[k]; if(!r||r.skipped) return;
+	  function matchupStatus(c1,c2){
+	    var res=_sbResultsCache||{}; var w1=0,w2=0,pl=0;
+	    Object.keys(res).forEach(function(k){
+	      var r=res[k]; if(!shouldCountResult(res, k, r)) return;
       var a=norm(r.teamA), b=norm(r.teamB);
       var same=(a===c1&&b===c2)||(a===c2&&b===c1);
       if(!same) return;
@@ -521,10 +572,11 @@ function calcStandings(groupTeams,results){
   Object.keys(groupTeams).forEach(function(t){
     stats[t]={team:t,win:0,lose:0,gf:0,ga:0,gd:0,matches:0};
   });
-  if(!results) return Object.values(stats);
-  Object.keys(results).forEach(function(key){
-    var r=results[key];
-    var tA=r.teamA,tB=r.teamB;
+	  if(!results) return Object.values(stats);
+	  Object.keys(results).forEach(function(key){
+	    var r=results[key];
+	    if(!shouldCountResult(results, key, r)) return;
+	    var tA=r.teamA,tB=r.teamB;
     if(!stats[tA]||!stats[tB]) return;
     var sA=r.scoreA||0,sB=r.scoreB||0;
     stats[tA].gf+=sA;stats[tA].ga+=sB;stats[tA].matches++;
@@ -557,8 +609,9 @@ function calcMatchupStandings(groupTeams, results){
   
   if(!results) return {matchups:matchups, standings:Object.values(clubStats), clubs:clubs};
   
-  Object.values(results).forEach(function(r){
-    if(r.skipped) return;
+	  Object.keys(results).forEach(function(key){
+	    var r=results[key];
+	    if(!shouldCountResult(results, key, r)) return;
     var tA = r.teamA, tB = r.teamB;
     if(!tA || !tB) return;
     var clubA = tA.replace(/\s*\d+장조$/,'').trim();

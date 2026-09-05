@@ -551,6 +551,56 @@ function resultKey(teamA, teamB, ev){
   return ('m_'+clubs[0]+'__'+clubs[1]+'__'+(ev||'')).replace(/[.#$\/\[\]]/g,'_');
 }
 
+function clubBaseName(t){
+  return (t||'').replace(/\s*\d+장조$/,'').trim();
+}
+
+function resultEventNo(ev){
+  var n=parseInt(ev||'',10);
+  return isNaN(n) ? 0 : n;
+}
+
+function firstTwoMatchState(results, teamA, teamB, excludeKey){
+  var clubA=clubBaseName(teamA), clubB=clubBaseName(teamB);
+  var st={clubA:clubA, clubB:clubB, winsA:0, winsB:0, played:0, events:{}};
+  if(!clubA || !clubB) return st;
+  Object.keys(results||{}).forEach(function(key){
+    if(excludeKey && key===excludeKey) return;
+    var r=results[key];
+    if(!r || r.skipped || resultEventNo(r.event)>=3) return;
+    var rA=clubBaseName(r.teamA), rB=clubBaseName(r.teamB);
+    var same=(rA===clubA&&rB===clubB)||(rA===clubB&&rB===clubA);
+    if(!same) return;
+    st.played++;
+    if(r.event) st.events[r.event]=true;
+    if((r.scoreA||0)>(r.scoreB||0)){
+      if(rA===clubA) st.winsA++; else st.winsB++;
+    } else if((r.scoreB||0)>(r.scoreA||0)){
+      if(rB===clubA) st.winsA++; else st.winsB++;
+    }
+  });
+  return st;
+}
+
+function thirdGameGuard(results, teamA, teamB, ev, excludeKey){
+  if(resultEventNo(ev)!==3) return {blocked:false};
+  var st=firstTwoMatchState(results, teamA, teamB, excludeKey);
+  if(st.winsA>=2 || st.winsB>=2){
+    var winner=st.winsA>=2 ? st.clubA : st.clubB;
+    return {blocked:true, decided:true, message:winner+'가 1·2장조를 2:0으로 먼저 이겨 3장조는 입력할 수 없습니다.'};
+  }
+  if(st.played<2){
+    return {blocked:true, decided:false, message:'3장조는 1·2장조 결과가 모두 저장되고 1:1일 때만 입력할 수 있습니다.'};
+  }
+  if(st.winsA===1 && st.winsB===1) return {blocked:false};
+  return {blocked:true, decided:false, message:'3장조는 1·2장조가 1:1일 때만 입력할 수 있습니다.'};
+}
+
+function shouldCountResult(results, key, r){
+  if(!r || r.skipped) return false;
+  return !thirdGameGuard(results, r.teamA, r.teamB, r.event, key).blocked;
+}
+
 // 오프라인 쓰기 차단 가드
 var fbConnected = false;
 function requireOnline(){
@@ -1255,18 +1305,52 @@ function validateAndUpdate(courtId, field, value, selectEl){
 
 function updateCourt(courtId, field, value){
   if(!requireOnline()) return;
-  courtsRef.child(courtId).child(field).set(value, function(err){
-    if(err) toast('⚠️ 저장 실패: '+err.message);
-  });
+  function setField(){
+    courtsRef.child(courtId).child(field).set(value, function(err){
+      if(err) toast('⚠️ 저장 실패: '+err.message);
+    });
+  }
+  if(field==='event' && resultEventNo(value)===3){
+    courtsRef.child(courtId).once('value',function(csnap){
+      var d=csnap.val()||{};
+      if(!d.teamA || !d.teamB){ setField(); return; }
+      resultsRef.once('value',function(rsnap){
+        var guard=thirdGameGuard(rsnap.val()||{}, d.teamA, d.teamB, value, null);
+        if(guard.blocked){
+          if(guard.decided) courtsRef.child(courtId).update({status:'done',scoreA:0,scoreB:0});
+          toast('⚠️ '+guard.message);
+          return;
+        }
+        setField();
+      });
+    });
+    return;
+  }
+  setField();
 }
 
 function changeScore(courtId, team, delta){
   if(!requireOnline()) return;
-  courtsRef.child(courtId).child('score'+team).transaction(function(current){
-    var val = (current||0)+delta;
-    return val<0?0:val;
-  }, function(err){
-    if(err) toast('⚠️ 점수 저장 실패: '+err.message);
+  function applyChange(){
+    courtsRef.child(courtId).child('score'+team).transaction(function(current){
+      var val = (current||0)+delta;
+      return val<0?0:val;
+    }, function(err){
+      if(err) toast('⚠️ 점수 저장 실패: '+err.message);
+    });
+  }
+  courtsRef.child(courtId).once('value',function(csnap){
+    var d=csnap.val()||{};
+    if(resultEventNo(d.event)!==3 || !d.teamA || !d.teamB){ applyChange(); return; }
+    resultsRef.once('value',function(rsnap){
+      var guard=thirdGameGuard(rsnap.val()||{}, d.teamA, d.teamB, d.event, null);
+      if(guard.blocked){
+        if(guard.decided) courtsRef.child(courtId).update({status:'done',scoreA:0,scoreB:0});
+        toast('⚠️ '+guard.message);
+        return;
+      }
+      applyChange();
+    });
   });
 }
 
@@ -1287,12 +1371,27 @@ function startMatch(courtId){
       toast('⚠️ 같은 팀끼리는 경기할 수 없습니다');
       return;
     }
-    if(teamGroups[d.teamA]&&teamGroups[d.teamB]&&teamGroups[d.teamA]!==teamGroups[d.teamB]){
-      toast('⚠️ 다른 조 팀과는 경기할 수 없습니다 ('+teamGroups[d.teamA]+'조 vs '+teamGroups[d.teamB]+'조)');
-      return;
-    }
-    // 이미 "확정된"(2선승 도달) 매치업인지 확인 — 진행 중 장조 추가는 막지 않음
-    var _norm=function(t){return (t||'').replace(/\s*\d+장조$/,'').trim();};
+	    if(teamGroups[d.teamA]&&teamGroups[d.teamB]&&teamGroups[d.teamA]!==teamGroups[d.teamB]){
+	      toast('⚠️ 다른 조 팀과는 경기할 수 없습니다 ('+teamGroups[d.teamA]+'조 vs '+teamGroups[d.teamB]+'조)');
+	      return;
+	    }
+	    if(resultEventNo(d.event)===3){
+	      resultsRef.once('value',function(rsnap){
+	        var guard=thirdGameGuard(rsnap.val()||{}, d.teamA, d.teamB, d.event, null);
+	        if(guard.blocked){
+	          if(guard.decided) courtsRef.child(courtId).update({status:'done',scoreA:0,scoreB:0});
+	          toast('⚠️ '+guard.message);
+	          return;
+	        }
+	        courtsRef.child(courtId).update({status:'live',scoreA:0,scoreB:0,startedAt:Date.now()}, function(err){
+	          if(err){ toast('⚠️ 경기 시작 실패: '+err.message); return; }
+	          toast('3장조 경기 시작!');
+	        });
+	      });
+	      return;
+	    }
+	    // 이미 "확정된"(2선승 도달) 매치업이면 기존 결과 삭제 확인 후 재시작
+	    var _norm=function(t){return (t||'').replace(/\s*\d+장조$/,'').trim();};
     var dCA=_norm(d.teamA), dCB=_norm(d.teamB);
     var matchedSlot=null;
     var _slotKeys=Object.keys(SLOTS).map(Number).sort(function(a,b){return a-b;});
@@ -1364,12 +1463,18 @@ function finishMatch(courtId){
     }
     var tA=d.teamA, tB=d.teamB, grp=d.group, cName=d.name, ev=d.event||'';
 
-    // 이미 저장된 결과가 있는지 확인
-    resultsRef.once('value',function(rsnap){
-      var rdata=rsnap.val()||{};
-      var existingKey=null;
-      Object.keys(rdata).forEach(function(key){
-        var r=rdata[key];
+	    // 이미 저장된 결과가 있는지 확인
+	    resultsRef.once('value',function(rsnap){
+	      var rdata=rsnap.val()||{};
+	      var thirdGuard=thirdGameGuard(rdata, tA, tB, ev, null);
+	      if(thirdGuard.blocked){
+	        if(thirdGuard.decided) courtsRef.child(courtId).update({status:'done',scoreA:0,scoreB:0});
+	        toast('⚠️ '+thirdGuard.message);
+	        return;
+	      }
+	      var existingKey=null;
+	      Object.keys(rdata).forEach(function(key){
+	        var r=rdata[key];
         if(r.court===cName){
           var tm=(r.teamA===tA&&r.teamB===tB)||(r.teamA===tB&&r.teamB===tA);
           var gm=(!grp||grp===r.group);
@@ -1425,8 +1530,9 @@ function autoProgress2Win(courtId, teamA, teamB, group, event){
     var rdata = rsnap.val()||{};
     var winsA=0, winsB=0, matchCount=0, playedEvents={};
 
-    Object.values(rdata).forEach(function(r){
-      if(r.skipped) return;
+	    Object.keys(rdata).forEach(function(key){
+	      var r=rdata[key];
+	      if(!shouldCountResult(rdata, key, r)) return;
       var rCA = (r.teamA||'').replace(/\s*\d+장조$/,'').trim();
       var rCB = (r.teamB||'').replace(/\s*\d+장조$/,'').trim();
       var same = (rCA===clubA && rCB===clubB) || (rCA===clubB && rCB===clubA);
@@ -1513,8 +1619,9 @@ function assignNextMatchup(courtId){
     // 매치업별 승수 계산
     function matchupStatus(club1, club2){
       var w1=0, w2=0;
-      Object.values(rdata).forEach(function(r){
-        if(r.skipped) return;
+	      Object.keys(rdata).forEach(function(key){
+	        var r=rdata[key];
+	        if(!shouldCountResult(rdata, key, r)) return;
         var rCA = (r.teamA||'').replace(/\s*\d+장조$/,'').trim();
         var rCB = (r.teamB||'').replace(/\s*\d+장조$/,'').trim();
         var same = (rCA===club1 && rCB===club2) || (rCA===club2 && rCB===club1);
@@ -1630,13 +1737,13 @@ function renderCourt(courtId, data){
 
   // 현재 코트 팀쌍의 장조별 점수 스트립 (경기 시작 없이도 확인)
   var scoreStrip = '';
-  if(data.teamA && data.teamB){
-    var _nm=function(t){return (t||'').replace(/\s*\d+장조$/,'').trim();};
-    var caC=_nm(data.teamA), cbC=_nm(data.teamB);
-    var res=latestResults||{};
-    var g={}, wA=0, wB=0;
-    Object.keys(res).forEach(function(k){
-      var r=res[k]; if(r.skipped) return;
+	  if(data.teamA && data.teamB){
+	    var _nm=function(t){return (t||'').replace(/\s*\d+장조$/,'').trim();};
+	    var caC=_nm(data.teamA), cbC=_nm(data.teamB);
+	    var res=latestResults||{};
+	    var g={}, wA=0, wB=0;
+	    Object.keys(res).forEach(function(k){
+	      var r=res[k]; if(!shouldCountResult(res, k, r)) return;
       var rk=r.court?r.court.replace('코트 ','court').replace('코트','court').trim():'';
       if(!isCrossCourtMode() && rk!==courtId) return; // 분산 진행 모드: 장조가 코트에 분산되므로 코트 무관 집계
       var rca=_nm(r.teamA), rcb=_nm(r.teamB);
@@ -1661,9 +1768,12 @@ function renderCourt(courtId, data){
       : '<span style="color:#505055">0:0</span>';
     scoreStrip = '<div style="padding:6px 16px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:10px;border-bottom:1px solid #1C1C20">'
       +'<span style="color:#707075;font-weight:700">매치:</span>'+matchScore
-      +'<span style="color:#2A2A30">|</span>'+chips
-      +'</div>';
-  }
+	      +'<span style="color:#2A2A30">|</span>'+chips
+	      +'</div>';
+	  }
+	  var thirdChipGuard = (data.teamA && data.teamB)
+	    ? thirdGameGuard(latestResults||{}, data.teamA, data.teamB, '3장조', null)
+	    : {blocked:false};
 
   var slotNums = Object.keys(SLOTS).map(Number).sort(function(a,b){return a-b;});
   var slotRow='<div style="padding:8px 12px 4px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;border-bottom:1px solid #1C1C20">'
@@ -1744,11 +1854,17 @@ function renderCourt(courtId, data){
     +'<button class="score-btn plus" onclick="changeScore(\''+courtId+'\',\'B\',1)">+</button>'
     +'</div></div>'
     +'</div>'
-    // Event selector
-    +'<div class="event-row">'
-    +events.map(function(e){
-      return '<div class="event-chip '+(data.event===e?'selected':'')+'" onclick="updateCourt(\''+courtId+'\',\'event\',\''+e+'\')">'+e+'</div>';
-    }).join('')
+	    // Event selector
+	    +'<div class="event-row">'
+	    +events.map(function(e){
+	      var blockedThird = (e==='3장조' && thirdChipGuard.blocked);
+	      var cls = 'event-chip '+(data.event===e?'selected':'');
+	      var style = blockedThird ? ' style="opacity:.35;cursor:not-allowed"' : '';
+	      var click = blockedThird
+	        ? 'toast('+jsLit('⚠️ '+thirdChipGuard.message)+')'
+	        : 'updateCourt(\''+courtId+'\',\'event\',\''+e+'\')';
+	      return '<div class="'+cls+'"'+style+' onclick="'+click+'">'+e+'</div>';
+	    }).join('')
     +'</div>'
     // 장조별 점수 스트립
     +scoreStrip
@@ -1810,8 +1926,8 @@ function computeProgress(){
       for(var j=i+1;j<clubs.length;j++){
         total++;
         var wA=0, wB=0, played=0;
-        Object.keys(results).forEach(function(k){
-          var r=results[k]; if(!r || r.skipped) return;
+	        Object.keys(results).forEach(function(k){
+	          var r=results[k]; if(!shouldCountResult(results, k, r)) return;
           var ca=norm(r.teamA), cb=norm(r.teamB);
           var same=(ca===clubs[i]&&cb===clubs[j])||(ca===clubs[j]&&cb===clubs[i]);
           if(!same) return;
@@ -2023,9 +2139,10 @@ function calcStandings(groupTeams,results){
   
   if(!results) return Object.values(stats);
   
-  Object.keys(results).forEach(function(key){
-    var r=results[key];
-    var tA=r.teamA, tB=r.teamB;
+	  Object.keys(results).forEach(function(key){
+	    var r=results[key];
+	    if(!shouldCountResult(results, key, r)) return;
+	    var tA=r.teamA, tB=r.teamB;
     if(!stats[tA]||!stats[tB]) return;
     
     var sA=r.scoreA||0, sB=r.scoreB||0;
@@ -2041,11 +2158,12 @@ function calcStandings(groupTeams,results){
   // 3순위: 상대전적 (승자 승)
   function h2hWin(tA,tB){
     var w=0;
-    if(!results) return w;
-    Object.keys(results).forEach(function(k){
-      var r=results[k];
-      if(r.teamA===tA&&r.teamB===tB&&(r.scoreA||0)>(r.scoreB||0)) w++;
-      if(r.teamA===tB&&r.teamB===tA&&(r.scoreB||0)>(r.scoreA||0)) w++;
+	    if(!results) return w;
+	    Object.keys(results).forEach(function(k){
+	      var r=results[k];
+	      if(!shouldCountResult(results, k, r)) return;
+	      if(r.teamA===tA&&r.teamB===tB&&(r.scoreA||0)>(r.scoreB||0)) w++;
+	      if(r.teamA===tB&&r.teamB===tA&&(r.scoreB||0)>(r.scoreA||0)) w++;
     });
     return w;
   }
@@ -2075,8 +2193,9 @@ function calcMatchupStandings(groupTeams, results){
   
   if(!results) return {matchups:matchups, standings:Object.values(clubStats), clubs:clubs};
   
-  Object.values(results).forEach(function(r){
-    if(r.skipped) return;
+	  Object.keys(results).forEach(function(key){
+	    var r=results[key];
+	    if(!shouldCountResult(results, key, r)) return;
     var tA = r.teamA, tB = r.teamB;
     if(!tA || !tB) return;
     var clubA = tA.replace(/\s*\d+장조$/,'').trim();
@@ -4231,11 +4350,21 @@ function saveResult(key){
     toast('⚠️ 동점('+newA+':'+newB+')은 저장할 수 없습니다 — 승부를 가려주세요');
     return;
   }
-  resultsRef.child(key).update({scoreA:newA,scoreB:newB}, function(err){
-    if(err){ toast('⚠️ 점수 수정 실패: '+err.message); return; }
-    toast('점수 수정 완료! ('+newA+':'+newB+')');
-    // 거꾸로 연동: 코트 status 재동기화
-    setTimeout(function(){ syncCourtStatusFromResults(); }, 300);
+  resultsRef.once('value',function(snap){
+    var data=snap.val()||{};
+    var r=data[key];
+    if(!r){ toast('⚠️ 수정할 경기 결과를 찾을 수 없습니다'); return; }
+    var guard=thirdGameGuard(data, r.teamA, r.teamB, r.event, key);
+    if(guard.blocked){
+      toast('⚠️ '+guard.message+' 잘못 저장된 3장조는 삭제만 가능합니다.');
+      return;
+    }
+    resultsRef.child(key).update({scoreA:newA,scoreB:newB}, function(err){
+      if(err){ toast('⚠️ 점수 수정 실패: '+err.message); return; }
+      toast('점수 수정 완료! ('+newA+':'+newB+')');
+      // 거꾸로 연동: 코트 status 재동기화
+      setTimeout(function(){ syncCourtStatusFromResults(); }, 300);
+    });
   });
 }
 
@@ -4259,9 +4388,9 @@ function syncCourtStatusFromResults(){
     var d=latestCourtsData[courtId];
     if(!d || d.status!=='done' || !d.teamA || !d.teamB) return;
     var cA=norm(d.teamA), cB=norm(d.teamB), wA=0, wB=0, played=0;
-    var res=latestResults||{};
-    Object.keys(res).forEach(function(k){
-      var r=res[k]; if(r.skipped) return;
+	    var res=latestResults||{};
+	    Object.keys(res).forEach(function(k){
+	      var r=res[k]; if(!shouldCountResult(res, k, r)) return;
       var rk=r.court?r.court.replace('코트 ','court').replace('코트','court').trim():'';
       if(!isCrossCourtMode() && rk!==courtId) return; // 분산 진행 모드: 장조가 코트에 분산되므로 코트 무관 집계
       var rca=norm(r.teamA), rcb=norm(r.teamB);
@@ -4332,10 +4461,10 @@ function buildCompletedSlots(results){
       var slotCA = norm(sd.teamA), slotCB = norm(sd.teamB);
 
       // 이 코트·이 팀쌍에 해당하는 장조 결과 수집 (조 텍스트는 관대하게 무시)
-      var winsA = 0, winsB = 0, played = 0;
-      Object.keys(results).forEach(function(key){
-        var r = results[key];
-        if(r.skipped) return;
+	      var winsA = 0, winsB = 0, played = 0;
+	      Object.keys(results).forEach(function(key){
+	        var r = results[key];
+	        if(!shouldCountResult(results, key, r)) return;
         var rKey = r.court ? r.court.replace('코트 ','court').replace('코트','court').trim() : '';
         if(!isCrossCourtMode() && rKey !== cKey) return;
         var rCA = norm(r.teamA), rCB = norm(r.teamB);
@@ -4364,10 +4493,10 @@ function slotMatchInfo(courtId, s){
   var norm=function(t){return (t||'').replace(/\s*\d+장조$/,'').trim();};
   var cA=norm(sd.teamA), cB=norm(sd.teamB);
   var winsA=0, winsB=0, games={}; // games: {1장조:{a,b}, ...}
-  var results = latestResults || {};
-  Object.keys(results).forEach(function(key){
-    var r=results[key];
-    if(r.skipped) return;
+	  var results = latestResults || {};
+	  Object.keys(results).forEach(function(key){
+	    var r=results[key];
+	    if(!shouldCountResult(results, key, r)) return;
     var rKey=r.court?r.court.replace('코트 ','court').replace('코트','court').trim():'';
     if(!isCrossCourtMode() && rKey!==courtId) return;
     var rCA=norm(r.teamA), rCB=norm(r.teamB);
@@ -4404,24 +4533,29 @@ resultsRef.orderByChild('timestamp').on('value',function(snap){
   });
   results.sort(function(a,b){return(b.timestamp||0)-(a.timestamp||0)});
 
-  var html='';
-  results.forEach(function(r){
-    html+='<div class="result-card">'
-      +'<div class="result-info">'
-      +'<div class="result-meta">'+esc(r.time||'')+' · '+esc(r.court||'')+' · '+esc(r.event||'')+' · '+esc(r.group||'')
-      +(function(){var sn=findSlotNum(r.court||'',r.teamA||'',r.teamB||'',r.group||'');return sn?' · <span style="color:#D2FF4E;font-weight:700">슬롯 '+sn+'</span>':''})()
-      +'</div>'
-      +'<div class="result-match">'+esc(r.teamA||'?')+' vs '+esc(r.teamB||'?')+'</div>'
-      +'</div>'
-      +'<div class="result-score-edit">'
-      +'<input class="result-score-input" id="sa-'+esc(r._key)+'" type="number" value="'+toNum(r.scoreA)+'">'
-      +'<span class="result-colon">:</span>'
-      +'<input class="result-score-input" id="sb-'+esc(r._key)+'" type="number" value="'+toNum(r.scoreB)+'">'
-      +'</div>'
-      +'<div class="result-actions">'
-      +'<button class="result-btn save" onclick="saveResult('+jsLit(r._key)+')">수정</button>'
-      +'<button class="result-btn delete" onclick="deleteResult('+jsLit(r._key)+')">삭제</button>'
-      +'</div>'
+	  var html='';
+	  results.forEach(function(r){
+	    var invalidThird=thirdGameGuard(data, r.teamA, r.teamB, r.event, r._key);
+	    var disabledAttr=invalidThird.blocked ? ' disabled title="'+esc(invalidThird.message)+'"' : '';
+	    html+='<div class="result-card">'
+	      +'<div class="result-info">'
+	      +'<div class="result-meta">'+esc(r.time||'')+' · '+esc(r.court||'')+' · '+esc(r.event||'')+' · '+esc(r.group||'')
+	      +(function(){var sn=findSlotNum(r.court||'',r.teamA||'',r.teamB||'',r.group||'');return sn?' · <span style="color:#D2FF4E;font-weight:700">슬롯 '+sn+'</span>':''})()
+	      +(invalidThird.blocked?' · <span style="color:#FFB43C;font-weight:800">3장조 입력 차단</span>':'')
+	      +'</div>'
+	      +'<div class="result-match">'+esc(r.teamA||'?')+' vs '+esc(r.teamB||'?')+'</div>'
+	      +'</div>'
+	      +'<div class="result-score-edit">'
+	      +'<input class="result-score-input" id="sa-'+esc(r._key)+'" type="number" value="'+toNum(r.scoreA)+'"'+disabledAttr+'>'
+	      +'<span class="result-colon">:</span>'
+	      +'<input class="result-score-input" id="sb-'+esc(r._key)+'" type="number" value="'+toNum(r.scoreB)+'"'+disabledAttr+'>'
+	      +'</div>'
+	      +'<div class="result-actions">'
+	      +(invalidThird.blocked
+	        ? '<button class="result-btn save" disabled style="opacity:.45;cursor:not-allowed">수정불가</button>'
+	        : '<button class="result-btn save" onclick="saveResult('+jsLit(r._key)+')">수정</button>')
+	      +'<button class="result-btn delete" onclick="deleteResult('+jsLit(r._key)+')">삭제</button>'
+	      +'</div>'
       +'</div>';
   });
   container.innerHTML=html;
