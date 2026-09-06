@@ -560,6 +560,10 @@ function resultEventNo(ev){
   return isNaN(n) ? 0 : n;
 }
 
+function cleanGroupLabel(group){
+  return String(group==null?'':group).replace(/\s+[1-3]장조(?:\s*\(필요시\))?\s*$/,'').trim();
+}
+
 function firstTwoMatchState(results, teamA, teamB, excludeKey){
   var clubA=clubBaseName(teamA), clubB=clubBaseName(teamB);
   var st={clubA:clubA, clubB:clubB, winsA:0, winsB:0, played:0, events:{}};
@@ -1197,7 +1201,7 @@ function brCourtAssignmentFromMatch(m){
     teamA: m.club1 || '',
     teamB: m.club2 || '',
     event: (m.ttype || '1장조').replace(' (필요시)',''),
-    group: ((m.group || '') + ' ' + (m.ttype || '')).trim()
+    group: cleanGroupLabel(m.group || '')
   };
 }
 
@@ -1305,6 +1309,7 @@ function validateAndUpdate(courtId, field, value, selectEl){
 
 function updateCourt(courtId, field, value){
   if(!requireOnline()) return;
+  if(field==='group') value=cleanGroupLabel(value);
   function setField(){
     courtsRef.child(courtId).child(field).set(value, function(err){
       if(err) toast('⚠️ 저장 실패: '+err.message);
@@ -1461,7 +1466,7 @@ function finishMatch(courtId){
       toast('⚠️ 동점('+scoreA+':'+scoreB+')은 저장할 수 없습니다 — 타이브레이크로 승부를 가려주세요');
       return;
     }
-    var tA=d.teamA, tB=d.teamB, grp=d.group, cName=d.name, ev=d.event||'';
+	    var tA=d.teamA, tB=d.teamB, grp=cleanGroupLabel(d.group), cName=d.name, ev=d.event||'';
 
 	    // 이미 저장된 결과가 있는지 확인
 	    resultsRef.once('value',function(rsnap){
@@ -1580,10 +1585,10 @@ function autoProgress2Win(courtId, teamA, teamB, group, event){
     for(var i=0;i<order.length;i++){
       if(!playedEvents[order[i]]){ nextEvent=order[i]; break; }
     }
-    if(nextEvent){
-      courtsRef.child(courtId).update({
-        event:nextEvent, scoreA:0, scoreB:0, status:'waiting'
-      }, function(err){
+	    if(nextEvent){
+	      courtsRef.child(courtId).update({
+	        event:nextEvent, group:cleanGroupLabel(group), scoreA:0, scoreB:0, status:'waiting'
+	      }, function(err){
         if(err){ toast('⚠️ 다음 장조 전환 실패: '+err.message); return; }
         var cur = (winsA)+':'+(winsB);
         toast('다음 경기: '+nextEvent+' (현재 '+clubA+' '+cur+' '+clubB+') — 점수 초기화됨');
@@ -1670,7 +1675,7 @@ function assignNextMatchup(courtId){
           break; // 순서 유지: 건너뛰지 않고 대기
         }
         
-        next = {slot:s, club1:club1, club2:club2, group:sd.group||'', st:st};
+	        next = {slot:s, club1:club1, club2:club2, group:cleanGroupLabel(sd.group), st:st};
         break;
       }
       
@@ -1694,7 +1699,7 @@ function assignNextMatchup(courtId){
             var st2 = matchupStatus(c1, c2);
             if(st2.done) return;
             if(busyClubs[c1] || busyClubs[c2]) return;
-            candidates.push({slot:s2, club1:c1, club2:c2, group:sd2.group||'', st:st2});
+	            candidates.push({slot:s2, club1:c1, club2:c2, group:cleanGroupLabel(sd2.group), st:st2});
           });
         });
         // 진행 중(장조 일부 완료 = 3장조 대기 포함) 매치업을 최우선, 그다음 원래 슬롯 순서
@@ -1720,7 +1725,7 @@ function assignNextMatchup(courtId){
         teamB: next.club2,
         scoreA: 0, scoreB: 0,
         event: nextJo+'장조',
-        group: next.group,
+	        group: cleanGroupLabel(next.group),
         status: 'waiting'
       }, function(err){
         if(err){ toast('⚠️ 다음 경기 배정 실패: '+err.message); return; }
@@ -2060,7 +2065,7 @@ function applySchedule(){
       upd['courts/'+courtKey+'/teamA'] = s.teamA||'';
       upd['courts/'+courtKey+'/teamB'] = s.teamB||'';
       upd['courts/'+courtKey+'/event'] = s.event||'남복';
-      upd['courts/'+courtKey+'/group'] = s.group||'';
+	      upd['courts/'+courtKey+'/group'] = cleanGroupLabel(s.group);
       upd['courts/'+courtKey+'/scoreA'] = 0;
       upd['courts/'+courtKey+'/scoreB'] = 0;
       upd['courts/'+courtKey+'/status'] = 'waiting';
@@ -3021,7 +3026,7 @@ function _doApplySlot(courtId, num, c, slot, isDone){
       upd['courts/'+courtId+'/teamA'] = tA;
       upd['courts/'+courtId+'/teamB'] = tB;
       upd['courts/'+courtId+'/event'] = isTripleMode() ? c.event : '1장조';
-      upd['courts/'+courtId+'/group'] = c.group;
+	      upd['courts/'+courtId+'/group'] = cleanGroupLabel(c.group);
       upd['courts/'+courtId+'/scoreA'] = 0;
       upd['courts/'+courtId+'/scoreB'] = 0;
       upd['courts/'+courtId+'/status'] = 'waiting';
@@ -3032,7 +3037,7 @@ function _doApplySlot(courtId, num, c, slot, isDone){
     });
   } else {
     courtsRef.child(courtId).update({
-      teamA:tA, teamB:tB, event:c.event, group:c.group,
+	      teamA:tA, teamB:tB, event:c.event, group:cleanGroupLabel(c.group),
       scoreA:0, scoreB:0, status:'waiting'
     }, function(err){
       if(err){ toast('⚠️ 슬롯 세팅 실패: '+err.message); return; }
@@ -3194,7 +3199,7 @@ function brApplySlot(time) {
     upd['courts/'+courtKey+'/teamA'] = s.teamA;
     upd['courts/'+courtKey+'/teamB'] = s.teamB;
     upd['courts/'+courtKey+'/event'] = s.event;
-    upd['courts/'+courtKey+'/group'] = s.group;
+	    upd['courts/'+courtKey+'/group'] = cleanGroupLabel(s.group);
     upd['courts/'+courtKey+'/scoreA'] = 0;
     upd['courts/'+courtKey+'/scoreB'] = 0;
     upd['courts/'+courtKey+'/status'] = 'waiting';
@@ -4539,7 +4544,7 @@ resultsRef.orderByChild('timestamp').on('value',function(snap){
 	    var disabledAttr=invalidThird.blocked ? ' disabled title="'+esc(invalidThird.message)+'"' : '';
 	    html+='<div class="result-card">'
 	      +'<div class="result-info">'
-	      +'<div class="result-meta">'+esc(r.time||'')+' · '+esc(r.court||'')+' · '+esc(r.event||'')+' · '+esc(r.group||'')
+	      +'<div class="result-meta">'+esc(r.time||'')+' · '+esc(r.court||'')+' · '+esc(r.event||'')+' · '+esc(cleanGroupLabel(r.group))
 	      +(function(){var sn=findSlotNum(r.court||'',r.teamA||'',r.teamB||'',r.group||'');return sn?' · <span style="color:#D2FF4E;font-weight:700">슬롯 '+sn+'</span>':''})()
 	      +(invalidThird.blocked?' · <span style="color:#FFB43C;font-weight:800">3장조 입력 차단</span>':'')
 	      +'</div>'
