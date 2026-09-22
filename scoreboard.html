@@ -89,6 +89,40 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
 .st-rank{font-weight:900;color:#D2FF4E;font-size:15px}
 .st-team{font-weight:700;color:#E8E8E8;text-align:left!important}
 .st-qualify{background:rgba(210,255,78,.04)!important}
+/* Tournament rules */
+.rules-lead{color:#B8B8BF;font-size:13px;line-height:1.8;margin:0 0 22px}
+.rules-band{padding:22px 0;border-top:1px solid #2A2A30}
+.rules-band h3{font-size:16px;margin:0 0 12px;color:#F2F2F4}
+.rules-band p{font-size:13px;line-height:1.9;color:#B8B8BF;margin:8px 0}
+.rules-band strong{color:#E8E8ED}
+.rules-overview{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+.rules-quotas{display:flex;gap:16px;margin:12px 0}
+.rules-quotas div{flex:1;padding-left:12px;border-left:3px solid #50A0FF;min-width:0}
+.rules-quotas div:nth-child(2){border-color:#FF8066}
+.rules-quotas div:nth-child(3){border-color:#50C878}
+.rules-quotas dt{font-size:12px;color:#B8B8BF}
+.rules-quotas dd{margin:4px 0 0;font-size:22px;font-weight:800;color:#F2F2F4}
+.rules-order{list-style:none;padding:0;margin:0;counter-reset:rule}
+.rules-order li{counter-increment:rule;display:grid;grid-template-columns:30px 1fr;gap:12px;padding:12px 0;border-bottom:1px solid #222227}
+.rules-order li:before{content:counter(rule,decimal-leading-zero);font-weight:800;color:#D2FF4E;font-size:15px}
+.rules-order strong{display:block;font-size:14px;margin-bottom:4px}
+.rules-order span{font-size:13px;line-height:1.8;color:#B8B8BF}
+.rules-note{padding-left:12px;border-left:3px solid #D2FF4E}
+.rules-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:13px;line-height:1.7}
+.rules-table th,.rules-table td{padding:12px 10px;border-bottom:1px solid #2A2A30;text-align:left;overflow-wrap:anywhere}
+.rules-table th{color:#A4A4AD;font-size:12px}
+.rules-table th:first-child{width:22%}
+.rules-table td{color:#E8E8ED}
+.rules-table td small{display:block;color:#A4A4AD}
+.rules-table .rules-half td{border-bottom:2px solid #59683B}
+.rules-source{font-size:12px;line-height:1.8;color:#A4A4AD}
+.rules-source a{color:#8BC4FF;text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
+.rules-source summary{cursor:pointer;color:#E8E8ED;font-size:14px;font-weight:700;padding:8px 0}
+@media(max-width:600px){
+  .tabs{justify-content:flex-start}
+  .rules-overview{grid-template-columns:1fr;gap:0}
+  .rules-table th,.rules-table td{padding:10px 6px}
+}
 </style>
 </head>
 <body>
@@ -145,45 +179,65 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
 
   <!-- 순위 규칙 탭 -->
   <div class="section" id="sec-rule">
-    <div class="section-title">순위 결정 규칙</div>
-
-    <div style="background:#151518;padding:22px 20px;margin-bottom:16px;line-height:1.9">
-      <h3>경기 방식</h3>
-      <p>예선은 조별 풀리그로 진행합니다. 예선·본선 모두 1·2·3장조 전 경기를 치릅니다. 2:0이 되어도 3장조를 진행하며, 세 장조 종료 후 2승 이상인 팀이 승리합니다.</p>
-      <p>각 장조는 6게임 단판입니다.</p>
-      <h3>순위 결정 순서</h3>
-      <ol>
-        <li>팀 승패: 클럽 대 클럽 승수가 많은 팀, 같으면 패수가 적은 팀이 상위입니다.</li>
-        <li>상대전적: 동률 팀끼리의 맞대결 승수로 비교합니다. 3팀 이상 동률이면 동률 팀 간 승수를 비교합니다.</li>
-        <li>전체 이긴 게임 수: 예선 모든 장조에서 얻은 게임 수를 합산합니다. 6:4 경기는 각각 6게임, 4게임을 합산합니다.</li>
+    <div class="section-title">경기 · 순위 · 본선 규칙</div>
+    <p class="rules-lead">11팀 조별리그 · A조 4팀 / B조 4팀 / C조 3팀 · 본선 8강</p>
+    <div class="rules-overview">
+      <section class="rules-band">
+        <h3>세 장조 모두 경기</h3>
+        <p>예선·본선 모두 <strong>1·2·3장조 전 경기</strong>를 진행합니다. 2:0이 되어도 3장조를 치릅니다.</p>
+        <p>각 장조는 <strong>6게임 단판 · 노애드</strong>입니다. 세 장조 종료 후 2승 이상인 팀이 해당 팀 대결의 승자가 됩니다.</p>
+      </section>
+      <section class="rules-band">
+        <h3>8강 진출 인원</h3>
+        <dl class="rules-quotas"><div><dt>A조 상위</dt><dd>3팀</dd></div><div><dt>B조 상위</dt><dd>3팀</dd></div><div><dt>C조 상위</dt><dd>2팀</dd></div></dl>
+        <p>각 조의 정해진 인원으로 <strong>총 8팀</strong>이 진출합니다. 부전승은 없습니다.</p>
+      </section>
+    </div>
+    <section class="rules-band">
+      <h3>조별 순위 결정</h3>
+      <ol class="rules-order">
+        <li><div><strong>팀 승패</strong><span>클럽 대 클럽 승수가 많은 팀이 상위입니다. 승수가 같으면 패수가 적은 팀이 상위입니다.</span></div></li>
+        <li><div><strong>동률 팀 간 상대전적</strong><span>두 팀이면 맞대결 승자가 상위입니다. 세 팀 이상이면 동률 팀끼리의 팀 대결 승수를 비교합니다.</span></div></li>
+        <li><div><strong>전체 이긴 게임 수</strong><span>예선 모든 장조에서 얻은 게임 수를 합산합니다. 6:4 경기라면 각각 6게임, 4게임이 반영됩니다.</span></div></li>
       </ol>
-      <p>예: 팀 승패가 같으면 맞대결 승자가 상위입니다. 상대전적까지 같으면 전체 이긴 게임 수가 많은 팀이 상위입니다.</p>
-      <p>이긴 게임 수까지 같으면 공동 순위로 표시하며, 진출 여부에 영향을 주는 경우 추가 기준 확정 전에는 본선을 생성하지 않습니다.</p>
-      <h3>8강 진출</h3>
-      <p>A조 상위 3팀, B조 상위 3팀, C조 3팀 중 상위 2팀, 총 8팀이 진출합니다. 조 간 3위 비교 없이 각 조의 진출 인원을 적용합니다.</p>
-      <p>진출팀은 조 순위 우선으로 시드를 배정합니다. 다른 조의 동순위 팀은 상대전적이 없으므로 팀 승패 → 전체 이긴 게임 수로 시드 순서만 비교합니다.</p>
-      <p>예선 모든 장조가 끝난 뒤 8강 4경기를 부전승 없이 생성합니다. 같은 조 재대결은 가능한 범위에서 피합니다.</p>
-    </div>
+      <p class="rules-note">장조 패수나 게임 득실차는 순위 기준에 넣지 않습니다. 마지막 기준까지 같으면 공동 순위로 표시하며, 본선 배정에 영향을 주는 동률은 추가 기준 확정 후 처리합니다.</p>
+    </section>
+    <section class="rules-band">
+      <h3>조 간 성적 비교 · 본선 시드</h3>
+      <p>각 조 1위끼리, 2위끼리, 진출한 3위끼리 각각 비교합니다. A·B조는 팀당 예선 3경기, C조는 2경기이므로 <strong>총승수나 총게임 수를 직접 비교하지 않습니다.</strong></p>
+      <ol class="rules-order">
+        <li><div><strong>팀 대결 승률</strong><span>팀 대결 승수 ÷ 완료한 팀 대결 수. 3전 3승과 2전 2승은 모두 100%입니다.</span></div></li>
+        <li><div><strong>장조당 평균 이긴 게임 수</strong><span>전체 이긴 게임 수 ÷ 완료한 장조 수. 9장조에서 45게임과 6장조에서 30게임은 모두 평균 5.00게임입니다.</span></div></li>
+        <li><div><strong>완전 동률은 공개 추첨</strong><span>본선 생성 시 동률 시드만 추첨으로 결정하고 기록합니다. 기록이 남아 있는 동일 성적의 본선 재생성에는 기존 추첨을 재사용합니다.</span></div></li>
+      </ol>
+      <p>조가 다른 팀 사이에는 상대전적이 없으므로 시드 비교에 넣지 않습니다. 화면의 비율은 반올림해 표시하지만, 실제 순서는 반올림 전 값으로 계산합니다.</p>
+    </section>
+    <section class="rules-band">
+      <h3>8강 기본 대진</h3>
+      <p>아래의 ‘성적 1·2·3등’은 <strong>같은 조 순위에 오른 팀들 사이의 시드 순서</strong>입니다.</p>
+      <table class="rules-table">
+        <thead><tr><th scope="col">경기</th><th scope="col">기본 배정</th></tr></thead>
+        <tbody>
+          <tr><td>8강 ①</td><td>1위 중 성적 1등 vs 3위 중 성적 2등</td></tr>
+          <tr class="rules-half"><td>8강 ②</td><td>2위 중 성적 1등 vs 2위 중 성적 2등<small>①·② 승자끼리 4강</small></td></tr>
+          <tr><td>8강 ③</td><td>1위 중 성적 2등 vs 3위 중 성적 1등</td></tr>
+          <tr><td>8강 ④</td><td>1위 중 성적 3등 vs 2위 중 성적 3등<small>③·④ 승자끼리 4강</small></td></tr>
+        </tbody>
+      </table>
+      <p class="rules-note"><strong>같은 조의 8강 재대결 금지가 성적순 기본 배정보다 우선합니다.</strong></p>
+      <p>①·③에서 같은 조가 만나면 두 3위팀의 상대를 바꿉니다. ④에서 같은 조가 만나면 2위 중 성적 2등과 3등의 상대를 바꿉니다. 이때 ②는 2위 중 성적 1등 vs 3등이 됩니다.</p>
+      <p>조 1위끼리는 8강에서 만나지 않으며, 1위 중 성적 1등과 2등은 결승 전까지 만나지 않습니다. <strong>4강부터는 같은 조 재대결이 가능합니다.</strong></p>
+      <p>실제 팀 이름과 상대 조정 내역은 예선 종료 후 <strong>본선</strong> 탭에 게시합니다.</p>
+    </section>
+    <section class="rules-band">
+      <details class="rules-source" open>
+        <summary>참고한 원칙과 이번 대회 적용</summary>
+        <p><a href="https://www.uefa.com/uefachampionsleague/news/0283-1879486c017e-68061468b1a7-1000--round-of-16-draw-details/" target="_blank" rel="noopener noreferrer">UEFA 챔피언스리그 2023/24 공식 16강 추첨 안내</a> (2023.12.18)</p>
+        <p>조 1위를 우대하고, 첫 토너먼트에서 같은 조 재대결을 제한한 사례를 참고했습니다.</p>
+        <p>위 출처는 축구 대회의 추첨 사례입니다. 이번 대회의 3장조 전 경기제, 조별 진출 인원, 순위 기준, 조 간 승률·평균 비교와 8강 배정은 <strong>월촌구장배의 자체 운영 규정</strong>이며, UEFA 또는 ITF의 공식 테니스 규정을 그대로 적용한 것은 아닙니다.</p>
+      </details>
+    </section>
 
-    <!-- 본선 대진 구조 -->
-    <div style="background:#151518;border:1px solid #2A2A30;border-radius:14px;padding:22px 20px;margin-top:16px">
-      <div style="font-size:14px;font-weight:800;color:#D2FF4E;margin-bottom:14px;letter-spacing:1px">📐 본선 대진 방식</div>
-      <div style="display:flex;flex-direction:column;gap:10px">
-        <div style="background:#0C0C0E;border-radius:10px;padding:12px 16px">
-          <div style="color:#fff;font-weight:700;font-size:14px">8강 (1라운드)</div>
-          <div style="color:#909096;font-size:13px;margin-top:3px">시드 1~8번이 4경기로 대결</div>
-        </div>
-        <div style="background:#0C0C0E;border-radius:10px;padding:12px 16px">
-          <div style="color:#fff;font-weight:700;font-size:14px">4강 (준결승)</div>
-          <div style="color:#909096;font-size:13px;margin-top:3px">8강 승자 4팀이 2경기로 대결</div>
-        </div>
-        <div style="background:#1A2A10;border:1px solid #2A4A18;border-radius:10px;padding:12px 16px">
-          <div style="color:#D2FF4E;font-weight:700;font-size:14px">🏆 결승</div>
-          <div style="color:#909096;font-size:13px;margin-top:3px">4강 승자 2팀이 우승을 가림</div>
-        </div>
-      </div>
-      <div style="font-size:12px;color:#707075;margin-top:12px;line-height:1.6">본선 대진표는 예선 순위가 확정된 후 <b style="color:#909096">🏆 본선</b> 탭에서 확인할 수 있습니다.</div>
-    </div>
   </div>
 
   <!-- Results -->
@@ -655,6 +709,11 @@ function renderPublicStandings(){
 db.ref('results').on('value',function(){renderPublicStandings()});
 db.ref('groups').on('value',function(){renderPublicStandings()});
 
+function seedSummary(s){
+  var played=s.matchWin+s.matchLose, sets=s.setWin+s.setLose;
+  return '승률 '+(played?s.matchWin/played*100:0).toFixed(1)+'% · 장조당 '+(sets?s.gf/sets:0).toFixed(2)+'게임';
+}
+
 // ===== 본선 토너먼트 표시 =====
 function renderFinalBracketPublic(b){
   var el=document.getElementById('finalDisplay');
@@ -669,7 +728,7 @@ function renderFinalBracketPublic(b){
     el.innerHTML='<div class="empty"><span class="empty-icon">🏆</span><div class="empty-text">아직 본선 대진표가 게시되지 않았습니다</div></div>';
     return;
   }
-  if(b.type !== 'final8' || b.ruleVersion !== 'all3_wl_h2h_games_ab3_c2_v1'){
+  if(b.type !== 'final8' || b.ruleVersion !== 'performance_no_rematch_v2'){
     el.innerHTML='<div class="empty"><span class="empty-icon">🏆</span><div class="empty-text">이전 규정으로 생성된 본선 대진표입니다<br>예선 세 장조 완료 후 본부에서 본선 대진표를 다시 생성해주세요</div></div>';
     return;
   }
@@ -678,7 +737,7 @@ function renderFinalBracketPublic(b){
   var isFinal8 = b.type === 'final8';
   function tag(s){
     if(!s) return '<span style="color:#5A5A5E">미정</span>';
-    return '<b style="color:#D2FF4E">['+(s.seed||'')+'] '+(s.club||'')+'</b> <span style="color:#707075;font-size:11px">('+(s.group||'')+' '+(s.rankInGroup||'')+'위)</span>';
+    return '<b style="color:#D2FF4E">['+(s.seed||'')+'] '+(s.club||'')+'</b> <span style="color:#707075;font-size:11px">('+(s.group||'')+' '+(s.rankInGroup||'')+'위 · '+seedSummary(s)+')</span>';
   }
   function fromLabel(key, fallback){
     return o[key] ? '<b style="color:#D2FF4E">'+o[key]+'</b>' : '<span style="color:#909096">'+(fallback||'미정')+'</span>';
@@ -707,13 +766,18 @@ function renderFinalBracketPublic(b){
     if(!s) return;
     h+='<div style="display:flex;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid #1C1C20">'
       +'<span style="min-width:26px;height:26px;line-height:26px;text-align:center;border-radius:50%;font-weight:900;background:'+(s.bye?'#332800':'#1C1C20')+';color:'+(s.bye?'#FFD24E':'#909096')+'">'+(s.seed||'')+'</span>'
-      +'<span style="flex:1;color:#E8E8E8;font-weight:700">'+(s.club||'')+' <span style="color:#707075;font-size:11px;font-weight:400">'+(s.group||'')+' '+(s.rankInGroup||'')+'위</span></span>'
+      +'<span style="flex:1;color:#E8E8E8;font-weight:700">'+(s.club||'')+' <span style="color:#707075;font-size:11px;font-weight:400">'+(s.group||'')+' '+(s.rankInGroup||'')+'위 · '+seedSummary(s)+'</span></span>'
       +(s.bye?'<span style="color:#FFD24E;font-weight:800;font-size:11px">부전승</span>':'')
       +'</div>';
   });
   h+='</div>';
   h+='<div style="background:#151518;border:1px solid #2A2A30;border-radius:14px;padding:18px">';
-  h+='<div style="font-size:12px;font-weight:800;color:#909096;margin-bottom:6px">8강</div>';
+  if(b.seedDraw) h+='<p style="font-size:12px;color:#B8B8BF;margin-bottom:10px">조 간 시드 완전 동률은 공개 추첨으로 결정 · '+new Date(b.seedDraw.drawnAt).toLocaleString('ko-KR')+'</p>';
+  toArr(b.adjustments).forEach(function(note){
+    var label=document.createElement('span');label.textContent=note;
+    h+='<p style="font-size:12px;color:#FFD24E;line-height:1.7;margin-bottom:8px">'+label.innerHTML+'</p>';
+  });
+  h+='<div style="font-size:12px;font-weight:800;color:#909096;margin-bottom:6px">8강 · 같은 조 재대결 없음</div>';
   r1.forEach(function(m, i){
     if(!m) return;
     h+='<div style="font-size:14px;color:#E8E8E8;padding:8px 12px;background:#0C0C0E;border-radius:8px;margin-bottom:6px">'+(m.match||'')+'<br>'+tag(m.a)+' <span style="color:#5A5A5E">vs</span> '+tag(m.b)+winBadge(o['r1_'+i])+'</div>';
