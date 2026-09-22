@@ -348,14 +348,14 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
   <div class="admin-section" id="sec-standings">
     <div class="setup-section">
       <div class="setup-title">조별 순위표 (자동 계산)</div>
-      <p style="font-size:12px;color:#707075;margin-bottom:8px">경기 결과를 기반으로 자동 계산됩니다 · 상위 2팀 본선 진출 · 팀 등록 탭에서 조 편성</p>
+      <p style="font-size:12px;color:#707075;margin-bottom:8px">경기 결과를 기반으로 자동 계산됩니다 · A조 3팀 + B조 3팀 + C조 2팀, 총 8팀 본선 진출 · 팀 등록 탭에서 조 편성</p>
     </div>
     <div id="standingsArea"></div>
 
     <!-- 본선 토너먼트 자동 생성 -->
     <div class="setup-section" style="margin-top:20px;border:1px solid #2A4A18;background:#0E1608">
-      <div class="setup-title" style="color:#D2FF4E">🏆 본선 토너먼트 (6팀 · 각 조 1·2위)</div>
-      <p style="font-size:12px;color:#707075;margin-bottom:10px">각 조 1·2위 6팀을 성적순으로 시드 배정합니다. 상위 2팀은 8강 부전승, 같은 조 팀은 4강까지 재대결하지 않도록 배치합니다.</p>
+      <div class="setup-title" style="color:#D2FF4E">🏆 본선 토너먼트 (8팀 · 부전승 없음)</div>
+      <p style="font-size:12px;color:#707075;margin-bottom:10px">A·B조는 각각 상위 3팀, C조는 3팀 중 상위 2팀이 8강에 진출합니다. 조별 순위는 팀 승패 → 상대전적 → 전체 이긴 게임 수 순으로 결정합니다.</p>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="setup-btn" style="background:#1A3A10;color:#D2FF4E;border-color:#2A4A18" onclick="generateFinalBracket()">본선 대진표 생성</button>
         <button class="setup-btn" style="background:#3A1A10;color:#FF6B6B;border-color:#4A2A18" onclick="resetFinalBracket()">🗑 본선 리셋</button>
@@ -386,9 +386,9 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
     <div class="br-cfg">
       <div class="br-ci"><label>코트 수</label><input type="number" id="br-nCourts" value="5" min="1" max="10"></div>
       <div class="br-ci"><label>최대 조 팀 수</label><input type="number" id="br-nClubs" value="4" min="2" max="8" oninput="brBuildUI()"></div>
-      <div class="br-ci"><label>클럽당 복식조</label><input type="number" id="br-nTeams" value="3" min="1" max="6"></div>
+      <div class="br-ci"><label>클럽당 복식조</label><input type="number" id="br-nTeams" value="3" min="3" max="3" readonly></div>
       <div class="br-ci"><label>시작 시간</label><input type="time" id="br-startT" value="09:00"></div>
-      <div class="br-ci"><label>슬롯(분)</label><input type="number" id="br-slotM" value="60" min="15" max="180" step="15"></div>
+      <div class="br-ci"><label>장조당 시간(분)</label><input type="number" id="br-slotM" value="60" min="15" max="180" step="15"></div>
     </div>
 
     <!-- Club inputs (dynamic) -->
@@ -1138,6 +1138,7 @@ function validateAndUpdate(courtId, field, value, selectEl){
 }
 
 function updateCourt(courtId, field, value){
+  if(field==='group') value=cleanGroupLabel(value);
   courtsRef.child(courtId).child(field).set(value);
 }
 
@@ -1170,7 +1171,7 @@ function startMatch(courtId){
       toast('⚠️ 다른 조 팀과는 경기할 수 없습니다 ('+teamGroups[d.teamA]+'조 vs '+teamGroups[d.teamB]+'조)');
       return;
     }
-    // 이미 "확정된"(2선승 도달) 매치업인지 확인 — 진행 중 장조 추가는 막지 않음
+    // 이미 "확정된"(3장조 완료) 매치업인지 확인 — 진행 중 장조 추가는 막지 않음
     var _norm=function(t){return (t||'').replace(/\s*\d+장조$/,'').trim();};
     var dCA=_norm(d.teamA), dCB=_norm(d.teamB);
     var matchedSlot=null;
@@ -1231,7 +1232,7 @@ function finishMatch(courtId){
       toast('⚠️ 동점('+(d.scoreA||0)+':'+(d.scoreB||0)+')은 저장할 수 없습니다 — 타이브레이크로 승부를 가려주세요');
       return;
     }
-    var tA=d.teamA, tB=d.teamB, grp=d.group, cName=d.name, ev=d.event||'';
+    var tA=d.teamA, tB=d.teamB, grp=cleanGroupLabel(d.group), cName=d.name, ev=d.event||'';
 
     // 이미 저장된 결과가 있는지 확인
     resultsRef.once('value',function(rsnap){
@@ -1253,6 +1254,7 @@ function finishMatch(courtId){
       if(existingKey){
         if(!confirm('이미 결과가 저장되어 있습니다.\n새 점수('+tA+' '+d.scoreA+':'+d.scoreB+' '+tB+')로 교체하시겠습니까?')) return;
         resultsRef.child(existingKey).update({
+          teamA:tA, teamB:tB, event:ev, group:grp, skipped:null,
           scoreA:d.scoreA, scoreB:d.scoreB,
           time:new Date().toLocaleTimeString('ko-KR'),
           timestamp:firebase.database.ServerValue.TIMESTAMP
@@ -1271,66 +1273,25 @@ function finishMatch(courtId){
       }
       courtsRef.child(courtId).update({status:'done'});
 
-      // ★ 2선승제 자동 진행
-      autoProgress2Win(courtId, tA, tB, grp, ev);
+      // ★ 3장조 전 경기제 자동 진행
+      autoProgressAllThree(courtId, tA, tB, grp, ev);
     });
   });
 }
 
-// 2선승제 자동 진행: 결과 저장 후 다음 장조로 자동 전환하거나 매치업 종료 처리
-function autoProgress2Win(courtId, teamA, teamB, group, event){
-  var clubA = teamA.replace(/\s*\d+장조$/,'').trim();
-  var clubB = teamB.replace(/\s*\d+장조$/,'').trim();
-  if(!clubA || !clubB){
-    return;
-  }
-
-  resultsRef.once('value',function(rsnap){
-    var rdata = rsnap.val()||{};
-    var winsA=0, winsB=0, matchCount=0, playedEvents={};
-
-    Object.values(rdata).forEach(function(r){
-      if(r.skipped) return;
-      var rCA = (r.teamA||'').replace(/\s*\d+장조$/,'').trim();
-      var rCB = (r.teamB||'').replace(/\s*\d+장조$/,'').trim();
-      var same = (rCA===clubA && rCB===clubB) || (rCA===clubB && rCB===clubA);
-      if(!same) return;
-      matchCount++;
-      if(r.event) playedEvents[r.event]=true;
-      if(r.scoreA > r.scoreB){
-        if(rCA===clubA) winsA++; else winsB++;
-      } else if(r.scoreB > r.scoreA){
-        if(rCB===clubA) winsA++; else winsB++;
-      }
-    });
-
-    // 매치업 확정 → 코트 종료(done) 유지, 슬롯 잠금은 completedSlots가 처리
-    if(winsA >= 2 || winsB >= 2 || matchCount >= 3){
+// 3장조 전 경기제 자동 진행: 결과 저장 후 다음 장조로 자동 전환하거나 매치업 종료 처리
+function autoProgressAllThree(courtId, teamA, teamB, group, event){
+  resultsRef.once('value',function(snap){
+    var st=matchupState(snap.val()||{},teamA,teamB);
+    if(st.done){
       courtsRef.child(courtId).update({status:'done'});
-      if(winsA === winsB){
-        // 3장조까지 끝났는데 동률(무승부 포함) → 승자 오판정 방지
-        toast('⚠️ '+clubA+' vs '+clubB+' — 3장조 종료 후에도 동률('+winsA+':'+winsB+')입니다. 경기 결과 탭에서 점수를 확인해주세요');
-        return;
-      }
-      var winner = winsA > winsB ? clubA : clubB;
-      var score = winsA > winsB ? winsA+':'+winsB : winsB+':'+winsA;
-      toast('🏆 '+winner+' 승리! ('+score+') — '+clubA+' vs '+clubB+' 매치업 종료');
+      toast('매치업 종료: '+teamA+' '+st.w1+':'+st.w2+' '+teamB);
       return;
     }
-
-    // 아직 미확정 → 다음 장조로 자동 전환 (점수 리셋, 팀 유지, 대기 상태)
-    var order=['1장조','2장조','3장조'];
-    var nextEvent=null;
-    for(var i=0;i<order.length;i++){
-      if(!playedEvents[order[i]]){ nextEvent=order[i]; break; }
-    }
-    if(nextEvent){
-      courtsRef.child(courtId).update({
-        event:nextEvent, scoreA:0, scoreB:0, status:'waiting'
-      });
-      var cur = (winsA)+':'+(winsB);
-      toast('다음 경기: '+nextEvent+' (현재 '+clubA+' '+cur+' '+clubB+') — 점수 초기화됨');
-    }
+    courtsRef.child(courtId).update({
+      event:st.nextEvent,group:cleanGroupLabel(group),scoreA:0,scoreB:0,status:'waiting',startedAt:null
+    });
+    toast('다음 경기: '+st.nextEvent+' (현재 '+st.w1+':'+st.w2+')');
   });
 }
 
@@ -1357,23 +1318,9 @@ function assignNextMatchup(courtId){
     var rdata = rsnap.val()||{};
     
     // 매치업별 승수 계산
-    function matchupStatus(club1, club2){
-      var w1=0, w2=0;
-      Object.values(rdata).forEach(function(r){
-        if(r.skipped) return;
-        var rCA = (r.teamA||'').replace(/\s*\d+장조$/,'').trim();
-        var rCB = (r.teamB||'').replace(/\s*\d+장조$/,'').trim();
-        var same = (rCA===club1 && rCB===club2) || (rCA===club2 && rCB===club1);
-        if(!same) return;
-        if(r.scoreA > r.scoreB){
-          if(rCA===club1) w1++; else w2++;
-        } else if(r.scoreB > r.scoreA){
-          if(rCB===club1) w1++; else w2++;
-        }
-      });
-      return {w1:w1, w2:w2, done: w1>=2 || w2>=2};
-    }
-    
+    function matchupStatus(club1, club2){ return matchupState(rdata,club1,club2); }
+
+
     courtsRef.once('value',function(csnap){
       var courts = csnap.val()||{};
       
@@ -1420,7 +1367,7 @@ function assignNextMatchup(courtId){
       
       // 다음 장조 결정
       var playedCount = next.st.w1 + next.st.w2;
-      var nextJo = Math.min(playedCount + 1, 3);
+      var nextJo = parseInt(next.st.nextEvent,10);
       
       courtsRef.child(courtId).update({
         teamA: next.club1,
@@ -1444,21 +1391,8 @@ function renderCourt(courtId, data){
   // 현재 코트 팀쌍의 장조별 점수 스트립 (경기 시작 없이도 확인)
   var scoreStrip = '';
   if(data.teamA && data.teamB){
-    var _nm=function(t){return (t||'').replace(/\s*\d+장조$/,'').trim();};
-    var caC=_nm(data.teamA), cbC=_nm(data.teamB);
-    var res=latestResults||{};
-    var g={}, wA=0, wB=0;
-    Object.keys(res).forEach(function(k){
-      var r=res[k]; if(r.skipped) return;
-      var rk=r.court?r.court.replace('코트 ','court').replace('코트','court').trim():'';
-      if(rk!==courtId) return;
-      var rca=_nm(r.teamA), rcb=_nm(r.teamB);
-      var same=(rca===caC&&rcb===cbC)||(rca===cbC&&rcb===caC);
-      if(!same) return;
-      var sa,sb; if(rca===caC){sa=r.scoreA||0;sb=r.scoreB||0;}else{sa=r.scoreB||0;sb=r.scoreA||0;}
-      g[r.event||'?']={a:sa,b:sb};
-      if(sa>sb)wA++;else if(sb>sa)wB++;
-    });
+    var state=matchupState(latestResults,data.teamA,data.teamB);
+    var g=state.games, wA=state.w1, wB=state.w2;
     var chips=['1장조','2장조','3장조'].map(function(ev){
       var cur=(data.event===ev);
       if(g[ev]){
@@ -1468,7 +1402,7 @@ function renderCourt(courtId, data){
       }
       return '<span style="padding:1px 6px;border-radius:4px;background:#0C0C0E;border:1px solid '+(cur?'#D2FF4E':'#1C1C20')+';color:#505055">'+ev.replace('장조','')+'장 -</span>';
     }).join('');
-    var decided=(wA>=2||wB>=2);
+    var decided=matchupState(latestResults,data.teamA,data.teamB).done;
     var matchScore = (wA+wB>0)
       ? '<span style="color:'+(decided?'#D2FF4E':'#909096')+';font-weight:900">'+wA+':'+wB+(decided?' 🏆':'')+'</span>'
       : '<span style="color:#505055">0:0</span>';
@@ -1611,32 +1545,17 @@ setInterval(updateCourtTimers, 15000);
 // ============ 진행 현황 대시보드 ============
 function computeProgress(){
   if(!latestGroups) return null;
-  var results = latestResults || {};
-  var norm = function(t){ return (t||'').replace(/\s*\d+장조$/,'').trim(); };
-  var total=0, done=0, inprog=0;
+  var total=0,done=0,inprog=0;
   GROUP_LABELS.forEach(function(gk){
-    var g = latestGroups[gk];
-    if(!g) return;
-    var clubs = Object.keys(g.teams||{});
-    for(var i=0;i<clubs.length;i++){
-      for(var j=i+1;j<clubs.length;j++){
-        total++;
-        var wA=0, wB=0, played=0;
-        Object.keys(results).forEach(function(k){
-          var r=results[k]; if(!r || r.skipped) return;
-          var ca=norm(r.teamA), cb=norm(r.teamB);
-          var same=(ca===clubs[i]&&cb===clubs[j])||(ca===clubs[j]&&cb===clubs[i]);
-          if(!same) return;
-          played++;
-          if((r.scoreA||0)>(r.scoreB||0)){ if(ca===clubs[i])wA++; else wB++; }
-          else if((r.scoreB||0)>(r.scoreA||0)){ if(cb===clubs[i])wA++; else wB++; }
-        });
-        if(wA>=2||wB>=2||played>=3) done++;
-        else if(played>0) inprog++;
-      }
+    var g=latestGroups[gk]; if(!g) return;
+    var clubs=Object.keys(g.teams||{});
+    for(var i=0;i<clubs.length;i++) for(var j=i+1;j<clubs.length;j++){
+      total++;
+      var st=matchupState(latestResults,clubs[i],clubs[j]);
+      if(st.done) done++; else if(st.played) inprog++;
     }
   });
-  return {total:total, done:done, inprog:inprog};
+  return {total:total,done:done,inprog:inprog};
 }
 
 function renderProgress(){
@@ -1657,7 +1576,7 @@ function renderProgress(){
   if(remain > 0 && nC > 0){
     var waves = Math.ceil(remain / nC);
     var fmt = function(m){ var h=Math.floor(m/60), mm=m%60; return (h? h+'시간':'')+(mm? (h?' ':'')+mm+'분':'') || '0분'; };
-    est = ' · 잔여 예상 약 ' + fmt(waves*sM*2) + ' ~ ' + fmt(waves*sM*3);
+    est = ' · 잔여 예상 약 ' + fmt(waves*sM*3);
   }
   el.style.display='block';
   el.innerHTML = '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">'
@@ -1800,182 +1719,99 @@ function initGroups(){
   toast('A조/B조 편성 완료');
 }
 
-function calcStandings(groupTeams,results){
-  var stats={};
-  Object.keys(groupTeams).forEach(function(t){
-    stats[t]={team:t,win:0,lose:0,gf:0,ga:0,gd:0,matches:0};
-  });
-  
-  if(!results) return Object.values(stats);
-  
-  Object.keys(results).forEach(function(key){
-    var r=results[key];
-    var tA=r.teamA, tB=r.teamB;
-    if(!stats[tA]||!stats[tB]) return;
-    
-    var sA=r.scoreA||0, sB=r.scoreB||0;
-    stats[tA].gf+=sA; stats[tA].ga+=sB; stats[tA].matches++;
-    stats[tB].gf+=sB; stats[tB].ga+=sA; stats[tB].matches++;
-    
-    if(sA>sB){stats[tA].win++;stats[tB].lose++}
-    else if(sB>sA){stats[tB].win++;stats[tA].lose++}
-  });
-  
-  Object.values(stats).forEach(function(s){s.gd=s.gf-s.ga});
-
-  // 3순위: 상대전적 (승자 승)
-  function h2hWin(tA,tB){
-    var w=0;
-    if(!results) return w;
-    Object.keys(results).forEach(function(k){
-      var r=results[k];
-      if(r.teamA===tA&&r.teamB===tB&&(r.scoreA||0)>(r.scoreB||0)) w++;
-      if(r.teamA===tB&&r.teamB===tA&&(r.scoreB||0)>(r.scoreA||0)) w++;
-    });
-    return w;
-  }
-
-  var arr=Object.values(stats);
-  arr.sort(function(a,b){
-    if(b.gd!==a.gd) return b.gd-a.gd;
-    if(b.win!==a.win) return b.win-a.win;
-    return h2hWin(b.team,a.team)-h2hWin(a.team,b.team);
-  });
-  return arr;
+// Three doubles matches are required; old skipped records are not results.
+function clubBaseName(team){
+  return String(team || '').replace(/\s*\d+장조$/, '').trim();
 }
-
-// 매치업(클럽대클럽) 단위 순위 계산
+function cleanGroupLabel(group){
+  return String(group || '').replace(/\s+[1-3]장조(?:\s*\(필요시\))?\s*$/, '').trim();
+}
+function validMatchResult(r){
+  return !!(r && !r.skipped && /^[1-3]장조(?:\s*\(필요시\))?$/.test(r.event || '') &&
+    r.scoreA !== null && r.scoreB !== null && r.scoreA !== '' && r.scoreB !== '' &&
+    Number.isFinite(Number(r.scoreA)) && Number.isFinite(Number(r.scoreB)) &&
+    Number(r.scoreA) >= 0 && Number(r.scoreB) >= 0 && Number(r.scoreA) !== Number(r.scoreB) &&
+    clubBaseName(r.teamA) && clubBaseName(r.teamB) && clubBaseName(r.teamA) !== clubBaseName(r.teamB));
+}
+function shouldCountResult(results, key, r){
+  if(!validMatchResult(r)) return false;
+  var pair = [clubBaseName(r.teamA), clubBaseName(r.teamB)].sort().join('|');
+  return !Object.keys(results || {}).some(function(k){
+    var other=results[k];
+    if(k===key || !validMatchResult(other) || parseInt(other.event,10)!==parseInt(r.event,10)) return false;
+    if([clubBaseName(other.teamA),clubBaseName(other.teamB)].sort().join('|')!==pair) return false;
+    return Number(other.timestamp || 0)>Number(r.timestamp || 0) ||
+      (Number(other.timestamp || 0)===Number(r.timestamp || 0) && k>key);
+  });
+}
+function matchupState(results, teamA, teamB){
+  var a=clubBaseName(teamA), b=clubBaseName(teamB);
+  var st={w1:0,w2:0,played:0,done:false,games:{},nextEvent:null};
+  Object.keys(results || {}).forEach(function(key){
+    var r=results[key];
+    if(!shouldCountResult(results,key,r)) return;
+    var ra=clubBaseName(r.teamA), rb=clubBaseName(r.teamB);
+    if(!((ra===a && rb===b)||(ra===b && rb===a))) return;
+    var sa=Number(ra===a?r.scoreA:r.scoreB), sb=Number(ra===a?r.scoreB:r.scoreA);
+    st.games[parseInt(r.event,10)+'장조']={a:sa,b:sb};
+    if(sa>sb) st.w1++; else st.w2++;
+  });
+  ['1장조','2장조','3장조'].forEach(function(ev){
+    if(st.games[ev]) st.played++;
+    else if(!st.nextEvent) st.nextEvent=ev;
+  });
+  st.done=st.played===3;
+  return st;
+}
 function calcMatchupStandings(groupTeams, results){
-  var clubs = Object.keys(groupTeams);
-  var matchups = {};
-  var clubStats = {};
-  
+  var clubs=Object.keys(groupTeams), matchups={}, stats={};
   clubs.forEach(function(c){
-    matchups[c] = {};
-    clubStats[c] = {club:c, matchWin:0, matchLose:0, setWin:0, setLose:0, setDraw:0, gf:0, ga:0, matchesPlayed:0};
-    clubs.forEach(function(c2){
-      if(c !== c2) matchups[c][c2] = {jomatchesWon:0, jomatchesLost:0, jomatchesDraw:0, matches:[]};
-    });
+    matchups[c]={};
+    stats[c]={club:c,matchWin:0,matchLose:0,setWin:0,setLose:0,setDraw:0,gf:0,ga:0,matchesPlayed:0,h2h:0};
   });
-  
-  if(!results) return {matchups:matchups, standings:Object.values(clubStats), clubs:clubs};
-  
-  Object.values(results).forEach(function(r){
-    if(r.skipped) return;
-    var tA = r.teamA, tB = r.teamB;
-    if(!tA || !tB) return;
-    var clubA = tA.replace(/\s*\d+장조$/,'').trim();
-    var clubB = tB.replace(/\s*\d+장조$/,'').trim();
-    if(!matchups[clubA] || !matchups[clubB]) return;
-    
-    var sA = r.scoreA||0, sB = r.scoreB||0;
-    
-    if(sA > sB){
-      matchups[clubA][clubB].jomatchesWon++;
-      matchups[clubB][clubA].jomatchesLost++;
-    } else if(sB > sA){
-      matchups[clubB][clubA].jomatchesWon++;
-      matchups[clubA][clubB].jomatchesLost++;
-    } else {
-      // 6:6 무승부 → 각 0.5
-      matchups[clubA][clubB].jomatchesDraw++;
-      matchups[clubB][clubA].jomatchesDraw++;
-    }
-    matchups[clubA][clubB].matches.push({sA:sA, sB:sB, myWin:sA>sB, draw:sA===sB});
-    matchups[clubB][clubA].matches.push({sA:sB, sB:sA, myWin:sB>sA, draw:sA===sB});
-  });
-  
-  clubs.forEach(function(cA){
-    clubs.forEach(function(cB){
-      if(cA >= cB) return;
-      var mA = matchups[cA][cB];
-      if(mA.matches.length === 0) return;
-      
-      clubStats[cA].setWin += mA.jomatchesWon;
-      clubStats[cA].setLose += mA.jomatchesLost;
-      clubStats[cA].setDraw += mA.jomatchesDraw;
-      clubStats[cB].setWin += mA.jomatchesLost;
-      clubStats[cB].setLose += mA.jomatchesWon;
-      clubStats[cB].setDraw += mA.jomatchesDraw;
-      clubStats[cA].matchesPlayed++;
-      clubStats[cB].matchesPlayed++;
-      
-      // 게임 득실
-      mA.matches.forEach(function(mm){
-        clubStats[cA].gf += mm.sA; clubStats[cA].ga += mm.sB;
+  clubs.forEach(function(a){
+    clubs.forEach(function(b){
+      if(a===b) return;
+      var st=matchupState(results,a,b);
+      var matches=Object.keys(st.games).map(function(ev){
+        var g=st.games[ev];
+        return {sA:g.a,sB:g.b,myWin:g.a>g.b,draw:false};
       });
-      matchups[cB][cA].matches.forEach(function(mm){
-        clubStats[cB].gf += mm.sA; clubStats[cB].ga += mm.sB;
-      });
-      
-      // 매치업 승패 판정 (2승 이상 확정 시만)
-      if(mA.jomatchesWon >= 2){
-        clubStats[cA].matchWin++;
-        clubStats[cB].matchLose++;
-      } else if(mA.jomatchesLost >= 2){
-        clubStats[cB].matchWin++;
-        clubStats[cA].matchLose++;
+      matchups[a][b]={jomatchesWon:st.w1,jomatchesLost:st.w2,jomatchesDraw:0,matches:matches,complete:st.done};
+      stats[a].setWin+=st.w1; stats[a].setLose+=st.w2;
+      matches.forEach(function(m){stats[a].gf+=m.sA;stats[a].ga+=m.sB;});
+      if(st.done){
+        stats[a].matchesPlayed++;
+        if(st.w1>st.w2) stats[a].matchWin++; else stats[a].matchLose++;
       }
     });
   });
-  
-  function h2hMatchWin(cA, cB){
-    var m = matchups[cA] && matchups[cA][cB];
-    if(!m || m.matches.length === 0) return 0;
-    if(m.jomatchesWon >= 2) return 1;
-    if(m.jomatchesLost >= 2) return -1;
-    return 0;
-  }
-  
-  var standings = Object.values(clubStats);
-
-  // 동률 그룹 내 상대전적(승자승) 계산: 해당 그룹 팀들끼리의 클럽매치 승만 집계
-  function h2hWinsWithin(club, group){
-    var w = 0;
-    group.forEach(function(other){
-      if(other.club === club) return;
-      if(h2hMatchWin(club, other.club) === 1) w++;
+  var standings=Object.values(stats);
+  standings.sort(function(a,b){return b.matchWin-a.matchWin || a.matchLose-b.matchLose;});
+  for(var i=0;i<standings.length;){
+    var j=i+1;
+    while(j<standings.length && standings[j].matchWin===standings[i].matchWin &&
+      standings[j].matchLose===standings[i].matchLose) j++;
+    var tied=standings.slice(i,j);
+    tied.forEach(function(s){
+      s.h2h=tied.reduce(function(n,other){
+        var m=matchups[s.club][other.club];
+        return n+(m && m.complete && m.jomatchesWon>m.jomatchesLost?1:0);
+      },0);
     });
-    return w;
+    tied.sort(function(a,b){return b.h2h-a.h2h || b.gf-a.gf;});
+    tied.forEach(function(s,k){
+      var prev=tied[k-1], next=tied[k+1];
+      s.unresolvedTie=!!((prev && prev.h2h===s.h2h && prev.gf===s.gf) ||
+        (next && next.h2h===s.h2h && next.gf===s.gf));
+      s.rank=prev && prev.h2h===s.h2h && prev.gf===s.gf ? prev.rank : i+k+1;
+      standings[i+k]=s;
+    });
+    i=j;
   }
-
-  // 기본 정렬: 클럽매치 승 → 매치 패(적을수록 상위)
-  standings.sort(function(a,b){
-    if(b.matchWin !== a.matchWin) return b.matchWin - a.matchWin;
-    if(a.setLose !== b.setLose) return a.setLose - b.setLose;
-    return 0;
-  });
-
-  // 1·2순위가 완전히 같은 팀들(동률 그룹)을 묶어 세부 기준으로 재정렬
-  // ③ 동률 팀 간 승자승 → ④ 게임 득실차 → ⑤ 다득점 (scoreboard.html과 동일 로직)
-  var i = 0;
-  while(i < standings.length){
-    var j = i + 1;
-    while(j < standings.length &&
-          standings[j].matchWin === standings[i].matchWin &&
-          standings[j].setLose === standings[i].setLose){
-      j++;
-    }
-    if(j - i >= 2){
-      var group = standings.slice(i, j);
-      group.sort(function(a,b){
-        // 3순위: 동률 팀들끼리의 상대전적(승자승, 미니리그)
-        var hw = h2hWinsWithin(b.club, group) - h2hWinsWithin(a.club, group);
-        if(hw !== 0) return hw;
-        // 4순위: 게임 득실차 (전체 경기 기준)
-        var gdA = a.gf - a.ga, gdB = b.gf - b.ga;
-        if(gdB !== gdA) return gdB - gdA;
-        // 5순위: 다득점
-        if(b.gf !== a.gf) return b.gf - a.gf;
-        return 0;
-      });
-      for(var k = 0; k < group.length; k++) standings[i + k] = group[k];
-    }
-    i = j;
-  }
-
-  return {matchups:matchups, standings:standings, clubs:clubs};
+  return {matchups:matchups,standings:standings,clubs:clubs};
 }
+
 
 function renderStandings(){
   db.ref('groups').once('value',function(gsnap){
@@ -2000,7 +1836,7 @@ function renderStandings(){
         var standings = res.standings;
         
         html += '<div class="standings-group">';
-        html += '<div class="standings-group-header" style="color:'+color+'">'+g.name+' — 클럽매치 결과표</div>';
+        html += '<div class="standings-group-header" style="color:'+color+'">'+g.name+' — 클럽매치 결과표'+({A:' · 상위 3팀 진출',B:' · 상위 3팀 진출',C:' · 상위 2팀 진출'}[gKey]||'')+'</div>';
         
         // 매치업 크로스 테이블 (클럽 vs 클럽)
         html += '<table class="standings-table" style="margin-bottom:16px"><thead><tr>';
@@ -2023,8 +1859,8 @@ function renderStandings(){
               if(m.matches.length === 0){
                 html += '<td style="text-align:center;color:#5A5A5E;font-size:11px">-</td>';
               } else {
-                var mWon = m.jomatchesWon >= 2;
-                var mLost = m.jomatchesLost >= 2;
+                var mWon = m.complete && m.jomatchesWon >= 2;
+                var mLost = m.complete && m.jomatchesLost >= 2;
                 var color2 = mWon?'#50C878':mLost?'#FF6B6B':'#FFB43C';
                 var bg = mWon?'rgba(80,200,120,.08)':mLost?'rgba(255,107,107,.08)':'rgba(255,180,60,.08)';
                 var scoreText = m.jomatchesWon+':'+m.jomatchesLost;
@@ -2045,21 +1881,21 @@ function renderStandings(){
         html += '<div style="font-size:11px;font-weight:800;color:'+color+';margin-bottom:6px;letter-spacing:2px">최종 순위</div>';
         html += '<table class="standings-table"><thead><tr>'
           +'<th>순위</th><th style="text-align:left">클럽</th>'
-          +'<th>①클럽매치<br>승-패</th><th>②매치<br>패</th><th>매치승<br>(참고)</th>'
+          +'<th>①클럽매치<br>승-패</th><th>②상대전적<br>승</th><th>③이긴<br>게임 수</th>'
           +'</tr></thead><tbody>';
         
         standings.forEach(function(s,i){
           var qualify = '';
           html += '<tr class="'+qualify+'">'
-            +'<td class="standings-rank" style="color:'+color+'">'+(i+1)+'</td>'
+            +'<td class="standings-rank" style="color:'+color+'">'+s.rank+(s.unresolvedTie?' (동률)':'')+'</td>'
             +'<td class="standings-team">'+s.club+'</td>'
             +'<td style="font-size:14px"><span style="color:#50C878;font-weight:800">'+s.matchWin+'</span><span style="color:#5A5A5E">-</span><span style="color:#FF6B6B;font-weight:800">'+s.matchLose+'</span></td>'
-            +'<td style="color:#FF6B6B;font-weight:700">'+s.setLose+'</td>'
-            +'<td style="color:#707075">'+s.setWin+'</td>'
+            +'<td style="color:#FF6B6B;font-weight:700">'+s.h2h+'</td>'
+            +'<td style="color:#707075">'+s.gf+'</td>'
             +'</tr>';
         });
         html += '</tbody></table>';
-        html += '<div style="font-size:10px;color:#707075;margin-top:6px;line-height:1.6">순위 결정: ① 클럽매치 승수 → ② 매치 패(적을수록) → ③ 동률 팀 간 승자승 → ④ 게임 득실차 → ⑤ 다득점<br>(공개 스코어보드와 동일한 기준입니다)</div>';
+        html += '<div style="font-size:10px;color:#707075;margin-top:6px;line-height:1.6">순위 결정: ① 팀 승패 → ② 동률 팀 간 상대전적 → ③ 전체 이긴 게임 수<br>(공개 스코어보드와 동일한 기준입니다)</div>';
         html += '</div>';
       });
       
@@ -2068,145 +1904,66 @@ function renderStandings(){
   });
 }
 
-// ============ 본선 토너먼트 (6팀: 각 조 1·2위) ============
-// 크로스 그룹 시드 정렬 기준: ①매치승 ②매치패(적을수록) ③게임 득실차 ④다득점
+// Different preliminary groups have no head-to-head result.
 function _seedCmp(a,b){
-  if((b.matchWin||0)!==(a.matchWin||0)) return (b.matchWin||0)-(a.matchWin||0);
-  if((a.setLose||0)!==(b.setLose||0)) return (a.setLose||0)-(b.setLose||0);
-  var gdA=(a.gf||0)-(a.ga||0), gdB=(b.gf||0)-(b.ga||0);
-  if(gdB!==gdA) return gdB-gdA;
-  return (b.gf||0)-(a.gf||0);
+  return b.matchWin-a.matchWin || a.matchLose-b.matchLose || b.gf-a.gf;
 }
-
+function buildFinalEight(groups,results){
+  var winners=[],runners=[],thirds=[],incomplete=[],ties=[];
+  var keys=Object.keys(groups||{}).filter(function(k){return groups[k] && Object.keys(groups[k].teams||{}).length;});
+  if(keys.length!==3 || !groups.A || !groups.B || !groups.C) return {error:'8강 생성에는 A·B·C조가 필요합니다. A조 3팀, B조 3팀, C조 2팀이 진출합니다.'};
+  keys.forEach(function(key){
+    var g=groups[key], res=calcMatchupStandings(g.teams||{},results), clubs=res.clubs;
+    for(var i=0;i<clubs.length;i++) for(var j=i+1;j<clubs.length;j++){
+      if(!res.matchups[clubs[i]][clubs[j]].complete) incomplete.push((g.name||key)+': '+clubs[i]+' vs '+clubs[j]);
+    }
+    res.standings.forEach(function(s,i){
+      if(s.unresolvedTie && s.rank<=(key==='C'?2:3)) ties.push((g.name||key)+' '+s.club);
+      var seed=Object.assign({},s,{group:g.name||key,groupKey:key,rankInGroup:i+1});
+      if(i===0) winners.push(seed);
+      if(i===1) runners.push(seed);
+      if(i===2 && (key==='A' || key==='B')) thirds.push(seed);
+    });
+  });
+  if(incomplete.length) return {error:'예선 1·2·3장조가 모두 끝나야 합니다. 미완료 '+incomplete.length+'매치업: '+incomplete.join(', ')};
+  if(ties.length) return {error:'상대전적과 전체 이긴 게임 수까지 같은 팀이 있습니다. 추가 순위 기준 확정이 필요합니다: '+ties.join(', ')};
+  winners.sort(_seedCmp); runners.sort(_seedCmp); thirds.sort(_seedCmp);
+  if(winners.length!==3 || runners.length!==3 || thirds.length<2) return {error:'8강 진출팀이 부족합니다.'};
+  var seeds=winners.concat(runners,thirds).map(function(s,i){
+    return {seed:i+1,bye:false,club:s.club,group:s.group,groupKey:s.groupKey,rankInGroup:s.rankInGroup,
+      matchWin:s.matchWin,matchLose:s.matchLose,gf:s.gf,ga:s.ga};
+  });
+  // Keep the top four seeds apart and minimize same-group quarterfinals.
+  var high=[seeds[0],seeds[3],seeds[1],seeds[2]], low=[seeds[7],seeds[4],seeds[6],seeds[5]];
+  var best=low, bestCost=Infinity;
+  function choose(prefix,remaining){
+    if(!remaining.length){
+      var cost=prefix.reduce(function(n,s,i){return n+(s.groupKey===high[i].groupKey?1:0);},0);
+      if(cost<bestCost){bestCost=cost;best=prefix.slice();}
+      return;
+    }
+    remaining.forEach(function(s,i){choose(prefix.concat(s),remaining.filter(function(_,j){return i!==j;}));});
+  }
+  choose([],low);
+  return {bracket:{
+    type:'final8',ruleVersion:'all3_wl_h2h_games_ab3_c2_v1',createdAt:Date.now(),seeds:seeds,
+    r1:high.map(function(s,i){return {match:'8강 '+(i+1)+'경기',a:s,b:best[i]};}),
+    sf:[
+      {match:'4강 1경기',aFrom:'8강 1경기 승자',bFrom:'8강 2경기 승자'},
+      {match:'4강 2경기',aFrom:'8강 3경기 승자',bFrom:'8강 4경기 승자'}
+    ],
+    final:{match:'결승',aFrom:'4강 1경기 승자',bFrom:'4강 2경기 승자'}
+  }};
+}
 function generateFinalBracket(){
   if(!requireOnline()) return;
   db.ref('groups').once('value',function(gsnap){
-    var groups=gsnap.val();
-    if(!groups){ toast('⚠️ 조 편성을 먼저 해주세요'); return; }
     resultsRef.once('value',function(rsnap){
-      var allResults=rsnap.val()||{};
-
-      // === 예선 완료 여부 검사 ===
-      // 각 조 풀리그: N팀이면 총 매치업 = N*(N-1)/2, 각 매치업은 2선승(2장조 이상)으로 확정되어야 함
-      var totalNeeded=0, totalDone=0, incompleteList=[];
-      GROUP_LABELS.forEach(function(gKey){
-        var g=groups[gKey];
-        if(!g) return;
-        var teamsObj=g.teams||{};
-        var clubs=Object.keys(teamsObj);
-        var res=calcMatchupStandings(teamsObj, allResults);
-        var mu=res.matchups;
-        for(var i=0;i<clubs.length;i++){
-          for(var j=i+1;j<clubs.length;j++){
-            totalNeeded++;
-            var m=mu[clubs[i]] && mu[clubs[i]][clubs[j]];
-            var decided = m && (m.jomatchesWon>=2 || m.jomatchesLost>=2 || m.matches.length>=3);
-            if(decided) totalDone++;
-            else incompleteList.push((g.name||gKey)+': '+clubs[i]+' vs '+clubs[j]);
-          }
-        }
-      });
-
-      if(totalNeeded>0 && totalDone<totalNeeded){
-        document.getElementById('finalBracketArea').innerHTML=
-          '<div style="color:#FF6B6B;font-size:12px;padding:12px;background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.3);border-radius:8px;line-height:1.7">'
-          +'⚠️ <b>예선이 아직 끝나지 않았습니다.</b> ('+totalDone+'/'+totalNeeded+' 경기 완료)<br>'
-          +'모든 예선 경기가 끝나야 순위가 확정되어 본선 대진을 만들 수 있습니다.<br><br>'
-          +'<b>미완료 경기:</b><br>&nbsp;&nbsp;'+incompleteList.slice(0,8).join('<br>&nbsp;&nbsp;')
-          +(incompleteList.length>8?('<br>&nbsp;&nbsp;… 외 '+(incompleteList.length-8)+'경기'):'')
-          +'</div>';
-        toast('⚠️ 예선 미완료 ('+totalDone+'/'+totalNeeded+') — 본선 생성 불가');
-        return;
-      }
-
-      var winners=[], runners=[]; // 조 1위 / 조 2위 모음
-      var groupCount=0;
-      GROUP_LABELS.forEach(function(gKey){
-        var g=groups[gKey];
-        if(!g) return;
-        groupCount++;
-        var res=calcMatchupStandings(g.teams||{}, allResults);
-        var st=res.standings;
-        if(st[0]) winners.push(Object.assign({}, st[0], {group:g.name||gKey, groupKey:gKey, rankInGroup:1}));
-        if(st[1]) runners.push(Object.assign({}, st[1], {group:g.name||gKey, groupKey:gKey, rankInGroup:2}));
-      });
-
-      if(groupCount!==3 || winners.length<3 || runners.length<3){
-        document.getElementById('finalBracketArea').innerHTML=
-          '<div style="color:#FF6B6B;font-size:12px;padding:10px;background:rgba(255,107,107,.08);border-radius:8px">'
-          +'⚠️ 3개 조 × 각 2팀(총 6팀)이 필요합니다. 현재 조 수: '+groupCount+', 1위 '+winners.length+'팀 · 2위 '+runners.length+'팀.<br>'
-          +'예선 경기 결과가 충분히 입력되어 각 조 순위가 확정되어야 합니다.</div>';
-        return;
-      }
-
-      // 성적순 시드 배정: 1위 3팀 → 시드1~3, 2위 3팀 → 시드4~6
-      winners.sort(_seedCmp);
-      runners.sort(_seedCmp);
-      var seeds=[
-        Object.assign({seed:1,bye:true}, winners[0]),
-        Object.assign({seed:2,bye:true}, winners[1]),
-        Object.assign({seed:3,bye:false}, winners[2]),
-        Object.assign({seed:4,bye:false}, runners[0]),
-        Object.assign({seed:5,bye:false}, runners[1]),
-        Object.assign({seed:6,bye:false}, runners[2])
-      ];
-      var byName={}; seeds.forEach(function(s){ byName[s.seed]=s; });
-
-      // 1라운드(8강): 4번vs5번, 3번vs6번. 같은 조 재대결 회피 시도
-      var lowSeeds=[byName[3],byName[4],byName[5],byName[6]];
-      // 기본 페어링: (4,5) & (3,6)
-      var pairs=[[byName[4],byName[5]],[byName[3],byName[6]]];
-      function sameGroup(p){ return p[0].groupKey===p[1].groupKey; }
-      if(sameGroup(pairs[0])||sameGroup(pairs[1])){
-        // 대안 페어링: (4,6) & (3,5)
-        var alt=[[byName[4],byName[6]],[byName[3],byName[5]]];
-        if(!sameGroup(alt[0]) && !sameGroup(alt[1])) pairs=alt;
-      }
-
-      // 4강 구조: 시드1 vs (pairs[0] 승자), 시드2 vs (pairs[1] 승자)
-      // 같은 조 회피: 시드1과 pairs[0] 승자후보가 같은 조면 pairs 교체
-      var top=byName[1], bottom=byName[2];
-      function pairHasGroup(p,gk){ return p[0].groupKey===gk||p[1].groupKey===gk; }
-      // 시드1의 조가 pairs[0]에, 시드2의 조가 pairs[1]에 겹치면 스왑 시도
-      if((pairHasGroup(pairs[0],top.groupKey)||pairHasGroup(pairs[1],bottom.groupKey))
-         && !(pairHasGroup(pairs[1],top.groupKey)||pairHasGroup(pairs[0],bottom.groupKey))){
-        pairs=[pairs[1],pairs[0]];
-      }
-
-      // Firebase는 undefined를 거부 → 시드 객체를 순수 데이터로 정제
-      function cleanSeed(s){
-        if(!s) return null;
-        return {
-          seed: s.seed||0, bye: !!s.bye,
-          club: s.club||'', group: s.group||'', groupKey: s.groupKey||'',
-          rankInGroup: s.rankInGroup||0,
-          matchWin: s.matchWin||0, matchLose: s.matchLose||0,
-          setLose: s.setLose||0, gf: s.gf||0, ga: s.ga||0
-        };
-      }
-      var cleanSeeds = seeds.map(cleanSeed);
-
-      var bracket={
-        type:'final6', createdAt:Date.now(),
-        seeds:cleanSeeds,
-        r1:[
-          {match:'8강 1경기', a:cleanSeed(pairs[0][0]), b:cleanSeed(pairs[0][1])},
-          {match:'8강 2경기', a:cleanSeed(pairs[1][0]), b:cleanSeed(pairs[1][1])}
-        ],
-        sf:[
-          {match:'4강 1경기', a:cleanSeed(top), bFrom:'8강 1경기 승자'},
-          {match:'4강 2경기', a:cleanSeed(bottom), bFrom:'8강 2경기 승자'}
-        ],
-        final:{match:'결승', aFrom:'4강 1경기 승자', bFrom:'4강 2경기 승자'}
-      };
-
-      // 저장 후 finalBracket 리스너가 자동으로 렌더링 (승자 기록 버튼 포함)
-      db.ref('finalBracket').set(bracket, function(err){
-        if(err){
-          toast('⚠️ 본선 저장 실패: '+err.message);
-        } else {
-          toast('🏆 본선 대진표 생성 완료! (스코어보드에도 게시됨)');
-        }
+      var result=buildFinalEight(gsnap.val()||{},rsnap.val()||{});
+      if(result.error){toast(result.error);return;}
+      if(_fbCur && !confirm('기존 본선 대진과 승자 기록을 새 순위 기준으로 다시 생성하시겠습니까?')) return;
+      db.ref('finalBracket').set(result.bracket,function(err){
+        toast(err?'본선 저장 실패: '+err.message:'8강 대진표 생성 완료! 스코어보드에 반영됩니다.');
       });
     });
   });
@@ -2242,14 +1999,17 @@ function _fbToArr(v){
 
 // 각 경기(stage)의 두 참가 클럽 [a, b] — 이전 라운드 승자가 미정이면 null
 function _finalParticipants(stage){
-  var b=_fbCur; if(!b) return [null,null];
-  var o=b.outcomes||{};
-  var r1=_fbToArr(b.r1), sf=_fbToArr(b.sf);
-  if(stage==='r1_0') return r1[0]?[r1[0].a&&r1[0].a.club||null, r1[0].b&&r1[0].b.club||null]:[null,null];
-  if(stage==='r1_1') return r1[1]?[r1[1].a&&r1[1].a.club||null, r1[1].b&&r1[1].b.club||null]:[null,null];
-  if(stage==='sf_0') return [sf[0]&&sf[0].a&&sf[0].a.club||null, o.r1_0||null];
-  if(stage==='sf_1') return [sf[1]&&sf[1].a&&sf[1].a.club||null, o.r1_1||null];
-  if(stage==='final') return [o.sf_0||null, o.sf_1||null];
+  var b=_fbCur; if(!b || b.ruleVersion!=='all3_wl_h2h_games_ab3_c2_v1') return [null,null];
+  var o=b.outcomes||{}, r1=_fbToArr(b.r1);
+  if(/^r1_[0-3]$/.test(stage)){
+    var m=r1[Number(stage.slice(3))];
+    return m?[m.a&&m.a.club||null,m.b&&m.b.club||null]:[null,null];
+  }
+  if(/^sf_[01]$/.test(stage)){
+    var i=Number(stage.slice(3))*2;
+    return [o['r1_'+i]||null,o['r1_'+(i+1)]||null];
+  }
+  if(stage==='final') return [o.sf_0||null,o.sf_1||null];
   return [null,null];
 }
 
@@ -2264,8 +2024,7 @@ function setFinalWinnerIdx(stage, pi){
     var clearing = (o[stage]===club);
     upd[stage] = clearing ? null : club;
     // 이전 라운드 승자 변경 시 하위 라운드 기록 무효화 (연쇄 초기화)
-    if(stage==='r1_0'){ upd.sf_0=null; upd.final=null; }
-    if(stage==='r1_1'){ upd.sf_1=null; upd.final=null; }
+    if(/^r1_[0-3]$/.test(stage)){ upd['sf_'+Math.floor(Number(stage.slice(3))/2)]=null; upd.final=null; }
     if(stage==='sf_0'||stage==='sf_1'){ upd.final=null; }
     db.ref('finalBracket/outcomes').update(upd, function(err){
       if(err){ toast('⚠️ 저장 실패: '+err.message); return; }
@@ -2296,6 +2055,10 @@ function renderFinalBracket(b){
   var area=document.getElementById('finalBracketArea');
   if(!area || !b) return;
   _fbCur=b;
+  if(b.type!=='final8' || b.ruleVersion!=='all3_wl_h2h_games_ab3_c2_v1'){
+    area.textContent='기존 본선 대진은 이전 규정으로 생성되었습니다. 예선 세 장조 완료 후 본선 대진표를 다시 생성해주세요.';
+    return;
+  }
   var o=b.outcomes||{};
   var seeds=_fbToArr(b.seeds), r1=_fbToArr(b.r1), sf=_fbToArr(b.sf);
   var h='';
@@ -2306,7 +2069,7 @@ function renderFinalBracket(b){
     if(!s) return;
     h+='<div style="font-size:12px;color:#C8C8CC;padding:3px 0;display:flex;gap:8px;align-items:center">'
       +'<span style="min-width:22px;text-align:center;font-weight:900;color:'+(s.bye?'#FFD24E':'#909096')+'">'+s.seed+'</span>'
-      +'<span style="flex:1">'+s.club+' <span style="color:#707075;font-size:10px">('+s.group+' '+s.rankInGroup+'위 · 매치 '+(s.matchWin||0)+'승 / 득실 '+((s.gf||0)-(s.ga||0))+')</span></span>'
+      +'<span style="flex:1">'+s.club+' <span style="color:#707075;font-size:10px">('+s.group+' '+s.rankInGroup+'위 · 매치 '+(s.matchWin||0)+'승 / 이긴 게임 '+(s.gf||0)+')</span></span>'
       +(s.bye?'<span style="color:#FFD24E;font-weight:800;font-size:10px">부전승</span>':'')
       +'</div>';
   });
@@ -2326,17 +2089,13 @@ function renderFinalBracket(b){
       +'</div>';
   });
 
-  h+='<div style="font-size:10px;color:#707075;font-weight:700;margin:10px 0 3px">4강 (부전승 2팀 합류)</div>';
-  sf.forEach(function(m, i){
-    if(!m) return;
-    var bName = o['r1_'+i]
-      ? '<span style="color:#D2FF4E;font-weight:800">'+o['r1_'+i]+'</span>'
-      : '<span style="color:#909096">'+m.bFrom+'</span>';
-    h+='<div style="font-size:13px;color:#E8E8E8;padding:8px 10px;background:#151518;border-radius:6px;margin-bottom:4px">'
-      +m.match+': '+_seedTag(m.a)+' <span style="color:#FFD24E;font-size:10px">부전승</span> <span style="color:#5A5A5E">vs</span> '+bName
-      +_winBtns('sf_'+i, o)
-      +'</div>';
+  h+='<div style="font-size:10px;color:#707075;font-weight:700;margin:10px 0 3px">4강</div>';
+  sf.forEach(function(m,i){
+    var ps=_finalParticipants('sf_'+i);
+    h+='<div style="font-size:13px;padding:8px 10px;background:#151518;margin-bottom:4px">'
+      +m.match+': '+(ps[0]||m.aFrom)+' vs '+(ps[1]||m.bFrom)+_winBtns('sf_'+i,o)+'</div>';
   });
+
 
   h+='<div style="font-size:10px;color:#707075;font-weight:700;margin:10px 0 3px">결승</div>';
   var fA = o.sf_0 ? '<span style="color:#D2FF4E;font-weight:800">'+o.sf_0+'</span>' : '<span style="color:#909096">'+(b.final?b.final.aFrom:'')+'</span>';
@@ -2423,7 +2182,7 @@ db.ref('bracket').on('value', function(snap) {
     if (!newSlots[slotNum]) newSlots[slotNum] = { time: m.time, courts: {} };
     newSlots[slotNum].courts[courtKey] = {
       teamA: m.club1, teamB: m.club2,
-      event: '1장조', group: (m.group||'') + ' ' + (m.ttype||'')
+      event: '1장조', group: cleanGroupLabel(m.group)
     };
   });
   SLOTS = newSlots;
@@ -2645,7 +2404,7 @@ function brApplySlot(time) {
       nextData['court' + courtNum] = {
         teamA: m.club1, teamB: m.club2,
         event: '1장조',
-        group: m.group + ' ' + m.ttype
+        group: cleanGroupLabel(m.group)
       };
     }
   });
@@ -2679,7 +2438,7 @@ function brUpdateSlots(d) {
     if (!newSlots[slotNum]) newSlots[slotNum] = { time: m.time, courts: {} };
     newSlots[slotNum].courts[courtKey] = {
       teamA: m.club1, teamB: m.club2,
-      event: '1장조', group: (m.group||'') + ' ' + (m.ttype||'')
+      event: '1장조', group: cleanGroupLabel(m.group)
     };
   });
   SLOTS = newSlots;
@@ -2832,8 +2591,7 @@ function brMakeMatchesByRound(gd, nTeams) {
   var clubs = gd.clubs;
   var roundPairs = brGetRoundPairs(clubs.length);
   var bundleId = 0;
-  // 1코트 1매치업: 1장조→2장조→3장조(필요시) 순서대로 진행
-  // 대진표에는 전체 경기 표시, 3조는 "필요시"로 표기
+  // 1코트 1매치업: 세 장조를 모두 진행한다.
   return roundPairs.map(function(pairs, r) {
     var roundBundles = [];
     pairs.forEach(function(pair) {
@@ -2845,7 +2603,7 @@ function brMakeMatchesByRound(gd, nTeams) {
           id: gd.key+'_b'+bundleId+'_m'+ti, group: gd.name, gk: gd.key,
           club1: c1.name, team1: c1.name+' '+(ti+1)+'장조',
           club2: c2.name, team2: c2.name+' '+(ti+1)+'장조',
-          ttype: (ti+1)+'장조'+(ti===2?' (필요시)':''), round: r
+          ttype: (ti+1)+'장조', round: r
         });
       }
       // 1코트 = 1매치업 (번들 matches는 표시용, 실제 코트는 1개)
@@ -2879,7 +2637,7 @@ function brGenerate() {
   if(!requireOnline()) return;
   try {
     var nCourts=parseInt(document.getElementById('br-nCourts').value)||5;
-    var nTeams=parseInt(document.getElementById('br-nTeams').value)||3;
+    var nTeams=3;
     var startT=document.getElementById('br-startT').value||'09:00';
     var slotM=parseInt(document.getElementById('br-slotM').value)||60;
     var gCount=getGroupCount();
@@ -2929,7 +2687,7 @@ function brGenerate() {
 }
 
 // 스케줄러: 1코트 1매치업, 조별 코트 구역 배정
-// 대진표에는 전체 경기(1조,2조,3조) 표시 / 실제 운영은 2선승제
+// 대진표에는 전체 경기(1조,2조,3조) 표시 / 실제 운영은 3장조 전 경기제
 function brScheduleMulti(allRounds, gds, nCourts, startT, slotM) {
   var slots = [], slotIdx = 0;
   var gCount = allRounds.length;
@@ -2970,7 +2728,7 @@ function brScheduleMulti(allRounds, gds, nCourts, startT, slotM) {
     remaining.forEach(function(r){ totalRemaining += r.length; });
     if(totalRemaining === 0) break;
     
-    var time = brFmtTime(startT, slotIdx, slotM);
+    var time = brFmtTime(startT, slotIdx * 3, slotM);
     var usedClubs = {};
     var slotMatches = [];
     var anyPicked = false;
@@ -3041,7 +2799,7 @@ function brRenderTabs() {
 function brRenderResult(d) {
   document.getElementById('br-result').style.display='block';
   
-  // 2선승제 반영: 매치업당 최소 2경기, 최대 3경기
+  // 3장조 전 경기제 반영: 매치업당 3경기
   // 매치업 수 = slots.length / matches_per_bundle (=3)
   var totalMatchups = 0;
   var slotMap = {};
@@ -3049,9 +2807,9 @@ function brRenderResult(d) {
     var key = m.time+'|'+m.court+'|'+m.club1+'|'+m.club2;
     if(!slotMap[key]) { slotMap[key] = true; totalMatchups++; }
   });
-  // 매치업당 개별 경기 시간(=slotM), 매치업 전체 시간 = 2~3 * slotM
-  var minMatchTime = 2 * d.slotM; // 2:0 나올 때
-  var maxMatchTime = 3 * d.slotM; // 1:1 결정전까지
+  // 매치업당 개별 경기 시간(=slotM), 매치업 전체 시간 = 3 * slotM
+  var minMatchTime = 3 * d.slotM; // 세 장조 모두 진행
+  var maxMatchTime = 3 * d.slotM; // 세 장조 모두 진행
   
   // 슬롯당 소요 시간 (매치업 전체 시간, 최대치 기준)
   var perSlotMin = maxMatchTime; // 슬롯 하나 = 매치업 하나 완료
@@ -3065,7 +2823,7 @@ function brRenderResult(d) {
   var dh_min = Math.floor(totMinMin/60), dm_min = totMinMin%60;
   
   var endT_max = brFmtTime(d.startT, actualSlots * 3, d.slotM);
-  var endT_min = brFmtTime(d.startT, actualSlots * 2, d.slotM);
+  var endT_min = brFmtTime(d.startT, actualSlots * 3, d.slotM);
   
   var maxC=actualSlots*d.nCourts;
   var util=maxC>0?Math.round(totalMatchups/maxC*100):0;
@@ -3074,16 +2832,16 @@ function brRenderResult(d) {
     +'총 '+totalMatchups+'매치업 · '+actualSlots+'슬롯 · 가동률 '+util+'%';
   function card(v,l,g){return '<div class="br-sc"><div class="br-sv'+(g?' g':'')+'" >'+v+'</div><div class="br-sl">'+l+'</div></div>';}
   
-  var timeStr = dh_min+'h'+(dm_min?dm_min+'m':'') + ' ~ ' + dh_max+'h'+(dm_max?dm_max+'m':'');
-  var timeRangeStr = d.startT+' ~ ' + endT_min + '/' + endT_max;
+  var timeStr = dh_max+'h'+(dm_max?dm_max+'m':'');
+  var timeRangeStr = d.startT+' ~ ' + endT_max;
   
   document.getElementById('br-stats').innerHTML=
     card(totalMatchups,'총 매치업 수')+
     card(actualSlots,'시간 슬롯')+
-    card(timeStr,'소요시간 (최소~최대)',true)+
-    card(timeRangeStr,'종료 예상 (2:0 / 1:1)')+
+    card(timeStr,'예상 소요시간',true)+
+    card(timeRangeStr,'예상 종료')+
     card(d.slotM+'분','경기당 시간')+
-    card(maxMatchTime+'분','매치업 최대');
+    card(maxMatchTime+'분','매치업당 시간');
   var leg='<span style="font-size:11px;color:#707075;margin-right:4px">클럽 색상:</span>';
   d.gds.forEach(function(gd,gi){
     var pal=gi===0?BR_DARK_A:BR_DARK_B;
@@ -3101,7 +2859,7 @@ function brRenderResult(d) {
     sm[m.time][m.court].push(m);
   });
   var times=[];
-  for(var s=0;s<d.numSlots;s++) times.push(brFmtTime(d.startT,s,d.slotM));
+  times = Object.keys(sm).sort();
   var courts=[];
   for(var c=1;c<=d.nCourts;c++) courts.push(c+'번코트');
   var grid=document.getElementById('br-cgrid');
@@ -3116,7 +2874,7 @@ function brRenderResult(d) {
   courts.forEach(function(c){addCell(grid,c,'br-cc hdr');});
   times.forEach(function(t,ti){
     var isLast=ti===times.length-1;
-    var slotLabel = '슬롯 '+(ti+1)+'<br><span style="font-size:9px;color:#8A8A8E">'+(d.slotM*2)+'~'+(d.slotM*3)+'분</span>';
+    var slotLabel = '슬롯 '+(ti+1)+'<br><span style="font-size:9px;color:#8A8A8E">'+(d.slotM*3)+'분</span>';
     addCell(grid,'','br-cc ctime'+(isLast?' last':''), slotLabel);
     courts.forEach(function(c){
       var matches=sm[t]&&sm[t][c];
@@ -3135,8 +2893,7 @@ function brRenderResult(d) {
         // 각 조 경기 목록
         cellHtml+='<div style="margin-top:4px;font-size:10px;color:#8A8A8E;line-height:1.6">';
         matches.forEach(function(m){
-          var isConditional = m.ttype && m.ttype.indexOf('필요시') >= 0;
-          cellHtml+='<div style="'+(isConditional?'color:#FFB43C;':'')+'">'+m.ttype+': '+m.team1+' vs '+m.team2+'</div>';
+          cellHtml+='<div>'+String(m.ttype||'').replace(' (필요시)','')+': '+m.team1+' vs '+m.team2+'</div>';
         });
         cellHtml+='</div></div>';
         addCell(grid,'','br-cc'+(isLast?' last':''),cellHtml);
@@ -3156,7 +2913,7 @@ function brDlExcel() {
   var sm={};
   d.slots.forEach(function(m){if(!sm[m.time])sm[m.time]={};if(!sm[m.time][m.court])sm[m.time][m.court]=[];sm[m.time][m.court].push(m);});
   var times=[];
-  for(var s=0;s<d.numSlots;s++) times.push(brFmtTime(d.startT,s,d.slotM));
+  times = Object.keys(sm).sort();
   var courts=[];
   for(var c=1;c<=d.nCourts;c++) courts.push(c+'번코트');
   var styles=[], styleMap={};
@@ -3198,7 +2955,7 @@ function brDlExcel() {
         var m0=matches[0];
         var sid=styleMap[m0.club1]||'sEmpty';
         var label='['+m0.group+']\n'+m0.club1+' vs '+m0.club2+'\n';
-        matches.forEach(function(m){label+=m.ttype+'\n';});
+        matches.forEach(function(m){label+=String(m.ttype||'').replace(' (필요시)','')+'\n';});
         cells+=cell(label.trim(),sid);
       }
       else cells+=cell('—','sEmpty');
@@ -3282,7 +3039,7 @@ function _brDoLoadSchedule(entry, sd){
 
   // UI 설정값 복원 (조 수를 저장본에 맞춰 재구성 — A~F 전체 조 지원)
   document.getElementById('br-nCourts').value = sd.nCourts;
-  document.getElementById('br-nTeams').value  = sd.nTeams;
+  document.getElementById('br-nTeams').value  = 3;
   document.getElementById('br-startT').value  = sd.startT;
   document.getElementById('br-slotM').value   = sd.slotM;
   document.getElementById('br-nClubs').value  = gds[0].clubs.length;
@@ -3441,7 +3198,7 @@ function saveResult(key){
     toast('⚠️ 동점('+newA+':'+newB+')은 저장할 수 없습니다 — 승부를 가려주세요');
     return;
   }
-  resultsRef.child(key).update({scoreA:newA,scoreB:newB});
+  resultsRef.child(key).update({scoreA:newA,scoreB:newB,skipped:null});
   toast('점수 수정 완료! ('+newA+':'+newB+')');
   // 거꾸로 연동: 코트 status 재동기화
   setTimeout(function(){ syncCourtStatusFromResults(); }, 300);
@@ -3459,28 +3216,13 @@ function deleteResult(key){
 // 결과 상태에 맞춰 각 코트의 status(종료/대기)를 재조정
 // - 현재 코트에 세팅된 팀쌍의 매치업이 미확정으로 바뀌면 '종료'를 '대기'로 되돌림
 function syncCourtStatusFromResults(){
-  if(!latestCourtsData) return;
-  var norm=function(t){return (t||'').replace(/\s*\d+장조$/,'').trim();};
-  Object.keys(latestCourtsData).forEach(function(courtId){
+  Object.keys(latestCourtsData||{}).forEach(function(courtId){
     var d=latestCourtsData[courtId];
     if(!d || d.status!=='done' || !d.teamA || !d.teamB) return;
-    var cA=norm(d.teamA), cB=norm(d.teamB), wA=0, wB=0, played=0;
-    var res=latestResults||{};
-    Object.keys(res).forEach(function(k){
-      var r=res[k]; if(r.skipped) return;
-      var rk=r.court?r.court.replace('코트 ','court').replace('코트','court').trim():'';
-      if(rk!==courtId) return;
-      var rca=norm(r.teamA), rcb=norm(r.teamB);
-      if(!((rca===cA&&rcb===cB)||(rca===cB&&rcb===cA))) return;
-      played++;
-      if((r.scoreA||0)>(r.scoreB||0)){ if(rca===cA)wA++; else wB++; }
-      else if((r.scoreB||0)>(r.scoreA||0)){ if(rcb===cA)wA++; else wB++; }
+    var st=matchupState(latestResults,d.teamA,d.teamB);
+    if(!st.done) courtsRef.child(courtId).update({
+      status:'waiting',event:st.nextEvent,scoreA:0,scoreB:0,startedAt:null
     });
-    var decided=(wA>=2||wB>=2||played>=3);
-    if(!decided){
-      // 매치업이 더 이상 확정이 아니면 코트를 대기 상태로 되돌림
-      courtsRef.child(courtId).update({status:'waiting'});
-    }
   });
 }
 
@@ -3503,90 +3245,25 @@ function findSlotNum(courtName, teamA, teamB, group){
 
 // 결과에서 완료된 슬롯 계산
 function buildCompletedSlots(results){
-  var cs = {};
-  // 코트 목록을 동적으로 수집 (5코트 하드코딩 제거 — 6코트 이상 지원)
-  var courtKeys = {};
+  var cs={};
   Object.keys(SLOTS).forEach(function(s){
-    var courts = SLOTS[s] && SLOTS[s].courts;
-    if(courts) Object.keys(courts).forEach(function(ck){ courtKeys[ck]=true; });
-  });
-  // 결과에 등장하는 코트도 포함
-  if(results){
-    Object.keys(results).forEach(function(key){
-      var r=results[key];
-      var ck=r.court?r.court.replace('코트 ','court').replace('코트','court').trim():'';
-      if(ck) courtKeys[ck]=true;
+    var courts=SLOTS[s].courts||{};
+    Object.keys(courts).forEach(function(ck){
+      if(!cs[ck]) cs[ck]=[];
+      var sd=courts[ck];
+      if(sd && sd.teamA && sd.teamB && matchupState(results,sd.teamA,sd.teamB).done) cs[ck].push(Number(s));
     });
-  }
-  // 최소 court1~court5는 항상 보장
-  for(var i=1;i<=5;i++) courtKeys['court'+i]=true;
-  Object.keys(courtKeys).forEach(function(ck){ cs[ck]=[]; });
-  if(!results) return cs;
-
-  // 슬롯별로 해당 팀쌍의 장조 결과를 모아 매치업이 "확정"됐는지 판정
-  // (2선승제: 한 클럽이 2장조 이상 이기거나, 3장조 모두 끝나면 슬롯 잠금)
-  var norm = function(t){ return (t||'').replace(/\s*\d+장조$/,'').trim(); };
-
-  var slotKeys=Object.keys(SLOTS).map(Number).sort(function(a,b){return a-b;});
-  Object.keys(cs).forEach(function(cKey){
-    for(var si=0;si<slotKeys.length;si++){
-      var s = slotKeys[si];
-      var sd = SLOTS[s] && SLOTS[s].courts[cKey];
-      if(!sd || (!sd.teamA && !sd.teamB)) continue;
-      var slotCA = norm(sd.teamA), slotCB = norm(sd.teamB);
-
-      // 이 코트·이 팀쌍에 해당하는 장조 결과 수집 (조 텍스트는 관대하게 무시)
-      var winsA = 0, winsB = 0, played = 0;
-      Object.keys(results).forEach(function(key){
-        var r = results[key];
-        if(r.skipped) return;
-        var rKey = r.court ? r.court.replace('코트 ','court').replace('코트','court').trim() : '';
-        if(rKey !== cKey) return;
-        var rCA = norm(r.teamA), rCB = norm(r.teamB);
-        var same = (rCA===slotCA && rCB===slotCB) || (rCA===slotCB && rCB===slotCA);
-        if(!same) return;
-        played++;
-        if((r.scoreA||0) > (r.scoreB||0)){
-          if(rCA===slotCA) winsA++; else winsB++;
-        } else if((r.scoreB||0) > (r.scoreA||0)){
-          if(rCB===slotCA) winsA++; else winsB++;
-        }
-      });
-
-      // 매치업 확정: 2선승 도달 또는 3장조 모두 소화
-      var decided = (winsA >= 2 || winsB >= 2 || played >= 3);
-      if(decided && cs[cKey].indexOf(s) === -1) cs[cKey].push(s);
-    }
   });
   return cs;
 }
 
 // 특정 코트·슬롯의 매치업 진행 상황 계산 (장조별 점수 + 클럽매치 스코어)
-function slotMatchInfo(courtId, s){
-  var sd = SLOTS[s] && SLOTS[s].courts[courtId];
-  if(!sd || (!sd.teamA && !sd.teamB)) return null;
-  var norm=function(t){return (t||'').replace(/\s*\d+장조$/,'').trim();};
-  var cA=norm(sd.teamA), cB=norm(sd.teamB);
-  var winsA=0, winsB=0, games={}; // games: {1장조:{a,b}, ...}
-  var results = latestResults || {};
-  Object.keys(results).forEach(function(key){
-    var r=results[key];
-    if(r.skipped) return;
-    var rKey=r.court?r.court.replace('코트 ','court').replace('코트','court').trim():'';
-    if(rKey!==courtId) return;
-    var rCA=norm(r.teamA), rCB=norm(r.teamB);
-    var same=(rCA===cA&&rCB===cB)||(rCA===cB&&rCB===cA);
-    if(!same) return;
-    // 항상 A=슬롯 teamA 기준으로 점수 정렬
-    var sa,sb;
-    if(rCA===cA){ sa=r.scoreA||0; sb=r.scoreB||0; } else { sa=r.scoreB||0; sb=r.scoreA||0; }
-    var ev=r.event||'?';
-    games[ev]={a:sa,b:sb};
-    if(sa>sb) winsA++; else if(sb>sa) winsB++;
-  });
-  var played=Object.keys(games).length;
-  var decided=(winsA>=2||winsB>=2||played>=3);
-  return {teamA:cA, teamB:cB, winsA:winsA, winsB:winsB, played:played, decided:decided, games:games};
+function slotMatchInfo(courtId,s){
+  var sd=SLOTS[s] && SLOTS[s].courts[courtId];
+  if(!sd || !sd.teamA || !sd.teamB) return null;
+  var st=matchupState(latestResults,sd.teamA,sd.teamB);
+  return {teamA:clubBaseName(sd.teamA),teamB:clubBaseName(sd.teamB),winsA:st.w1,winsB:st.w2,
+    played:st.played,decided:st.done,games:st.games};
 }
 
 // Listen for results
@@ -3612,7 +3289,7 @@ resultsRef.orderByChild('timestamp').on('value',function(snap){
   results.forEach(function(r){
     html+='<div class="result-card">'
       +'<div class="result-info">'
-      +'<div class="result-meta">'+(r.time||'')+' · '+(r.court||'')+' · '+(r.event||'')+' · '+(r.group||'')
+      +'<div class="result-meta">'+(r.time||'')+' · '+(r.court||'')+' · '+(r.event||'')+' · '+cleanGroupLabel(r.group)
       +(function(){var sn=findSlotNum(r.court||'',r.teamA||'',r.teamB||'',r.group||'');return sn?' · <span style="color:#D2FF4E;font-weight:700">슬롯 '+sn+'</span>':''})()
       +'</div>'
       +'<div class="result-match">'+(r.teamA||'?')+' vs '+(r.teamB||'?')+'</div>'
