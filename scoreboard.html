@@ -16,7 +16,9 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
 .header p{font-size:11px;color:#707075;margin-top:2px}
 
 /* Tabs */
-.tabs{display:flex;justify-content:center;gap:4px;padding:12px 12px;background:#0C0C0E;position:sticky;top:62px;z-index:99;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tabs{display:flex;justify-content:flex-start;gap:4px;padding:12px 12px;background:#0C0C0E;position:sticky;top:62px;z-index:99;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tabs .tab:first-child{margin-left:auto}
+.tabs .tab:last-child{margin-right:auto}
 .tab{padding:8px 16px;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid #2A2A30;color:#707075;transition:all .2s;background:transparent;white-space:nowrap;flex-shrink:0}
 .tab.active{background:#D2FF4E;color:#0C0C0E;border-color:#D2FF4E}
 
@@ -118,10 +120,29 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
 .rules-source{font-size:12px;line-height:1.8;color:#A4A4AD}
 .rules-source a{color:#8BC4FF;text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
 .rules-source summary{cursor:pointer;color:#E8E8ED;font-size:14px;font-weight:700;padding:8px 0}
+/* Event timetable is informational; court assignments remain separate. */
+.event-meta{font-size:14px;color:#B8B8BF;line-height:1.8;margin:0 0 18px;word-break:keep-all}
+.event-legend{display:flex;flex-wrap:wrap;gap:12px 20px;margin-bottom:18px;font-size:12px;color:#B8B8BF}
+.event-legend span{display:flex;align-items:center;gap:7px}
+.event-legend i{width:10px;height:10px;background:var(--phase-color);border-radius:2px}
+.event-prep{--phase-color:#ADBDB6}
+.event-prelim{--phase-color:#F2F2F4}
+.event-finals{--phase-color:#F38B78}
+.event-awards{--phase-color:#D2FF4E}
+.event-timetable{list-style:none;margin:0;padding:0;border-top:1px solid #2A2A30}
+.event-timetable li{display:grid;grid-template-columns:80px minmax(0,1fr) minmax(0,1fr);gap:12px 20px;align-items:center;padding:20px 18px;border-bottom:1px solid #2A2A30;border-left:4px solid var(--phase-color)}
+.event-timetable time{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--phase-color)}
+.event-timetable h3{margin:0;color:#F2F2F4;font-size:16px;line-height:1.6;word-break:keep-all;overflow-wrap:anywhere}
+.event-timetable p{margin:0;color:#B8B8BF;font-size:13px;line-height:1.8;text-align:right;word-break:keep-all;overflow-wrap:anywhere}
+.event-footnote{margin-top:18px;font-size:12px;color:#A4A4AD;line-height:1.9;word-break:keep-all}
 @media(max-width:600px){
   .tabs{justify-content:flex-start}
   .rules-overview{grid-template-columns:1fr;gap:0}
   .rules-table th,.rules-table td{padding:10px 6px}
+  .event-timetable li{grid-template-columns:62px minmax(0,1fr);gap:5px 12px;padding:16px 12px}
+  .event-timetable time{font-size:17px;align-self:start;line-height:1.6}
+  .event-timetable h3{font-size:15px}
+  .event-timetable p{grid-column:2;text-align:left;font-size:12px}
 }
 </style>
 </head>
@@ -129,7 +150,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
 
 <div class="header">
   <h1>🎾 월촌구장배 테니스대회</h1>
-  <p><span class="refresh-dot" id="connDot"></span><span id="connText">실시간 업데이트 중</span> · 2026.4.25</p>
+  <p><span class="refresh-dot" id="connDot"></span><span id="connText">실시간 업데이트 중</span> · 2026.10.10</p>
 </div>
 
 <div class="tabs">
@@ -139,6 +160,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
   <div class="tab" onclick="showTab('qualifiers',this)">8강 진출팀</div>
   <div class="tab" onclick="showTab('results',this)">경기 결과</div>
   <div class="tab" onclick="showTab('rule',this)">📖 순위 규칙</div>
+  <button type="button" class="tab" style="font-family:inherit" onclick="showTab('event',this)">행사 일정</button>
 </div>
 
 <div class="container">
@@ -159,6 +181,33 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
     <div id="schedListPub">
       <div class="empty"><span class="empty-icon">📅</span><div class="empty-text">아직 대진표가 게시되지 않았습니다</div></div>
     </div>
+  </div>
+
+  <!-- Event timetable -->
+  <div class="section" id="sec-event">
+    <h2 class="section-title">2026 월촌구장배 행사 일정표</h2>
+    <p class="event-meta"><time datetime="2026-10-10">10월 10일(토)</time> · 월촌테니스장<br>영남테니스클럽 주최</p>
+    <div class="event-legend" aria-label="일정 구분">
+      <span class="event-prep"><i aria-hidden="true"></i>준비 · 개회</span>
+      <span class="event-prelim"><i aria-hidden="true"></i>예선</span>
+      <span class="event-finals"><i aria-hidden="true"></i>본선</span>
+      <span class="event-awards"><i aria-hidden="true"></i>시상</span>
+    </div>
+    <ol class="event-timetable" aria-label="시간별 행사 일정">
+      <li class="event-prep"><time datetime="2026-10-10T08:00:00+09:00">08:00</time><h3>참가팀 도착 · 접수</h3><p>출전 명단 확인 · 물품 배부</p></li>
+      <li class="event-prep"><time datetime="2026-10-10T08:40:00+09:00">08:40</time><h3>개회식</h3><p>인사 · 경기 규정 및 매너 안내 · 기념 촬영</p></li>
+      <li class="event-prelim"><time datetime="2026-10-10T09:00:00+09:00">09:00</time><h3>예선 슬롯 1</h3><p>1~5번 코트 · 6번 예비</p></li>
+      <li class="event-prelim"><time datetime="2026-10-10T10:30:00+09:00">10:30</time><h3>예선 슬롯 2</h3></li>
+      <li class="event-prelim"><time datetime="2026-10-10T12:00:00+09:00">12:00</time><h3>예선 슬롯 3</h3><p>13:30 예선 종료</p></li>
+      <li class="event-finals"><time datetime="2026-10-10T13:30:00+09:00">13:30</time><h3>순위 확정 · 8강 대진 추첨</h3><p>A·B조 1~3위, C조 1~2위</p></li>
+      <li class="event-finals"><time datetime="2026-10-10T13:40:00+09:00">13:40</time><h3>8강 ① ②</h3><p>6면 · 3경기 동시</p></li>
+      <li class="event-finals"><time datetime="2026-10-10T14:10:00+09:00">14:10</time><h3>8강 ③ ④</h3><p>6면 · 3경기 동시</p></li>
+      <li class="event-finals"><time datetime="2026-10-10T14:50:00+09:00">14:50</time><h3>4강</h3><p>6면 · 3경기 동시 · 공동 3위 확정</p></li>
+      <li class="event-finals"><time datetime="2026-10-10T15:30:00+09:00">15:30</time><h3>결승</h3><p>3경기 동시 · 5:5 타이브레이크(7점)</p></li>
+      <li class="event-awards"><time datetime="2026-10-10T16:10:00+09:00">16:10</time><h3>시상 · 행운권 추첨</h3><p>우승 · 준우승 · 공동 3위 시상 후 행운권 추첨</p></li>
+      <li class="event-awards"><time datetime="2026-10-10T16:40:00+09:00">16:40</time><h3>폐회 · 기념 촬영</h3></li>
+    </ol>
+    <p class="event-footnote">경기 진행 상황에 따라 시간이 조정될 수 있습니다.<br>본선 대진 추첨과 토너먼트는 별도 운영합니다.<br>자료: 영남테니스클럽 「2026 월촌구장배 행사 일정표」</p>
   </div>
 
   <!-- Standings -->
