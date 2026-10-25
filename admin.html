@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SEMT 클럽 초청 테니스 교류전 - 대회 본부</title>
+<title>SEMT 클럽 초청 테니스 교류전 - 대회 관리</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -228,8 +228,8 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
 <!-- 로그인 오버레이 -->
 <div id="loginOverlay">
   <div class="login-box">
-    <h2>🎾 대회 본부</h2>
-    <p>본부 비밀번호를 입력하세요</p>
+    <h2>🎾 대회 관리</h2>
+    <p>관리자 비밀번호를 입력하세요</p>
     <input class="login-input" type="password" id="loginPw" placeholder="비밀번호" inputmode="numeric" autocomplete="off"
       onkeydown="if(event.key==='Enter') unlockAdmin()">
     <button class="login-btn" onclick="unlockAdmin()">로그인</button>
@@ -265,11 +265,12 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
   <div class="admin-section active" id="sec-teams">
     <details class="setup-section" id="semtOperationGuide" open>
       <summary class="setup-title" style="cursor:pointer">SEMT 교류전 운영안 · 4팀 / 35명 / 3코트</summary>
+      <p style="font-size:13px;line-height:1.9;margin-top:12px">장소: <strong>성서국민체육공원 테니스장</strong> · 최종 <strong>1~4위 모두 상금 시상</strong></p>
       <p style="font-size:13px;line-height:1.9;margin:12px 0">예선은 <strong>남복–여복–남복 3경기 모두</strong>, 본선 준결승·결승·3·4위전은 <strong>3전 2선승제</strong>입니다. 예선 1위–4위, 2위–3위가 준결승에서 만납니다. 모든 팀이 공식 5대전·13~15경기에 참가합니다.</p>
       <p style="font-size:12px;line-height:1.9">TPL 남9/여3 · SEMT 남6/여2 · 팝스틴 남5/여2 · 코트피플 남6/여2<br>영남 남자 3명을 SEMT·팝스틴·코트피플에 1명씩 배정한 인원입니다.</p>
       <p style="font-size:12px;line-height:1.9;margin-top:10px">본선 빈 코트는 <strong>남복 친선 6~10경기</strong>로 채워 공식 경기와 합계 36경기를 목표로 합니다. 친선은 클럽을 섞어 출전이 적은 선수부터 배정합니다. 남자 전원 4경기, TPL 여성 3·3·4경기, 나머지 여성 각 5경기가 목표입니다.</p>
       <p style="font-size:12px;line-height:1.9;margin-top:10px">07:00 개회 → 07:10 예선 → 10:10 순위 확정 → 10:20 준결승 → 11:50 휴식 → 12:00 결승·3·4위전 → 13:30 시상 → 13:40 종료<br>30분 타임, 별도 교대 시간 없음. 다음 선수는 미리 대기합니다.</p>
-      <p style="font-size:12px;line-height:1.9;color:#FFB43C;margin-top:10px">프로그램에는 예선 공식 결과만 입력합니다. 본선·친선과 개인별 출전표는 본부에서 별도로 관리하며 친선 점수는 공식 순위에 반영하지 않습니다. 전원 참석·정상 진행·선수 교대·빈 코트 전부 활용이 출전 목표의 전제이며, 공식·친선 동시 중복 출전은 금지합니다.</p>
+      <p style="font-size:12px;line-height:1.9;color:#FFB43C;margin-top:10px">프로그램에는 예선 공식 결과만 입력합니다. 본선·친선과 개인별 출전표는 진행 담당자가 별도로 관리하며 친선 점수는 공식 순위에 반영하지 않습니다. 전원 참석·정상 진행·선수 교대·빈 코트 전부 활용이 출전 목표의 전제이며, 공식·친선 동시 중복 출전은 금지합니다.</p>
     </details>
     <div class="setup-section">
       <div class="setup-title">참가팀 등록</div>
@@ -357,7 +358,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
   <div class="admin-section" id="sec-standings">
     <div class="setup-section">
       <div class="setup-title">조별 순위표 (자동 계산)</div>
-      <p id="standingsModeNote" style="font-size:12px;color:#707075;margin-bottom:8px">예선 공식 결과를 기반으로 자동 계산됩니다 · 4팀 풀리그 후 전 팀 준결승 진출 · 본선·친선은 본부 별도 운영</p>
+      <p id="standingsModeNote" style="font-size:12px;color:#707075;margin-bottom:8px">예선 공식 결과를 기반으로 자동 계산됩니다 · 4팀 풀리그 후 전 팀 준결승 진출 · 본선·친선은 진행 담당자 별도 운영</p>
     </div>
     <div id="standingsArea"></div>
 
@@ -371,7 +372,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
   <div class="admin-section" id="sec-results">
     <div class="setup-section">
       <div class="setup-title">경기 결과 관리</div>
-      <p style="font-size:12px;color:#707075;margin-bottom:8px">예선 공식 점수를 수정하거나 잘못된 결과를 삭제할 수 있습니다. 본선·친선 결과는 이곳에 입력하지 않고 본부에서 별도 관리합니다.</p>
+      <p style="font-size:12px;color:#707075;margin-bottom:8px">예선 공식 점수를 수정하거나 잘못된 결과를 삭제할 수 있습니다. 본선·친선 결과는 이곳에 입력하지 않고 진행 담당자가 별도 관리합니다.</p>
     </div>
     <div id="resultsList"></div>
   </div>
@@ -1346,7 +1347,7 @@ function autoProgressAllThree(courtId, teamA, teamB, group, event){
     var st=matchupState(snap.val()||{},teamA,teamB);
     if(st.done){
       courtsRef.child(courtId).update({status:'done'});
-      toast('매치업 종료: '+teamA+' '+st.w1+':'+st.w2+' '+teamB+(st.w1===st.w2?' · 게임 '+st.gf+':'+st.ga+' · '+(st.winner?(st.winner===1?teamA:teamB)+' 승':'본부 확인 대기'):''));
+      toast('매치업 종료: '+teamA+' '+st.w1+':'+st.w2+' '+teamB+(st.w1===st.w2?' · 게임 '+st.gf+':'+st.ga+' · '+(st.winner?(st.winner===1?teamA:teamB)+' 승':'진행 담당자 확인 대기'):''));
       return;
     }
     courtsRef.child(courtId).update({
@@ -1465,7 +1466,7 @@ function renderCourt(courtId, data){
       return '<span style="padding:1px 6px;border-radius:4px;background:#0C0C0E;border:1px solid '+(cur?'#D2FF4E':'#1C1C20')+';color:#505055">'+ev.replace('장조','')+'장 -</span>';
     }).join('');
     var decided=state.done;
-    var outcome=decided && wA===wB?' · 게임 '+state.gf+':'+state.ga+' · '+(state.winner?(state.winner===1?data.teamA:data.teamB)+' 승':'본부 확인 대기'):'';
+    var outcome=decided && wA===wB?' · 게임 '+state.gf+':'+state.ga+' · '+(state.winner?(state.winner===1?data.teamA:data.teamB)+' 승':'진행 담당자 확인 대기'):'';
     var matchScore = (wA+wB>0)
       ? '<span style="color:'+(decided?'#D2FF4E':'#909096')+';font-weight:900">'+wA+':'+wB+outcome+'</span>'
       : '<span style="color:#505055">0:0</span>';
@@ -1981,7 +1982,7 @@ function qualifiersHtml(groups,results){
         h+='<li class="qualified-team" style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid #222227"><span style="min-width:62px;color:#909096;font-size:12px">'+(s.unresolvedTie?'공동 ':'')+s.rank+'위</span><strong style="color:#E8E8E8;overflow-wrap:anywhere;min-width:0">'+safe(s.club)+'</strong></li>';
       });
       h+='</ul>';
-      if(g.qualified.length<g.quota) h+='<p style="font-size:12px;color:#FFD24E;margin-top:10px">남은 '+(g.quota-g.qualified.length)+'자리 · 진출 경계 동률 본부 확인 대기</p>';
+      if(g.qualified.length<g.quota) h+='<p style="font-size:12px;color:#FFD24E;margin-top:10px">남은 '+(g.quota-g.qualified.length)+'자리 · 진출 경계 동률 진행 담당자 확인 대기</p>';
     }
     h+='</section>';
   });
@@ -1994,7 +1995,7 @@ function renderAgeTiebreaks(groupKey,res){
   return res.ageChecks.map(function(check){
     var index=ageTiebreakForms.length;
     ageTiebreakForms.push({groupKey:groupKey,key:check.key,signature:check.signature,clubs:check.clubs});
-    var h='<fieldset style="margin:12px 0;padding:12px;border:1px solid #44444A;border-radius:6px"><legend style="font-size:12px;color:#D2FF4E">출전 선수 나이 합계 · 본부 확인</legend>';
+    var h='<fieldset style="margin:12px 0;padding:12px;border:1px solid #44444A;border-radius:6px"><legend style="font-size:12px;color:#D2FF4E">출전 선수 나이 합계 · 진행 담당자 확인</legend>';
     check.clubs.forEach(function(club,i){
       h+='<label style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0;font-size:12px">'
         +'<span style="flex:1;min-width:80px;overflow-wrap:anywhere">'+esc(club)+'</span>'
@@ -2085,7 +2086,7 @@ function renderStandings(){
                 var color2 = mWon?'#50C878':mLost?'#FF6B6B':'#FFB43C';
                 var bg = mWon?'rgba(80,200,120,.08)':mLost?'rgba(255,107,107,.08)':'rgba(255,180,60,.08)';
                 var scoreText = m.jomatchesWon+':'+m.jomatchesLost;
-                if(m.playedAll && m.jomatchesWon===m.jomatchesLost) scoreText+='<br><small>'+(m.complete?'게임 득실 '+(m.gameDiff>0?'+':'')+m.gameDiff:'본부 확인 대기')+'</small>';
+                if(m.playedAll && m.jomatchesWon===m.jomatchesLost) scoreText+='<br><small>'+(m.complete?'게임 득실 '+(m.gameDiff>0?'+':'')+m.gameDiff:'진행 담당자 확인 대기')+'</small>';
                 html += '<td style="text-align:center;background:'+bg+'">'
                   +'<div style="font-weight:800;color:'+color2+';font-size:15px">'+scoreText+'</div></td>';
               }
@@ -2111,14 +2112,14 @@ function renderStandings(){
           html += '<tr class="'+qualify+'">'
             +'<td class="standings-rank" style="color:'+color+'">'+s.rank+(s.unresolvedTie?' (동률)':'')+'</td>'
             +'<td class="standings-team">'+s.club+'</td>'
-            +'<td style="font-size:14px"><span style="color:#50C878;font-weight:800">'+s.matchWin+'</span><span style="color:#5A5A5E">-</span><span style="color:#FF6B6B;font-weight:800">'+s.matchLose+'</span>'+(s.matchPending?'<br><small>본부 확인 대기 '+s.matchPending+'</small>':'')+'</td>'
+            +'<td style="font-size:14px"><span style="color:#50C878;font-weight:800">'+s.matchWin+'</span><span style="color:#5A5A5E">-</span><span style="color:#FF6B6B;font-weight:800">'+s.matchLose+'</span>'+(s.matchPending?'<br><small>진행 담당자 확인 대기 '+s.matchPending+'</small>':'')+'</td>'
             +'<td style="color:#FF6B6B;font-weight:700">'+(s.h2h===null?'-':s.h2h?'승':'패')+'</td>'
             +'<td style="color:#B8B8BF">'+(s.gf-s.ga>0?'+':'')+(s.gf-s.ga)+'</td>'
             +'<td style="color:#B8B8BF">'+(s.ageTotal===null?(s.agePending?'미확인':'-'):s.ageTotal)+'</td>'
             +'</tr>';
         });
         html += '</tbody></table></div>';
-        html += '<div style="font-size:10px;color:#909096;margin-top:6px;line-height:1.6">매치 승수 → 2팀 동률은 승자승 / 3팀 이상은 예선 전체 게임 득실 → 2팀만 같으면 승자승 재적용 → 출전 선수 나이 합계<br>나이 미확인·최종 동률은 본부 확인 전까지 순위를 확정하지 않습니다.</div>';
+        html += '<div style="font-size:10px;color:#909096;margin-top:6px;line-height:1.6">매치 승수 → 2팀 동률은 승자승 / 3팀 이상은 예선 전체 게임 득실 → 2팀만 같으면 승자승 재적용 → 출전 선수 나이 합계<br>나이 미확인·최종 동률은 진행 담당자 확인 전까지 순위를 확정하지 않습니다.</div>';
         html += renderAgeTiebreaks(gKey,res);
         html += '</div>';
       });
@@ -2269,7 +2270,7 @@ function applySlotToCourt(courtId, num){
       }
     });
     var statusTxt = info.decided
-      ? '✅ 매치 종료 — '+(info.winner?(info.winner===1?info.teamA:info.teamB)+' 승':'본부 확인 대기')+' ('+info.winsA+':'+info.winsB+')'+(info.winsA===info.winsB?' · 게임 '+info.gf+':'+info.ga:'')
+      ? '✅ 매치 종료 — '+(info.winner?(info.winner===1?info.teamA:info.teamB)+' 승':'진행 담당자 확인 대기')+' ('+info.winsA+':'+info.winsB+')'+(info.winsA===info.winsB?' · 게임 '+info.gf+':'+info.ga:'')
       : '⏳ 진행 중 ('+info.winsA+':'+info.winsB+', '+info.played+'/'+matchEventCount(info.teamA,info.teamB)+'장조)';
 
     var msg='📋 슬롯 '+num+' ('+slot.time+') 경기 기록\n'
