@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SEMT 클럽 초청 테니스 교류전</title>
 <meta property="og:title" content="🏆 SEMT 클럽 초청 테니스 교류전">
-<meta property="og:description" content="SEMT 주최 | 4팀 35명 · 남복-여복-남복 | 공식 경기와 빈 코트 친선 총 36경기 목표 | 07:00~13:40 성서국민체육공원 테니스장">
+<meta property="og:description" content="SEMT 주최 | 5개 클럽 참가 · 4팀 편성 · 35명 · 남복-여복-남복 | 공식 경기와 빈 코트 친선 총 36경기 목표 | 07:00~13:40 성서국민체육공원 테니스장">
 <meta property="og:type" content="website">
 
 <style>
@@ -45,14 +45,14 @@ a{color:inherit;text-decoration:none}button{font:inherit;cursor:pointer}a:focus-
     <div class="p1-in">
       <p class="hero-label">SEMT INVITATIONAL · 2026</p>
       <h1 class="p1-title p1-gold" id="eventTitle"><span>SEMT 클럽 초청</span> 테니스 교류전</h1>
-      <p class="hero-description">네 팀이 함께 뛰는 하루.<br>승부의 즐거움과 클럽 간 교류를 코트에서 나눕니다.</p>
+      <p class="hero-description">다섯 클럽이 함께 뛰는 하루.<br>승부의 즐거움과 클럽 간 교류를 코트에서 나눕니다.</p>
       <div class="hero-meta"><span>10월 10일 (토) · 07:00–13:40</span><span>성서국민체육공원 테니스장</span></div>
       <div class="cta-wrap"><a class="score-link" href="scoreboard.html">스코어보드 <span aria-hidden="true">↗</span></a><a class="club-feature-link" href="https://semt.kr/" target="_blank" rel="noopener noreferrer" aria-label="SEMT 클럽 홈페이지 방문 (새 탭)"><span>SEMT 클럽 홈페이지<small>클럽 소식과 활동을 만나보세요 · semt.kr</small></span><span class="club-feature-arrow" aria-hidden="true">↗</span></a><button class="cta-btn" onclick="go()">대회 안내 <span class="arrow" aria-hidden="true">↓</span></button></div>
       <div class="club-song"><div><div class="club-song-title">SEMT 클럽송</div><span class="club-song-status" id="musicStatus" role="status">클럽송과 함께 교류전을 즐겨보세요.</span></div><button class="music-btn" id="musicBtn" onclick="toggleMusic()" aria-controls="bgm" aria-label="SEMT 클럽송 켜기" aria-pressed="false"><span id="musicLabel">클럽송 켜기</span><span class="music-state" id="musicState" aria-hidden="true">OFF</span></button></div>
     </div>
   </section>
   <div class="event-summary" aria-label="대회 요약">
-    <div class="summary-item"><strong>4팀 · 35명</strong><span>TPL · SEMT · 팝스틴 · 코트피플</span></div>
+    <div class="summary-item"><strong>5개 클럽 · 4팀</strong><span>TPL · SEMT · 팝스틴 · 코트피플 · 영남<br>총 35명 참가</span></div>
     <div class="summary-item"><strong>남복 · 여복 · 남복</strong><span>예선 세 장조 모두 진행</span></div>
     <div class="summary-item"><strong>3코트 · 30분</strong><span>공식 경기와 빈 코트 친선</span></div>
   </div>
@@ -79,8 +79,8 @@ a{color:inherit;text-decoration:none}button{font:inherit;cursor:pointer}a:focus-
         <div class="rules-copy"><p>예선은 4팀 풀리그이며 2:0이 되어도 세 장조를 모두 진행합니다.</p><p>본선은 예선 1위–4위, 2위–3위 준결승 후 결승과 3·4위전을 치릅니다. 본선은 3전 2선승제이며 2:0이면 종료합니다.</p><p>예선·본선 모두 남자복식 → 여자복식 → 남자복식 순서입니다. 같은 공식 대전에서 선수 중복 출전은 금지합니다.</p><p>6게임 선승 또는 30분 종료·노애드. 5:5는 다음 게임으로 결정하며, 시간 종료 때 게임 수가 같으면 결정 포인트 1점으로 승자를 정하고 승리 팀에 1게임을 더해 기록합니다. 세부 시간제 규정은 스코어보드의 순위 규칙을 참고하세요.</p><p>공식 경기 26~30경기에 빈 코트 남복 친선 6~10경기를 더해 총 36경기를 목표로 합니다. 친선은 클럽을 섞어 출전이 적은 선수부터 배정하고, 공식 순위에는 반영하지 않습니다.</p><p>예선 순위: 매치 승수 → 2팀 동률은 승자승 / 3팀 이상은 예선 전체 게임 득실 → 2팀만 같으면 승자승 재적용 → 출전 선수 나이 합계(진행 담당자 확인). 게임 득실은 이긴 게임 수에서 내준 게임 수를 뺀 값입니다. 나이 미확인 또는 최종 동률은 진행 담당자 확인 후 확정합니다.</p><p>프로그램은 예선 결과와 순위를 집계합니다. 본선 대진과 토너먼트는 별도 운영하며 친선경기도 진행 담당자가 별도로 관리합니다.</p></div>
       </div>
       <div class="fb" id="participationPlan">
-        <div class="ft">참가 구성 · 개인별 출전 목표</div>
-        <p>TPL 12명(남9·여3), SEMT 8명(남6·여2), 팝스틴 7명(남5·여2), 코트피플 8명(남6·여2), 총 35명입니다. 영남 남자 3명은 TPL을 제외한 세 팀에 1명씩 합류합니다.</p>
+        <div class="ft">5개 클럽 참가 · 4팀 편성</div>
+        <p>참가 클럽은 <strong>TPL·SEMT·팝스틴·코트피플·영남, 총 5개 클럽</strong>이며 총 35명입니다. 영남 남자 3명은 SEMT·팝스틴·코트피플에 1명씩 합류해 경기는 4팀으로 진행합니다.</p><p>배정 후 경기팀 인원: TPL 12명(남9·여3), SEMT 8명(남6·여2), 팝스틴 7명(남5·여2), 코트피플 8명(남6·여2)입니다.</p>
         <p>공식·친선 합계 남자 전원 4경기, TPL 여성 3·3·4경기, 나머지 여성 각 5경기를 목표로 합니다. 전원 참석·12타임 정상 진행·선수 교대·빈 코트 전부 활용이 전제입니다.</p>
         <p>친선은 같은 클럽 선수가 양쪽에 나뉘어도 됩니다. 진행 담당자가 공식 명단을 먼저 확인하고 출전이 적은 선수부터 배정합니다. 공식·친선 동시 중복 출전은 금지하며, 개인별 출전표는 진행 담당자가 별도로 관리합니다.</p>
       </div>
