@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>월촌구장배 테니스대회 - 실시간 스코어보드</title>
-<meta property="og:title" content="🎾 월촌구장배 테니스대회 실시간 스코어보드">
+<title>SEMT 클럽 초청 테니스 교류전 - 실시간 스코어보드</title>
+<meta property="og:title" content="🎾 SEMT 클럽 초청 테니스 교류전 실시간 스코어보드">
 <meta property="og:description" content="경기 진행 상황을 실시간으로 확인하세요!">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
@@ -16,7 +16,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
 .header p{font-size:11px;color:#707075;margin-top:2px}
 
 /* Tabs */
-.tabs{display:flex;justify-content:flex-start;gap:4px;padding:12px 12px;background:#0C0C0E;position:sticky;top:62px;z-index:99;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tabs{display:flex;justify-content:flex-start;gap:4px;padding:12px 12px;background:#0C0C0E;position:sticky;top:var(--scoreboard-header-height,62px);z-index:99;overflow-x:auto;-webkit-overflow-scrolling:touch}
 .tabs .tab:first-child{margin-left:auto}
 .tabs .tab:last-child{margin-right:auto}
 .tab{padding:8px 16px;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid #2A2A30;color:#707075;transition:all .2s;background:transparent;white-space:nowrap;flex-shrink:0}
@@ -149,15 +149,15 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
 <body>
 
 <div class="header">
-  <h1>🎾 월촌구장배 테니스대회</h1>
-  <p><span class="refresh-dot" id="connDot"></span><span id="connText">실시간 업데이트 중</span> · 2026.10.10</p>
+  <h1>🎾 SEMT 클럽 초청 테니스 교류전</h1>
+  <p>주최 SEMT · <span class="refresh-dot" id="connDot"></span><span id="connText">실시간 업데이트 중</span> · 2026.10.10</p>
 </div>
 
 <div class="tabs">
   <div class="tab active" onclick="showTab('live',this)">실시간 스코어</div>
   <div class="tab" onclick="showTab('schedule',this)">📅 대진표</div>
   <div class="tab" onclick="showTab('standings',this)">순위표</div>
-  <div class="tab" onclick="showTab('qualifiers',this)">8강 진출팀</div>
+  <div class="tab" id="qualifiersTab" hidden onclick="showTab('qualifiers',this)">8강 진출팀</div>
   <div class="tab" onclick="showTab('results',this)">경기 결과</div>
   <div class="tab" onclick="showTab('rule',this)">📖 순위 규칙</div>
   <button type="button" class="tab" style="font-family:inherit" onclick="showTab('event',this)">행사 일정</button>
@@ -185,8 +185,8 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
 
   <!-- Event timetable -->
   <div class="section" id="sec-event">
-    <h2 class="section-title">2026 월촌구장배 행사 일정표</h2>
-    <p class="event-meta"><time datetime="2026-10-10">10월 10일(토)</time> · 월촌테니스장<br>영남테니스클럽 주최</p>
+    <h2 class="section-title">SEMT 클럽 초청 테니스 교류전 행사 일정표</h2>
+    <p class="event-meta"><time datetime="2026-10-10">10월 10일(토)</time> · 월촌테니스장<br>07:00~13:40 운영 · 4팀 · 3코트 · 예선·본선 3장조</p>
     <div class="event-legend" aria-label="일정 구분">
       <span class="event-prep"><i aria-hidden="true"></i>준비 · 개회</span>
       <span class="event-prelim"><i aria-hidden="true"></i>예선</span>
@@ -194,20 +194,18 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
       <span class="event-awards"><i aria-hidden="true"></i>시상</span>
     </div>
     <ol class="event-timetable" aria-label="시간별 행사 일정">
-      <li class="event-prep"><time datetime="2026-10-10T08:00:00+09:00">08:00</time><h3>참가팀 도착 · 접수</h3><p>출전 명단 확인 · 물품 배부</p></li>
-      <li class="event-prep"><time datetime="2026-10-10T08:40:00+09:00">08:40</time><h3>개회식</h3><p>인사 · 경기 규정 및 매너 안내 · 기념 촬영</p></li>
-      <li class="event-prelim"><time datetime="2026-10-10T09:00:00+09:00">09:00</time><h3>예선 슬롯 1</h3><p>1~5번 코트 · 6번 예비</p></li>
-      <li class="event-prelim"><time datetime="2026-10-10T10:30:00+09:00">10:30</time><h3>예선 슬롯 2</h3></li>
-      <li class="event-prelim"><time datetime="2026-10-10T12:00:00+09:00">12:00</time><h3>예선 슬롯 3</h3><p>13:30 예선 종료</p></li>
-      <li class="event-finals"><time datetime="2026-10-10T13:30:00+09:00">13:30</time><h3>순위 확정 · 8강 대진 추첨</h3><p>A·B조 1~3위, C조 1~2위</p></li>
-      <li class="event-finals"><time datetime="2026-10-10T13:40:00+09:00">13:40</time><h3>8강 ① ②</h3><p>6면 · 3경기 동시</p></li>
-      <li class="event-finals"><time datetime="2026-10-10T14:10:00+09:00">14:10</time><h3>8강 ③ ④</h3><p>6면 · 3경기 동시</p></li>
-      <li class="event-finals"><time datetime="2026-10-10T14:50:00+09:00">14:50</time><h3>4강</h3><p>6면 · 3경기 동시 · 공동 3위 확정</p></li>
-      <li class="event-finals"><time datetime="2026-10-10T15:30:00+09:00">15:30</time><h3>결승</h3><p>3경기 동시 · 5:5 타이브레이크(7점)</p></li>
-      <li class="event-awards"><time datetime="2026-10-10T16:10:00+09:00">16:10</time><h3>시상 · 행운권 추첨</h3><p>우승 · 준우승 · 공동 3위 시상 후 행운권 추첨</p></li>
-      <li class="event-awards"><time datetime="2026-10-10T16:40:00+09:00">16:40</time><h3>폐회 · 기념 촬영</h3></li>
+      <li class="event-prep"><time datetime="2026-10-10T07:00:00+09:00">07:00</time><h3>개회 · 운영 안내</h3><p>07:00~07:10 · 10분<br>참가 확인 · 장조 명단 · 코트 배정 안내</p></li>
+      <li class="event-prelim"><time datetime="2026-10-10T07:10:00+09:00">07:10</time><h3>예선 1라운드</h3><p>07:10~08:10 · 60분<br>등록순 1–2팀 / 3–4팀 · 6경기</p></li>
+      <li class="event-prelim"><time datetime="2026-10-10T08:10:00+09:00">08:10</time><h3>예선 2라운드</h3><p>08:10~09:10 · 60분<br>등록순 1–3팀 / 2–4팀 · 6경기</p></li>
+      <li class="event-prelim"><time datetime="2026-10-10T09:10:00+09:00">09:10</time><h3>예선 3라운드</h3><p>09:10~10:10 · 60분<br>등록순 1–4팀 / 2–3팀 · 6경기</p></li>
+      <li class="event-prep"><time datetime="2026-10-10T10:10:00+09:00">10:10</time><h3>예선 순위 확정 · 휴식</h3><p>10:10~10:20 · 10분<br>1~4위 확인 · 준결승 명단 제출</p></li>
+      <li class="event-finals"><time datetime="2026-10-10T10:20:00+09:00">10:20</time><h3>준결승 · 빈 코트 친선경기</h3><p>10:20~11:50 · 90분<br>예선 1위–4위 / 2위–3위 · 공식 4~6경기 + 남복 친선 3~5경기</p></li>
+      <li class="event-prep"><time datetime="2026-10-10T11:50:00+09:00">11:50</time><h3>휴식 · 최종전 준비</h3><p>11:50~12:00 · 10분<br>승자·패자 확인 · 결승 및 3·4위전 명단 제출</p></li>
+      <li class="event-finals"><time datetime="2026-10-10T12:00:00+09:00">12:00</time><h3>결승 · 3·4위전 · 친선경기</h3><p>12:00~13:30 · 90분<br>준결승 승자끼리 결승 / 패자끼리 3·4위전 · 공식 4~6경기 + 남복 친선 3~5경기</p></li>
+      <li class="event-awards"><time datetime="2026-10-10T13:30:00+09:00">13:30</time><h3>시상 · 마무리</h3><p>13:30~13:40 · 10분<br>1~4위 결과 발표 · 기념 촬영 · 코트 정리</p></li>
+      <li class="event-awards"><time datetime="2026-10-10T13:40:00+09:00">13:40</time><h3>운영 종료</h3><p>시간제 운영 · 코트 반환</p></li>
     </ol>
-    <p class="event-footnote">경기 진행 상황에 따라 시간이 조정될 수 있습니다.<br>본선 대진 추첨과 토너먼트는 별도 운영합니다.<br>자료: 영남테니스클럽 「2026 월촌구장배 행사 일정표」</p>
+    <p class="event-footnote">편성 기준: 예선 6타임 + 준결승 3타임 + 결승·3·4위전 3타임 = 12타임. 타임당 30분으로 총 360분을 배정하며, 별도 정리·교대 시간은 추가하지 않습니다.<br>개회 10분 + 순위 확정 10분 + 휴식 10분 + 시상 10분 = 40분. 전체 운영 시간은 400분이며, 예정 종료는 최대 13:40입니다.<br>본선 2:0 대전은 공식 3장조를 진행하지 않습니다. 빈 코트와 취소된 경기 시간은 남자복식 친선경기에 사용해 공식 26~30경기 + 친선 6~10경기, 총 36경기를 목표로 합니다. 친선경기를 편성한 타임은 유지합니다.<br>별도 지연 대비 시간은 없으며, 실제 이동·정리·교대도 각 30분 타임 안에 마쳐야 합니다. 출전 횟수는 본부가 선수별로 확인하며 공식 경기와 친선경기의 동시 중복 출전을 금지합니다.<br><strong>시간 관리는 본부의 공통 시작·종료 신호로 진행합니다.</strong> 프로그램이 30분에 자동으로 경기를 종료하거나 점수를 확정하지는 않습니다.<br>예선 결과는 프로그램으로 집계하고, 본선 및 친선 대진·결과는 본부에서 별도 운영합니다. 친선 결과는 예선 입력란에 등록하지 않으며 공식 순위에 반영하지 않습니다. 새 예선 대진표는 07:10 시작·타임당 30분·3장조로 생성합니다.</p>
   </div>
 
   <!-- Standings -->
@@ -228,34 +226,67 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
 
   <!-- 순위 규칙 탭 -->
   <div class="section" id="sec-rule">
-    <div class="section-title">2026 월촌구장배 경기 규정</div>
-    <p class="rules-lead">11팀 조별리그 · A조 4팀 / B조 4팀 / C조 3팀 · 8강 진출팀 확정까지 운영</p>
+    <div class="section-title">SEMT 클럽 초청 테니스 교류전 경기 규정</div>
+    <p class="rules-lead">4팀 풀리그 → 준결승 → 결승·3·4위전 · 남복–여복–남복 · 공식 26~30경기 + 남복 친선 6~10경기 · 총 36경기 목표 · 30분 타임 · 07:00~13:40 운영</p>
+    <section class="rules-band" id="rulesPurpose">
+      <h3>주최 SEMT · 이 운영 방식을 선택한 이유</h3>
+      <p>모든 팀이 예선 3대전과 본선 2대전을 치러 중도 탈락 없이 끝까지 참여합니다. 2장조를 여복으로 구성해 여성 출전 기회를 늘리고, 빈 코트 친선경기로 팀별 인원 차이를 보완합니다.</p>
+      <p>본부가 개인별 출전표를 관리하며 공식 명단을 먼저 확인하고, 친선은 클럽을 섞어 출전이 적은 남자 선수부터 배정합니다. 팀 승부와 클럽 간 교류를 함께 즐기는 것이 목표입니다.</p>
+    </section>
     <div class="rules-overview">
       <section class="rules-band">
         <h3>예선과 본선 경기 방식</h3>
-        <p><strong>예선: 1·2·3장조 전 경기</strong>를 진행합니다. 2:0이 되어도 3장조를 치릅니다.</p>
-        <p><strong>본선 8강·4강·결승: 3전 2선승제</strong>입니다. 2경기를 먼저 이기면 승리하며, 남은 경기는 진행하지 않습니다.</p>
-        <p>본선 대진 및 경기 진행은 <strong>별도 운영</strong>합니다.</p>
+        <p id="prelimFormatRule"><strong>예선: 1·2·3장조 전 경기</strong>를 진행합니다. 2:0이 되어도 3장조를 치릅니다.</p>
+        <p><strong>본선 준결승·결승·3·4위전: 3전 2선승제</strong>입니다. 1·2장조를 진행하고, 1:1이면 3장조를 치릅니다. 2:0이면 3장조는 진행하지 않습니다.</p>
+        <p>예선 순위와 관계없이 <strong>4팀 모두 준결승</strong>에 진출합니다. 준결승에서 패해도 3·4위전을 치르므로 중도 탈락 없이 팀당 5대전을 진행합니다.</p>
+        <p>본선 대진 및 경기 결과는 <strong>본부에서 별도 운영</strong>합니다. 프로그램은 예선 결과와 순위를 집계합니다.</p>
       </section>
-      <section class="rules-band">
-        <h3>8강 진출 인원</h3>
-        <dl class="rules-quotas"><div><dt>A조 상위</dt><dd>3팀</dd></div><div><dt>B조 상위</dt><dd>3팀</dd></div><div><dt>C조 상위</dt><dd>2팀</dd></div></dl>
-        <p>각 조의 정해진 인원으로 <strong>총 8팀</strong>이 진출합니다. 부전승은 없습니다.</p>
+      <section class="rules-band" id="rulesQualifiers">
+        <h3>본선 대진 · 최종 순위</h3>
+        <table class="rules-table"><thead><tr><th>단계</th><th>대진</th></tr></thead><tbody>
+          <tr><td>준결승 ①</td><td>예선 1위 vs 4위</td></tr>
+          <tr><td>준결승 ②</td><td>예선 2위 vs 3위</td></tr>
+          <tr><td>결승</td><td>준결승 ① 승자 vs ② 승자<small>승자 1위 · 패자 2위</small></td></tr>
+          <tr><td>3·4위전</td><td>준결승 ① 패자 vs ② 패자<small>승자 3위 · 패자 4위</small></td></tr>
+        </tbody></table>
+        <p>대진 추첨과 부전승 없이 예선 순위로 배정합니다. 공동 3위 대신 <strong>3·4위전 결과</strong>로 최종 순위를 정합니다.</p>
       </section>
     </div>
     <section class="rules-band">
-      <h3>대전 구성 · 복식 3경기</h3>
-      <table class="rules-table">
-        <thead><tr><th scope="col">경기 순서</th><th scope="col">종목</th></tr></thead>
-        <tbody><tr><td>1경기 · 1장조</td><td>복식</td></tr><tr><td>2경기 · 2장조</td><td><strong>혼합복식 필수</strong></td></tr><tr><td>3경기 · 3장조</td><td>복식</td></tr></tbody>
-      </table>
-      <p>예선·본선 모두 위 순서로 진행합니다. <strong>같은 대전에서 한 선수는 1경기만 출전</strong>할 수 있으며, 팀당 6명이 필요합니다.</p>
+      <h3>경기 수 · 코트 운영</h3>
+      <dl class="rules-quotas"><div><dt>예선 경기 수</dt><dd>18</dd></div><div><dt>본선 경기 수</dt><dd>8~12</dd></div><div><dt>공식 경기 합계</dt><dd>26~30</dd></div></dl>
+      <p>공식 경기는 예선 6대전 × 3경기 + 본선 4대전 × 2~3경기입니다. 모든 팀이 예선 3대전과 본선 2대전, 총 <strong>5대전·13~15경기</strong>에 참가합니다. 선수는 대전마다 교대해 출전 횟수를 고르게 배정합니다.</p>
+      <p><strong>1코트와 3코트는 각각 한 대전을 전담하고, 2코트는 두 대전이 번갈아 공유</strong>합니다. 같은 팀의 서로 다른 장조는 동시에 경기할 수 있지만, 같은 장조나 같은 선수의 동시 중복 출전은 금지합니다.</p>
+      <p><strong>예선은 한 라운드 6경기를 2타임</strong>에 진행합니다. 2:0이 되어도 3장조를 반드시 치릅니다.</p>
+      <p><strong>본선은 두 대전에 최대 3타임</strong>을 배정합니다. 첫 타임에 첫 대전의 1·2장조와 다른 대전의 1장조, 다음 타임에 첫 대전의 3장조(1:1일 때만)와 다른 대전의 2장조를 진행합니다. 마지막 타임은 다른 대전의 3장조가 필요할 때만 사용합니다. 3장조는 앞선 두 경기 결과가 확정되기 전에 시작하지 않습니다.</p>
     </section>
     <section class="rules-band">
-      <h3>스코어 · 공식구</h3>
-      <p><strong>6게임 선승 · 노애드.</strong> 5:5에서는 다음 게임을 이긴 팀이 6:5로 승리합니다.</p>
-      <p><strong>결승전만 5:5에서 7점 타이브레이크</strong>를 진행합니다.</p>
-      <p>대회 공식구: <strong>던롭 ATP</strong></p>
+      <h3 id="rulesMatchTitle">대전 구성 · 복식 3경기</h3>
+      <table class="rules-table">
+        <thead><tr><th scope="col">경기 순서</th><th scope="col">종목</th></tr></thead>
+        <tbody id="rulesMatchEvents"><tr><td>1경기 · 1장조</td><td>남자복식</td></tr><tr><td>2경기 · 2장조</td><td><strong>여자복식</strong></td></tr><tr><td>3경기 · 3장조</td><td>남자복식</td></tr></tbody>
+      </table>
+      <p id="rulesPlayerCount">예선·본선 모두 남복–여복–남복으로 구성합니다. 같은 공식 대전에서 한 선수는 1경기만 출전할 수 있으며, 3장조 전체 명단은 팀당 남자 4명·여자 2명, 총 6명입니다.</p>
+      <p id="rulesFormatNotice" class="rules-note" hidden></p>
+    </section>
+    <section class="rules-band" id="rulesFriendlies">
+      <h3>빈 코트 남복 친선경기 · 개인 출전 목표</h3>
+      <p>본선 중 비는 코트에서 <strong>남자복식 친선 6~10경기</strong>를 편성합니다. 공식 경기와 합쳐 <strong>총 36경기</strong>가 목표입니다. 친선은 클럽을 섞어 구성하며, 같은 클럽 선수가 양쪽에 나뉘거나 4명 모두 같은 클럽이어도 됩니다.</p>
+      <table class="rules-table"><thead><tr><th>팀 · 배정 후 인원</th><th>남자 1인당</th><th>여자 1인당</th></tr></thead><tbody>
+        <tr><td>TPL · 남9/여3</td><td>4경기</td><td>3~4경기</td></tr>
+        <tr><td>SEMT · 남6/여2</td><td>4경기</td><td>5경기</td></tr>
+        <tr><td>팝스틴 · 남5/여2</td><td>4경기</td><td>5경기</td></tr>
+        <tr><td>코트피플 · 남6/여2</td><td>4경기</td><td>5경기</td></tr>
+      </tbody></table>
+      <p>영남 남자 3명은 SEMT·팝스틴·코트피플에 1명씩 배정합니다. 남자 26명은 공식·친선 합계 각 4경기, TPL 여성 3명은 3·3·4경기, 나머지 여성 6명은 각 5경기를 목표로 합니다.</p>
+      <p class="rules-note">전원 참석·12타임 정상 진행·친선 코트 전부 활용·선수 교대 편성이 전제입니다. 본부가 개인별 누적 출전표를 관리하고 출전이 적은 선수를 우선 배정합니다. 공식 경기와 친선경기의 동시 중복 출전을 금지하며 다음 공식 경기 명단을 먼저 확인합니다. 친선 결과는 공식 순위에 반영하지 않고 본부에서 별도로 관리합니다. 프로그램이 친선 대진이나 선수별 출전 횟수를 자동 배정·집계하지는 않습니다.</p>
+    </section>
+    <section class="rules-band">
+      <h3>시간제 스코어</h3>
+      <p><strong>모든 경기: 6게임 선승 또는 30분 도달 시 종료 · 노애드.</strong> 6게임을 먼저 이기면 시간 전에 종료합니다. 5:5에서는 다음 게임을 이긴 팀이 승리하며, 결승에도 같은 시간제 규정을 적용합니다.</p>
+      <p>30분 종료 신호 때 진행 중인 포인트만 마친 뒤 종료합니다. 그 포인트로 끝난 게임까지 포함한 <strong>완료 게임 수</strong>로 승패를 정하며, 끝나지 않은 게임은 합산하지 않습니다.</p>
+      <p><strong>게임 수가 같으면 결정 포인트 1점</strong>으로 승자를 정합니다. 원래 서브·리시브 순서를 유지하고 리시버가 리턴 코트를 선택합니다. 승리 팀에 1게임을 더해 최종 점수로 기록합니다(예: 3:3 → 4:3). 이 점수는 예선 게임 득실에도 포함합니다.</p>
+      <p class="rules-note">경기당 30분 타임으로 편성하며 별도 정리·교대 시간은 추가하지 않습니다. 실제 이동·교대도 타임 안에 마치도록 준비합니다. 종료 시 진행 중인 포인트와 동점 결정 포인트는 즉시 마무리하며, 별도 7점 타이브레이크나 추가 경기 시간은 두지 않습니다. 본부가 공통 신호로 관리합니다.</p>
     </section>
     <section class="rules-band">
       <h3>조별 순위 결정</h3>
@@ -268,8 +299,8 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
       <p class="rules-note">나이 합계는 본부에서 맞대결 출전 선수를 확인한 뒤 입력한 값입니다. 미입력이거나 마지막 기준까지 같으면 동률로 표시하며, 본선 진출·배정에 영향을 주는 동률은 본부 확인 후 확정합니다.</p>
     </section>
     <section class="rules-band">
-      <h3>규정 출처</h3>
-      <p>영남테니스클럽 제공 <strong>「2026 월촌구장배 경기 규정」</strong> 안내문과 본부 확인 사항을 반영했습니다.</p>
+      <h3>운영 기준</h3>
+      <p>이번 교류전은 <strong>4팀 풀리그와 전 팀 순위결정전</strong>으로 운영합니다. 전 팀이 준결승과 최종 순위전에 참가하며 본선은 3전 2선승제입니다. 30분 제한·동점 결정 포인트는 자체 운영 규정이며, 일정은 최대 13:40 종료 기준입니다.</p>
       <p>3팀 이상 동률의 게임 득실은 예선 전체 경기로 계산합니다. 두 팀만 다시 같아지면 승자승을 재적용하고, 이후 나이 합계는 본부에서 확인·입력합니다.</p>
     </section>
 
@@ -360,7 +391,7 @@ db.ref('courts').on('value',function(snap){
     html+='<div class="live-card '+(d.status==='live'?'active':d.status==='done'?'done':'')+'">'
       +'<div class="live-header">'
       +'<span class="live-court-name">'+d.name+'</span>'
-      +'<div><span class="live-event">'+(d.event==='2장조'?'2장조 · 혼복':d.event||'')+'</span> <span class="live-status '+statusClass+'">'+statusText+'</span></div>'
+      +'<div><span class="live-event">'+(d.event==='2장조'?'2장조 · 여복':d.event||'')+'</span> <span class="live-status '+statusClass+'">'+statusText+'</span></div>'
       +'</div>'
       +'<div class="live-body">'
       +'<div class="live-team"><span class="live-team-name '+(isWinnerA?'winner':'')+'">'+(d.teamA||'—')+'</span><span class="live-score '+(isWinnerA?'winner':'')+'">'+(d.scoreA||0)+'</span></div>'
@@ -406,7 +437,7 @@ db.ref('results').orderByChild('timestamp').on('value',function(snap){
     html+='<tr style="'+(isSkipped?'opacity:.5':'')+'">'
       +'<td>'+(r.time||'')+'</td>'
       +'<td>'+(r.court||'')+'</td>'
-      +'<td>'+(r.event==='2장조'?'2장조 · 혼복':r.event||'')+'</td>'
+      +'<td>'+(r.event==='2장조'?'2장조 · 여복':r.event||'')+'</td>'
       +'<td class="'+(winA&&!isSkipped?'result-winner':'')+'">'+(r.teamA||'')+'</td>'
       +'<td><span class="result-score">'+(isSkipped?'<span style="font-size:11px;color:#FFB43C">이전 규정 생략 · 재경기 필요</span>':(r.scoreA||0)+' : '+(r.scoreB||0))+'</span></td>'
       +'<td class="'+(winB&&!isSkipped?'result-winner':'')+'">'+(r.teamB||'')+'</td>'
@@ -446,7 +477,7 @@ db.ref('schedule').on('value',function(snap){
       html+='<div class="next-card">'
         +'<div class="next-court">'+key.replace('court','코트 ')+'</div>'
         +'<div class="next-teams">'+(c.teamA||'?')+' vs '+(c.teamB||'?')+'</div>'
-        +'<div class="next-meta">'+(c.event==='2장조'?'2장조 · 혼복':c.event||'')+' · '+cleanGroupLabel(c.group)+'</div>'
+        +'<div class="next-meta">'+(c.event==='2장조'?'2장조 · 여복':c.event||'')+' · '+cleanGroupLabel(c.group)+'</div>'
         +'</div>';
     });
     html+='</div>';
@@ -481,17 +512,18 @@ function renderPublicSchedule(){
 
   // 상단 정보
   var nameLabel=d.savedName?d.savedName:('대진표 #'+(d.ver||'?'));
-  var modeLabel = d.mode==='league12' ? '구장배 12팀'
+  var modeLabel = d.mode==='league4' ? '4팀 풀리그 · 총 6대전' : d.mode==='league12' ? '12팀 조별리그'
     : (d.mode==='courtseq' ? '6코트 12팀 동시'
     : (d.mode==='triple' ? '3코트 동시'
     : (d.mode==='parallel' ? '병렬' : '순차')));
+  if(d.distribution==='shared-middle') modeLabel+=' · 1·3코트 전담 / 2코트 공유';
   info.innerHTML='<div style="background:#151518;border:1px solid #2A2A30;border-radius:12px;padding:12px 16px;margin-bottom:14px;font-size:12px;color:#909096">'
     +'<b style="color:#D2FF4E">'+nameLabel+'</b>'
     +' &nbsp;·&nbsp; '+(d.startT||'')+' 시작'
     +' &nbsp;·&nbsp; '+modeLabel
     +' &nbsp;·&nbsp; '+(d.nCourts||'?')+'개 코트'
     +' &nbsp;·&nbsp; 경기당 '+(d.slotM||'?')+'분'
-    +'<div style="font-size:10px;color:#5A5A5E;margin-top:4px">예선: 1·2·3장조 전 경기 진행 · 2:0이어도 3장조를 진행합니다</div>'
+    +'<div style="font-size:10px;color:#909096;margin-top:4px">예선: '+matchEvents('','',d.nTeams).join(' · ')+' 전 경기 진행'+(normalizeEventCount(d.nTeams)%2===0?' · 장조 승수 동률 시 해당 대전 총 게임 득실로 승패 결정':'')+'</div>'
     +'</div>';
 
   // 슬롯별 매치업 정리 (장조 3줄 → 매치업 1개로 묶기)
@@ -501,14 +533,14 @@ function renderPublicSchedule(){
     if(!bySlot[sn]) bySlot[sn]={time:m.time, items:{}, order:[]};
     var key=m.court+'|'+m.club1+'|'+m.club2;
     if(!bySlot[sn].items[key]){
-      bySlot[sn].items[key]={court:m.court, club1:m.club1, club2:m.club2, group:m.group, gk:m.gk};
+      bySlot[sn].items[key]={court:m.court, club1:m.club1, club2:m.club2, group:m.group, gk:m.gk,event:m.ttype};
       bySlot[sn].order.push(key);
     }
   });
 
   // 클럽매치 진행 상태 계산 (결과 대조)
   var norm=function(t){return (t||'').replace(/\s*\d+장조$/,'').trim();};
-  function matchupStatus(c1,c2){ return matchupState(_sbResultsCache,c1,c2); }
+  function matchupStatus(c1,c2){ return matchupState(_sbResultsCache,c1,c2,d.nTeams); }
 
 
   var html='';
@@ -523,8 +555,8 @@ function renderPublicSchedule(){
       var gColor=gIdx>=0?SB_GROUP_COLORS[gIdx]:'#707075';
       var chip, chipStyle;
       if(st.done){
-        var winner=st.w1>st.w2?m.club1:st.w2>st.w1?m.club2:null;
-        chip='✔ 종료 '+st.w1+':'+st.w2+(winner?' '+winner+' 승':'');
+        var winner=st.winner===1?m.club1:st.winner===2?m.club2:null;
+        chip='✔ 종료 '+st.w1+':'+st.w2+(winner?' '+winner+' 승':' 본부 확인 대기')+(st.w1===st.w2?' (게임 '+st.gf+':'+st.ga+')':'');
         chipStyle='background:rgba(80,200,120,.12);color:#50C878';
       } else if(st.played>0){
         chip='▶ 진행중 '+st.w1+':'+st.w2;
@@ -533,7 +565,16 @@ function renderPublicSchedule(){
         chip='대기';
         chipStyle='background:rgba(112,112,117,.12);color:#707075';
       }
-      var w1b=st.done&&st.w1>st.w2, w2b=st.done&&st.w2>st.w1;
+      var w1b=st.winner===1, w2b=st.winner===2;
+      if(d.distribution==='shared-middle'){
+        var game=st.games[m.event];
+        chip=game?'✔ '+m.event+' 종료 '+game.a+':'+game.b:m.event+' 대기';
+        chipStyle=game?'background:rgba(80,200,120,.12);color:#50C878':'background:rgba(112,112,117,.12);color:#707075';
+        w1b=!!game && game.a>game.b;w2b=!!game && game.b>game.a;
+        chip+=' · 팀 대전 '+st.w1+':'+st.w2;
+        if(st.done) chip+=st.winner?' '+(st.winner===1?m.club1:m.club2)+' 승':' 본부 확인 대기';
+        if(st.done && st.w1===st.w2) chip+=' (게임 '+st.gf+':'+st.ga+')';
+      }
       html+='<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid #1C1C20;flex-wrap:wrap">'
         +'<span style="font-size:11px;font-weight:800;color:#909096;min-width:52px">'+(m.court||'')+'</span>'
         +'<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:8px;background:rgba(255,255,255,.04);color:'+gColor+'">'+cleanGroupLabel(m.group)+'</span>'
@@ -551,15 +592,34 @@ function renderPublicSchedule(){
 }
 
 // Standings
-// Three doubles matches are required; old skipped records are not results.
+// Preliminary match results; legacy schedules default to three events.
+var matchEventCounts={};
+function normalizeEventCount(value){
+  var n=Number(value);
+  return Number.isInteger(n) && n>=1 && n<=4?n:3;
+}
+function syncMatchEventCounts(groups){
+  matchEventCounts={};
+  Object.keys(groups||{}).forEach(function(key){
+    var g=groups[key]||{}, n=normalizeEventCount(g.nTeams);
+    Object.keys(g.teams||{}).forEach(function(club){matchEventCounts[clubBaseName(club)]=n;});
+  });
+}
+function matchEventCount(teamA,teamB){
+  return normalizeEventCount(matchEventCounts[clubBaseName(teamA)]||matchEventCounts[clubBaseName(teamB)]);
+}
+function matchEvents(teamA,teamB,nTeams){
+  var count=nTeams===undefined?matchEventCount(teamA,teamB):normalizeEventCount(nTeams);
+  return Array.from({length:count},function(_,i){return (i+1)+'장조';});
+}
 function clubBaseName(team){
   return String(team || '').replace(/\s*\d+장조$/, '').trim();
 }
 function cleanGroupLabel(group){
-  return String(group || '').replace(/\s+[1-3]장조(?:\s*\(필요시\))?\s*$/, '').trim();
+  return String(group || '').replace(/\s+[1-4]장조(?:\s*\(필요시\))?\s*$/, '').trim();
 }
 function validMatchResult(r){
-  return !!(r && !r.skipped && /^[1-3]장조(?:\s*\(필요시\))?$/.test(r.event || '') &&
+  return !!(r && !r.skipped && /^[1-4]장조(?:\s*\(필요시\))?$/.test(r.event || '') &&
     r.scoreA !== null && r.scoreB !== null && r.scoreA !== '' && r.scoreB !== '' &&
     Number.isFinite(Number(r.scoreA)) && Number.isFinite(Number(r.scoreB)) &&
     Number(r.scoreA) >= 0 && Number(r.scoreB) >= 0 && Number(r.scoreA) !== Number(r.scoreB) &&
@@ -576,45 +636,54 @@ function shouldCountResult(results, key, r){
       (Number(other.timestamp || 0)===Number(r.timestamp || 0) && k>key);
   });
 }
-function matchupState(results, teamA, teamB){
+function matchupState(results, teamA, teamB, nTeams){
   var a=clubBaseName(teamA), b=clubBaseName(teamB);
-  var st={w1:0,w2:0,played:0,done:false,games:{},nextEvent:null};
+  var expected=matchEvents(teamA,teamB,nTeams);
+  var st={w1:0,w2:0,gf:0,ga:0,winner:0,played:0,done:false,games:{},nextEvent:null};
   Object.keys(results || {}).forEach(function(key){
     var r=results[key];
     if(!shouldCountResult(results,key,r)) return;
+    if(expected.indexOf(parseInt(r.event,10)+'장조')===-1) return;
     var ra=clubBaseName(r.teamA), rb=clubBaseName(r.teamB);
     if(!((ra===a && rb===b)||(ra===b && rb===a))) return;
     var sa=Number(ra===a?r.scoreA:r.scoreB), sb=Number(ra===a?r.scoreB:r.scoreA);
     st.games[parseInt(r.event,10)+'장조']={a:sa,b:sb};
+    st.gf+=sa;st.ga+=sb;
     if(sa>sb) st.w1++; else st.w2++;
   });
-  ['1장조','2장조','3장조'].forEach(function(ev){
+  expected.forEach(function(ev){
     if(st.games[ev]) st.played++;
     else if(!st.nextEvent) st.nextEvent=ev;
   });
-  st.done=st.played===3;
+  st.done=st.played===expected.length;
+  if(st.done){
+    var diff=st.w1-st.w2 || st.gf-st.ga;
+    st.winner=diff>0?1:diff<0?2:0;
+  }
   return st;
 }
-function calcMatchupStandings(groupTeams, results, ageTiebreaks){
+function calcMatchupStandings(groupTeams, results, ageTiebreaks, nTeams){
   var clubs=Object.keys(groupTeams), matchups={}, stats={};
   clubs.forEach(function(c){
     matchups[c]={};
-    stats[c]={club:c,matchWin:0,matchLose:0,setWin:0,setLose:0,setDraw:0,gf:0,ga:0,matchesPlayed:0,h2h:0};
+    stats[c]={club:c,matchWin:0,matchLose:0,matchPending:0,setWin:0,setLose:0,setDraw:0,gf:0,ga:0,matchesPlayed:0,h2h:0};
   });
   clubs.forEach(function(a){
     clubs.forEach(function(b){
       if(a===b) return;
-      var st=matchupState(results,a,b);
+      var st=matchupState(results,a,b,nTeams);
       var matches=Object.keys(st.games).sort().map(function(ev){
         var g=st.games[ev];
         return {sA:g.a,sB:g.b,myWin:g.a>g.b,draw:false};
       });
-      matchups[a][b]={jomatchesWon:st.w1,jomatchesLost:st.w2,jomatchesDraw:0,matches:matches,complete:st.done};
+      matchups[a][b]={jomatchesWon:st.w1,jomatchesLost:st.w2,jomatchesDraw:0,matches:matches,complete:st.done && st.winner!==0,playedAll:st.done,winner:st.winner,gameDiff:st.gf-st.ga};
       stats[a].setWin+=st.w1; stats[a].setLose+=st.w2;
       matches.forEach(function(m){stats[a].gf+=m.sA;stats[a].ga+=m.sB;});
       if(st.done){
         stats[a].matchesPlayed++;
-        if(st.w1>st.w2) stats[a].matchWin++; else stats[a].matchLose++;
+        if(st.winner===1) stats[a].matchWin++;
+        else if(st.winner===2) stats[a].matchLose++;
+        else stats[a].matchPending++;
       }
     });
   });
@@ -634,7 +703,7 @@ function calcMatchupStandings(groupTeams, results, ageTiebreaks){
       s.tieValue=0;s.headValue=0;
       if(tied.length===2){
         var other=tied[0]===s?tied[1]:tied[0], m=matchups[s.club][other.club];
-        s.h2h=m.complete?(m.jomatchesWon>m.jomatchesLost?1:0):null;
+        s.h2h=m.complete?(m.winner===1?1:0):null;
         s.tieValue=s.h2h||0;
       } else if(tied.length>=3){
         s.tieDiff=s.gf-s.ga;
@@ -649,7 +718,7 @@ function calcMatchupStandings(groupTeams, results, ageTiebreaks){
       if(tied.length>=3 && same.length===2){
         same.forEach(function(s,n){
           var m=matchups[s.club][same[1-n].club];
-          s.h2h=m.complete?(m.jomatchesWon>m.jomatchesLost?1:0):null;
+          s.h2h=m.complete?(m.winner===1?1:0):null;
           s.headValue=s.h2h||0;
         });
         same.sort(function(a,b){return b.headValue-a.headValue;});
@@ -680,11 +749,16 @@ function calcMatchupStandings(groupTeams, results, ageTiebreaks){
 
 
 // Qualification only: no cross-group seeding or knockout bracket.
+function isFourTeamLeague(groups){
+  var keys=Object.keys(groups||{}).filter(function(key){return groups[key] && Object.keys(groups[key].teams||{}).length;});
+  return keys.length===1 && Object.keys(groups[keys[0]].teams).length===4;
+}
 function buildQualifiers(groups,results){
+  if(isFourTeamLeague(groups)) return {groups:[],count:0,ready:false,leagueOnly:true};
   var quotas={A:3,B:3,C:2}, list=[], count=0;
   Object.keys(quotas).forEach(function(key){
     var g=(groups||{})[key]||{}, quota=quotas[key];
-    var res=calcMatchupStandings(g.teams||{},results,g.ageTiebreaks);
+    var res=calcMatchupStandings(g.teams||{},results,g.ageTiebreaks,g.nTeams);
     var complete=res.clubs.length>=quota && res.clubs.every(function(a){
       return res.clubs.every(function(b){return a===b || res.matchups[a][b].complete;});
     });
@@ -699,11 +773,12 @@ function buildQualifiers(groups,results){
 }
 function qualifiersHtml(groups,results){
   var plan=buildQualifiers(groups,results);
+  if(plan.leagueOnly) return '<p>4팀 풀리그 · 순위표에서 리그 순위를 확인할 수 있습니다.</p>';
   function safe(value){return String(value).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
   var h='<p style="font-size:14px;line-height:1.8;color:#D2FF4E">8강 진출 '+plan.count+'/8팀 확정'+(plan.ready?'':' · 예선 종료 및 동률 확인 대기')+'</p>';
   plan.groups.forEach(function(g){
     h+='<section style="padding:16px 0;border-top:1px solid #2A2A30"><h3 style="font-size:15px;color:#E8E8E8;margin:0 0 10px">'+safe(g.name)+' · '+g.qualified.length+'/'+g.quota+'팀 확정</h3>';
-    if(!g.complete) h+='<p style="font-size:12px;color:#909096">예선 세 장조 전체 경기 완료 대기</p>';
+    if(!g.complete) h+='<p style="font-size:12px;color:#909096">설정된 모든 장조 경기 완료 및 승패 확정 대기</p>';
     else {
       h+='<ul style="list-style:none;margin:0;padding:0">';
       g.qualified.forEach(function(s){
@@ -724,6 +799,13 @@ var SB_GROUP_COLORS = ['#4f9cf9','#f9634f','#50C878','#FFB43C','#a78bfa','#FF6B8
 function renderPublicStandings(){
   db.ref('groups').once('value',function(gsnap){
     var groups=gsnap.val();
+    syncMatchEventCounts(groups);
+    renderConfiguredRules(groups);
+    var fourTeamLeague=isFourTeamLeague(groups);
+    document.getElementById('qualifiersTab').hidden=fourTeamLeague || !groups || !Object.keys(groups).length;
+    if(fourTeamLeague && document.getElementById('sec-qualifiers').classList.contains('active')){
+      showTab('standings',document.querySelector('.tab[onclick*="standings"]'));
+    }
     var container=document.getElementById('standingsDisplay');
     if(!groups){
       container.innerHTML='<div class="empty"><span class="empty-icon">🏆</span><div class="empty-text">아직 순위 정보가 없습니다</div></div>';
@@ -739,13 +821,13 @@ function renderPublicStandings(){
         if(!g) return;
         var teams=g.teams||{};
         var color = SB_GROUP_COLORS[gIdx] || '#D2FF4E';
-        var res = calcMatchupStandings(teams, allResults, g.ageTiebreaks);
+        var res = calcMatchupStandings(teams, allResults, g.ageTiebreaks, g.nTeams);
         var clubs = res.clubs;
         var matchups = res.matchups;
         var standings = res.standings;
         
         html += '<div class="st-group">';
-        html += '<div class="st-group-hdr" style="color:'+color+'">'+g.name+' — 클럽매치 결과'+({A:' · 상위 3팀 진출',B:' · 상위 3팀 진출',C:' · 상위 2팀 진출'}[gKey]||'')+'</div>';
+        html += '<div class="st-group-hdr" style="color:'+color+'">'+g.name+' — 클럽매치 결과'+(fourTeamLeague?' · 4팀 풀리그':({A:' · 상위 3팀 진출',B:' · 상위 3팀 진출',C:' · 상위 2팀 진출'}[gKey]||''))+'</div>';
         
         // 매치업 크로스 테이블
         html += '<div style="overflow-x:auto"><table class="st-tbl" style="margin-bottom:16px"><thead><tr>';
@@ -768,11 +850,12 @@ function renderPublicStandings(){
               if(m.matches.length === 0){
                 html += '<td style="color:#5A5A5E;font-size:11px">-</td>';
               } else {
-                var mWon = m.complete && m.jomatchesWon >= 2;
-                var mLost = m.complete && m.jomatchesLost >= 2;
+                var mWon = m.complete && m.winner===1;
+                var mLost = m.complete && m.winner===2;
                 var color2 = mWon?'#50C878':mLost?'#FF6B6B':'#FFB43C';
                 var bg = mWon?'rgba(80,200,120,.08)':mLost?'rgba(255,107,107,.08)':'rgba(255,180,60,.08)';
                 var scoreText = m.jomatchesWon+':'+m.jomatchesLost;
+                if(m.playedAll && m.jomatchesWon===m.jomatchesLost) scoreText+='<br><small>'+(m.complete?'게임 득실 '+(m.gameDiff>0?'+':'')+m.gameDiff:'본부 확인 대기')+'</small>';
                 html += '<td style="background:'+bg+'">'
                   +'<div style="font-weight:800;color:'+color2+';font-size:14px">'+scoreText+'</div></td>';
               }
@@ -796,7 +879,7 @@ function renderPublicStandings(){
           html+='<tr class="'+q+'">'
             +'<td class="st-rank" style="color:'+color+'">'+s.rank+(s.unresolvedTie?' (동률)':'')+'</td>'
             +'<td class="st-team">'+s.club+'</td>'
-            +'<td style="font-size:14px"><span style="color:#50C878;font-weight:800">'+s.matchWin+'</span><span style="color:#5A5A5E">-</span><span style="color:#FF6B6B;font-weight:800">'+s.matchLose+'</span></td>'
+            +'<td style="font-size:14px"><span style="color:#50C878;font-weight:800">'+s.matchWin+'</span><span style="color:#5A5A5E">-</span><span style="color:#FF6B6B;font-weight:800">'+s.matchLose+'</span>'+(s.matchPending?'<br><small>본부 확인 대기 '+s.matchPending+'</small>':'')+'</td>'
             +'<td style="color:#FF6B6B;font-weight:700">'+(s.h2h===null?'-':s.h2h?'승':'패')+'</td>'
             +'<td style="color:#B8B8BF">'+(s.gf-s.ga>0?'+':'')+(s.gf-s.ga)+'</td>'
             +'<td style="color:#B8B8BF">'+(s.ageTotal===null?(s.agePending?'미확인':'-'):s.ageTotal)+'</td></tr>';
@@ -810,8 +893,32 @@ function renderPublicStandings(){
   });
 }
 db.ref('results').on('value',function(){renderPublicStandings()});
-db.ref('groups').on('value',function(){renderPublicStandings()});
+function renderConfiguredRules(groups){
+  var firstGroup=Object.values(groups||{}).find(function(g){return g && Object.keys(g.teams||{}).length;});
+  var configuredCount=firstGroup?normalizeEventCount(firstGroup.nTeams):3;
+  var count=3;
+  document.getElementById('prelimFormatRule').textContent='예선: '+matchEvents('','',count).join(' · ')+' 전 경기를 진행합니다.'+(count%2===0?' 장조 승수가 같으면 해당 대전의 총 게임 득실로 승자를 결정하며, 게임 득실까지 같으면 본부 확인 대기입니다.':' 승패가 결정되어도 남은 장조를 진행합니다.');
+  document.getElementById('rulesMatchTitle').textContent='대전 구성 · 복식 '+count+'경기';
+  document.getElementById('rulesMatchEvents').innerHTML=matchEvents('','',count).map(function(ev,i){
+    return '<tr><td>'+(i+1)+'경기 · '+ev+'</td><td>'+(i===1?'<strong>여자복식</strong>':'남자복식')+'</td></tr>';
+  }).join('');
+  document.getElementById('rulesPlayerCount').textContent='예선·본선 모두 남복–여복–남복으로 구성합니다. 같은 공식 대전에서 한 선수는 1경기만 출전할 수 있으며, 3장조 전체 명단은 팀당 남자 4명·여자 2명, 총 '+(count*2)+'명입니다. 서로 다른 장조는 동시에 경기할 수 있습니다.';
+  var notice=document.getElementById('rulesFormatNotice');
+  notice.hidden=!firstGroup || (isFourTeamLeague(groups) && configuredCount===3);
+  notice.textContent='이번 교류전은 4팀·예선 3장조 기준입니다. 현재 등록된 예선 설정과 다르면 본부에서 4팀 풀리그 설정을 선택하고 07:10 시작·30분 타임·3장조 대진표를 다시 생성해주세요.';
+}
+db.ref('groups').on('value',function(snap){
+  syncMatchEventCounts(snap.val());
+  renderConfiguredRules(snap.val());
+  renderPublicStandings();renderPublicSchedule();
+});
 
+var scoreboardHeader=document.querySelector('.header');
+function syncScoreboardHeaderHeight(){
+  document.documentElement.style.setProperty('--scoreboard-header-height',scoreboardHeader.getBoundingClientRect().height+'px');
+}
+syncScoreboardHeaderHeight();
+new ResizeObserver(syncScoreboardHeaderHeight).observe(scoreboardHeader);
 </script>
 </body>
 </html>

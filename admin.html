@@ -3,18 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>대회 본부 - 스코어 관리</title>
+<title>SEMT 클럽 초청 테니스 교류전 - 대회 본부</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-height:100vh}
-.header{background:#151518;border-bottom:2px solid #D2FF4E;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.header{background:#151518;border-bottom:2px solid #D2FF4E;padding:16px 20px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
 .header h1{font-size:18px;font-weight:800;color:#D2FF4E}
 .header .badge{background:#D2FF4E;color:#0C0C0E;font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px}
 .container{max-width:1200px;margin:0 auto;padding:16px}
 
 /* Court cards */
-.courts{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;margin-bottom:20px}
+.courts{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:12px;margin-bottom:20px}
 .court{background:#151518;border:1px solid #2A2A30;border-radius:12px;overflow:hidden;transition:all .3s}
 .court.active{border-color:#D2FF4E;box-shadow:0 0 20px rgba(210,255,78,.08)}
 .court-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#1C1C20}
@@ -64,8 +64,8 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
 .toast.show{opacity:1}
 
 /* Tabs */
-.admin-tabs{display:flex;gap:4px;margin-bottom:16px}
-.admin-tab{padding:10px 24px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid #2A2A30;color:#707075;background:transparent;transition:all .2s;font-family:inherit}
+.admin-tabs{display:flex;gap:4px;margin-bottom:16px;overflow-x:auto}
+.admin-tab{flex:0 0 auto;white-space:nowrap;padding:10px 24px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid #2A2A30;color:#707075;background:transparent;transition:all .2s;font-family:inherit}
 .admin-tab.active{background:#D2FF4E;color:#0C0C0E;border-color:#D2FF4E}
 .admin-section{display:none}.admin-section.active{display:block}
 
@@ -128,7 +128,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
 .br-cfg{display:flex;flex-wrap:wrap;gap:10px;background:#151518;border:1px solid #2A2A30;border-radius:12px;padding:16px;margin-bottom:14px;}
 .br-ci{display:flex;align-items:center;gap:8px;}
 .br-ci label{font-size:12px;color:#707075;white-space:nowrap;}
-.br-ci input{background:#0C0C0E;border:1px solid #2A2A30;color:#E8E8E8;border-radius:8px;padding:6px 10px;font-size:13px;width:80px;font-family:inherit;}
+.br-ci input,.br-ci select{background:#0C0C0E;border:1px solid #2A2A30;color:#E8E8E8;border-radius:8px;padding:6px 10px;font-size:13px;width:80px;font-family:inherit;}
 .br-ci input[type=time]{width:110px;}
 .br-ci input:focus{outline:none;border-color:#D2FF4E;}
 .br-grps{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
@@ -238,10 +238,10 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
 </div>
 
 <div class="header">
-  <h1>🎾 대회 본부 - 스코어 관리</h1>
+  <h1>🎾 SEMT 클럽 초청 테니스 교류전</h1>
   <div style="display:flex;align-items:center;gap:8px">
     <span id="connBadge" style="font-size:10px;font-weight:700;padding:4px 10px;border-radius:12px;background:#1C1C20;color:#707075">연결 확인 중…</span>
-    <span class="badge">ADMIN</span>
+    <span class="badge">주최 SEMT · ADMIN</span>
   </div>
 </div>
 <div id="bracketStatusBar" style="background:#0C1A08;border-bottom:1px solid #1A3010;padding:6px 20px;font-size:11px;display:flex;align-items:center;gap:8px">
@@ -263,12 +263,21 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
 
   <!-- Tab 0: Team Registration -->
   <div class="admin-section active" id="sec-teams">
+    <details class="setup-section" id="semtOperationGuide" open>
+      <summary class="setup-title" style="cursor:pointer">SEMT 교류전 운영안 · 4팀 / 35명 / 3코트</summary>
+      <p style="font-size:13px;line-height:1.9;margin:12px 0">예선은 <strong>남복–여복–남복 3경기 모두</strong>, 본선 준결승·결승·3·4위전은 <strong>3전 2선승제</strong>입니다. 예선 1위–4위, 2위–3위가 준결승에서 만납니다. 모든 팀이 공식 5대전·13~15경기에 참가합니다.</p>
+      <p style="font-size:12px;line-height:1.9">TPL 남9/여3 · SEMT 남6/여2 · 팝스틴 남5/여2 · 코트피플 남6/여2<br>영남 남자 3명을 SEMT·팝스틴·코트피플에 1명씩 배정한 인원입니다.</p>
+      <p style="font-size:12px;line-height:1.9;margin-top:10px">본선 빈 코트는 <strong>남복 친선 6~10경기</strong>로 채워 공식 경기와 합계 36경기를 목표로 합니다. 친선은 클럽을 섞어 출전이 적은 선수부터 배정합니다. 남자 전원 4경기, TPL 여성 3·3·4경기, 나머지 여성 각 5경기가 목표입니다.</p>
+      <p style="font-size:12px;line-height:1.9;margin-top:10px">07:00 개회 → 07:10 예선 → 10:10 순위 확정 → 10:20 준결승 → 11:50 휴식 → 12:00 결승·3·4위전 → 13:30 시상 → 13:40 종료<br>30분 타임, 별도 교대 시간 없음. 다음 선수는 미리 대기합니다.</p>
+      <p style="font-size:12px;line-height:1.9;color:#FFB43C;margin-top:10px">프로그램에는 예선 공식 결과만 입력합니다. 본선·친선과 개인별 출전표는 본부에서 별도로 관리하며 친선 점수는 공식 순위에 반영하지 않습니다. 전원 참석·정상 진행·선수 교대·빈 코트 전부 활용이 출전 목표의 전제이며, 공식·친선 동시 중복 출전은 금지합니다.</p>
+    </details>
     <div class="setup-section">
       <div class="setup-title">참가팀 등록</div>
       <p style="font-size:12px;color:#707075;margin-bottom:12px">대회 시작 전에 참가팀을 등록하면, 코트 관리·배정에서 드롭다운으로 선택할 수 있습니다</p>
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
         <span style="font-size:13px;font-weight:700;color:#D2FF4E">조 수:</span>
         <select id="groupCountSelect" onchange="changeGroupCount(this.value)" style="background:#1C1C20;border:1px solid #2A2A30;border-radius:8px;color:#E8E8E8;font-size:14px;font-weight:700;padding:8px 16px;font-family:inherit;cursor:pointer">
+          <option value="1" selected>1개조 · 단일 풀리그</option>
           <option value="2">2개조</option>
           <option value="3">3개조</option>
           <option value="4">4개조</option>
@@ -286,14 +295,14 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
     <div class="setup-row">
       <button class="setup-btn" onclick="saveTeams()" style="background:#1A3A10;color:#D2FF4E;border-color:#2A4A18;padding:10px 30px;font-size:13px">팀 등록 저장</button>
       <button class="setup-btn" onclick="toggleTeamSavePanel()">💾 팀 구성 저장 / 불러오기</button>
-      <button class="setup-btn" onclick="loadDefaultTeams()">확정 11팀 불러오기 (3개조 · 4/4/3팀)</button>
+      <button class="setup-btn" onclick="loadDefaultTeams()">SEMT 확정 4팀 불러오기</button>
     </div>
 
     <!-- 팀 구성 저장/불러오기 패널 -->
     <div id="teamSavePanel" style="display:none;background:#151518;border:1px solid #2A2A30;border-radius:12px;padding:14px;margin-top:10px">
       <div style="font-size:12px;font-weight:800;color:#a78bfa;margin-bottom:10px">💾 팀 구성 저장 / 불러오기</div>
       <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;flex-wrap:wrap">
-        <input type="text" id="teamSaveName" placeholder="저장 이름 (예: 2026 월촌구장배 팀구성)"
+        <input type="text" id="teamSaveName" placeholder="저장 이름 (예: SEMT 교류전 팀구성)"
           style="flex:1;min-width:160px;background:#0C0C0E;border:1px solid #2A2A30;color:#E8E8E8;border-radius:8px;padding:8px 12px;font-size:13px;font-family:inherit">
         <button class="setup-btn" style="background:#2A1A40;color:#a78bfa;border-color:#3A2A60" onclick="saveTeamConfig()">💾 현재 입력 저장</button>
       </div>
@@ -348,11 +357,11 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
   <div class="admin-section" id="sec-standings">
     <div class="setup-section">
       <div class="setup-title">조별 순위표 (자동 계산)</div>
-      <p style="font-size:12px;color:#707075;margin-bottom:8px">경기 결과를 기반으로 자동 계산됩니다 · A조 3팀 + B조 3팀 + C조 2팀, 총 8팀 본선 진출 · 팀 등록 탭에서 조 편성</p>
+      <p id="standingsModeNote" style="font-size:12px;color:#707075;margin-bottom:8px">예선 공식 결과를 기반으로 자동 계산됩니다 · 4팀 풀리그 후 전 팀 준결승 진출 · 본선·친선은 본부 별도 운영</p>
     </div>
     <div id="standingsArea"></div>
 
-    <section style="margin-top:20px;padding:16px 0;border-top:1px solid #2A4A18">
+    <section id="qualifiersSection" style="margin-top:20px;padding:16px 0;border-top:1px solid #2A4A18">
       <h2 style="font-size:18px;color:#D2FF4E">8강 진출팀</h2>
       <div id="qualifiersArea" style="margin-top:14px"></div>
     </section>
@@ -362,7 +371,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
   <div class="admin-section" id="sec-results">
     <div class="setup-section">
       <div class="setup-title">경기 결과 관리</div>
-      <p style="font-size:12px;color:#707075;margin-bottom:8px">점수를 수정하거나 잘못된 결과를 삭제할 수 있습니다</p>
+      <p style="font-size:12px;color:#707075;margin-bottom:8px">예선 공식 점수를 수정하거나 잘못된 결과를 삭제할 수 있습니다. 본선·친선 결과는 이곳에 입력하지 않고 본부에서 별도 관리합니다.</p>
     </div>
     <div id="resultsList"></div>
   </div>
@@ -378,11 +387,12 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
 
     <!-- Config -->
     <div class="br-cfg">
-      <div class="br-ci"><label>코트 수</label><input type="number" id="br-nCourts" value="5" min="1" max="10"></div>
+      <div class="br-ci"><label>코트 수</label><input type="number" id="br-nCourts" value="3" min="1" max="10"></div>
+      <div class="br-ci"><label for="br-distribution">코트 운영</label><select id="br-distribution" style="width:180px"><option value="matchup">대전별 한 코트 순차</option><option value="shared-middle" selected>3코트 · 2코트 공유</option></select></div>
       <div class="br-ci"><label>최대 조 팀 수</label><input type="number" id="br-nClubs" value="4" min="2" max="8" oninput="brBuildUI()"></div>
-      <div class="br-ci"><label>클럽당 복식조</label><input type="number" id="br-nTeams" value="3" min="3" max="3" readonly></div>
-      <div class="br-ci"><label>시작 시간</label><input type="time" id="br-startT" value="09:00"></div>
-      <div class="br-ci"><label>장조당 시간(분)</label><input type="number" id="br-slotM" value="60" min="15" max="180" step="15"></div>
+      <div class="br-ci"><label for="br-nTeams">클럽당 복식조</label><select id="br-nTeams"><option value="1">1장조</option><option value="2">2장조</option><option value="3" selected>3장조</option><option value="4">4장조</option></select></div>
+      <div class="br-ci"><label>시작 시간</label><input type="time" id="br-startT" value="07:10"></div>
+      <div class="br-ci"><label>장조당 시간(분)</label><input type="number" id="br-slotM" value="30" min="15" max="180" step="5"></div>
     </div>
 
     <!-- Club inputs (dynamic) -->
@@ -392,6 +402,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
 
     <!-- Action buttons -->
     <div class="br-btns">
+      <button class="br-btn" style="background:#1C1C20;color:#D2FF4E;border:1px solid #59683B" onclick="brSetFourTeamLeague()">4팀 풀리그 설정</button>
       <button class="br-btn br-btn-gen" onclick="brGenerate()">📋 대진표 생성</button>
       <button class="br-btn br-btn-fb" onclick="brLoadFromFirebase()">☁ 등록된 팀 불러오기</button>
       <button class="br-btn br-btn-xl" onclick="brDlExcel()">📥 엑셀 다운로드</button>
@@ -403,7 +414,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
     <div class="br-savepanel" id="br-savePanel">
       <div style="font-size:12px;font-weight:800;color:#a78bfa;margin-bottom:10px">💾 대진표 저장 / 불러오기</div>
       <div class="br-sp-row">
-        <input type="text" id="br-saveName" placeholder="저장 이름 (예: 2026 월촌구장배 최종안)">
+        <input type="text" id="br-saveName" placeholder="저장 이름 (예: SEMT 교류전 최종안)">
         <button class="br-btn br-btn-sv" style="padding:8px 16px;font-size:12px" onclick="brSaveSchedule()">💾 저장</button>
       </div>
       <div style="font-size:11px;color:#707075;margin-bottom:10px">⚠ 이 기기·브라우저에만 저장됩니다</div>
@@ -541,7 +552,6 @@ var courtsRef = db.ref('courts');
 var resultsRef = db.ref('results');
 var teamsRef = db.ref('teams');
 
-var events = ['1장조','2장조','3장조'];
 var allTeams = []; // populated from Firebase
 var teamGroups = {}; // {팀명: 'A' or 'B'}
 var completedSlots = {}; // {court1: [1,3], court2: [2]} - 완료된 슬롯 추적
@@ -559,18 +569,21 @@ function toast(msg){
 // ============ TEAM REGISTRATION ============
 var GROUP_LABELS = ['A','B','C','D','E','F'];
 var GROUP_COLORS = ['#4f9cf9','#f9634f','#50C878','#FFB43C','#a78bfa','#FF6B8A'];
-var currentGroupCount = 2;
+var currentGroupCount = 1;
+var SEMT_TEAMS = ['TPL','SEMT','팝스틴','코트피플'];
 
 function getGroupCount(){
   var sel = document.getElementById('groupCountSelect');
-  return sel ? parseInt(sel.value) : 2;
+  return sel ? parseInt(sel.value) : 1;
 }
 
 function changeGroupCount(val){
   var n = parseInt(val);
-  if(isNaN(n) || n < 2 || n > 6) return;
+  if(isNaN(n) || n < 1 || n > 6) return;
+  document.getElementById('groupCountSelect').value=n;
   currentGroupCount = n;
   renderGroupInputs(n);
+  brBuildUI();
 }
 
 function renderGroupInputs(n){
@@ -648,7 +661,7 @@ function saveTeamConfig(){
   }
   if(!hasAny){ toast('팀을 먼저 입력해주세요'); return; }
   var configs = getTeamConfigs();
-  configs.unshift({ id: Date.now(), name: name, savedAt: new Date().toLocaleString('ko-KR'), groupCount: n, groups: groupsData,
+  configs.unshift({ id: Date.now(), name: name, savedAt: new Date().toLocaleString('ko-KR'), groupCount: n, groups: groupsData, nTeams:normalizeEventCount(document.getElementById('br-nTeams').value),
     // backward compat
     groupA: groupsData.A||[], groupB: groupsData.B||[] });
   if(configs.length > 20) configs = configs.slice(0,20);
@@ -665,6 +678,7 @@ function loadTeamConfig(id){
   if(!confirm('"'+entry.name+'" 팀 구성을 불러오시겠습니까?\n현재 입력 내용이 교체됩니다.')) return;
   // Determine group count
   var n = entry.groupCount || 2;
+  document.getElementById('br-nTeams').value=normalizeEventCount(entry.nTeams);
   document.getElementById('groupCountSelect').value = n;
   currentGroupCount = n;
   renderGroupInputs(n);
@@ -906,14 +920,11 @@ function addTeamInput(group){
 }
 
 function loadDefaultTeams(){
-  document.getElementById('groupCountSelect').value = 3;
-  currentGroupCount = 3;
-  document.getElementById('groupsContainer').innerHTML = '';
-  renderGroupInputs(3);
-  ['IPT A','영남A','104','일심회'].forEach(function(t){ addTeamInputWithValue('A', t); });
-  ['IPT B','영남B','테우회','금맥회'].forEach(function(t){ addTeamInputWithValue('B', t); });
-  ['영남C','오구회','아테사'].forEach(function(t){ addTeamInputWithValue('C', t); });
-  toast('확정 11팀 불러오기 완료 (A/B/C조 · 4/4/3팀)');
+  brSetFourTeamLeague();
+  document.getElementById('groupA-inputs').innerHTML='';
+  SEMT_TEAMS.forEach(function(t){addTeamInputWithValue('A',t);});
+  brRenderClubRows(document.getElementById('br-cA'),'A',SEMT_TEAMS,4);
+  toast('SEMT 4팀 입력 완료 · 팀 등록 저장 또는 대진표 생성 시 게시됩니다');
 }
 
 function saveTeams(){
@@ -933,7 +944,7 @@ function saveTeams(){
     teamsData[label] = {};
     var teamsMap = {};
     teams.forEach(function(t, idx){ teamsData[label][idx] = t; teamsMap[t] = t; });
-    groupsData[label] = {name: label+'조', teams: teamsMap};
+    groupsData[label] = {name: label+'조', teams: teamsMap, nTeams:normalizeEventCount(document.getElementById('br-nTeams').value)};
     totalCount += teams.length;
     if(teams.length) summary.push(label+'조 '+teams.length+'팀');
   }
@@ -1080,12 +1091,12 @@ function initCourtsFromBracket(){
         name: '코트 '+i,
         teamA: m ? m.club1 : '', teamB: m ? m.club2 : '',
         scoreA: 0, scoreB: 0,
-        event: '1장조', group: m ? (m.group||'') : '',
+        event: m && d.distribution==='shared-middle'?m.ttype:'1장조', group: m ? cleanGroupLabel(m.group) : '',
         status: 'waiting'
       };
       if(m){
         nextData['court'+i] = {
-          teamA:m.club1, teamB:m.club2, event:'1장조', group:m.group||''
+          teamA:m.club1, teamB:m.club2, event:d.distribution==='shared-middle'?m.ttype:'1장조', group:cleanGroupLabel(m.group)
         };
       }
     }
@@ -1144,6 +1155,48 @@ function changeScore(courtId, team, delta){
   });
 }
 
+function isSharedCourtMode(){
+  return !!(latestBracketMeta && latestBracketMeta.distribution==='shared-middle');
+}
+function sharedEventConflict(courtId,data,courts){
+  return Object.keys(courts||{}).find(function(id){
+    if(id===courtId) return false;
+    var other=courts[id];
+    if(!other || (other.status!=='live' && other.status!=='waiting') || other.event!==data.event) return false;
+    var clubs=[clubBaseName(data.teamA),clubBaseName(data.teamB)];
+    return [other.teamA,other.teamB].some(function(team){return team && clubs.indexOf(clubBaseName(team))!==-1;});
+  });
+}
+function startSharedMatch(courtId,data){
+  courtsRef.once('value',function(snap){
+    var conflict=sharedEventConflict(courtId,data,snap.val());
+    if(conflict){toast('같은 장조가 '+conflict.replace('court','코트 ')+'에 배정되어 있습니다');return;}
+    resultsRef.once('value',function(rsnap){
+      var game=matchupState(rsnap.val(),data.teamA,data.teamB).games[data.event];
+      if(game && !confirm('이 장조는 결과가 있습니다. 다시 시작할까요? 기존 결과는 새 점수를 저장할 때 교체됩니다.')) return;
+      courtsRef.child(courtId).update({status:'live',scoreA:0,scoreB:0,startedAt:Date.now()});
+      toast(data.event+' 경기 시작');
+    });
+  });
+}
+function assignNextSharedEvent(courtId){
+  resultsRef.once('value',function(rsnap){
+    courtsRef.once('value',function(csnap){
+      var courts=csnap.val()||{};
+      if(courts[courtId] && courts[courtId].status==='live'){toast('현재 경기 결과를 먼저 저장해주세요');return;}
+      var nums=Object.keys(SLOTS).map(Number).sort(function(a,b){return a-b;});
+      for(var i=0;i<nums.length;i++){
+        var n=nums[i],data=SLOTS[n].courts[courtId];
+        if(!data || matchupState(rsnap.val(),data.teamA,data.teamB).games[data.event]) continue;
+        var conflict=sharedEventConflict(courtId,data,courts);
+        if(conflict){toast('다음 경기 '+data.event+' 선수가 '+conflict.replace('court','코트 ')+'에 배정되어 있습니다');return;}
+        _doApplySlot(courtId,n,data,SLOTS[n],false);return;
+      }
+      toast('이 코트에 배정된 모든 장조가 완료되었습니다');
+    });
+  });
+}
+
 function startMatch(courtId){
   if(!requireOnline()) return;
   courtsRef.child(courtId).once('value',function(snap){
@@ -1165,7 +1218,11 @@ function startMatch(courtId){
       toast('⚠️ 다른 조 팀과는 경기할 수 없습니다 ('+teamGroups[d.teamA]+'조 vs '+teamGroups[d.teamB]+'조)');
       return;
     }
-    // 이미 "확정된"(3장조 완료) 매치업인지 확인 — 진행 중 장조 추가는 막지 않음
+    if(matchEvents(d.teamA,d.teamB).indexOf(d.event)===-1){
+      toast('설정된 장조를 선택해주세요');return;
+    }
+    if(isSharedCourtMode()){startSharedMatch(courtId,d);return;}
+    // 설정된 모든 장조가 완료된 매치업인지 확인
     var _norm=function(t){return (t||'').replace(/\s*\d+장조$/,'').trim();};
     var dCA=_norm(d.teamA), dCB=_norm(d.teamB);
     var matchedSlot=null;
@@ -1223,10 +1280,16 @@ function finishMatch(courtId){
       return;
     }
     if((d.scoreA||0)===(d.scoreB||0)){
-      toast('동점('+(d.scoreA||0)+':'+(d.scoreB||0)+')은 저장할 수 없습니다. 예선 5:5는 다음 게임으로 승부를 결정해주세요');
+      toast('동점('+(d.scoreA||0)+':'+(d.scoreB||0)+')은 저장할 수 없습니다. 경기 규정에 따라 승패를 결정한 뒤 최종 점수를 입력해주세요');
       return;
     }
     var tA=d.teamA, tB=d.teamB, grp=cleanGroupLabel(d.group), cName=d.name, ev=d.event||'';
+    if(matchEvents(tA,tB).indexOf(ev)===-1){
+      toast('설정된 장조를 선택해주세요');return;
+    }
+    if(isSharedCourtMode() && sharedEventConflict(courtId,d,latestCourtsData)){
+      toast('같은 장조가 다른 코트에 배정되어 있습니다. 코트 배정을 먼저 확인해주세요');return;
+    }
 
     // 이미 저장된 결과가 있는지 확인
     resultsRef.once('value',function(rsnap){
@@ -1267,19 +1330,23 @@ function finishMatch(courtId){
       }
       courtsRef.child(courtId).update({status:'done'});
 
-      // ★ 3장조 전 경기제 자동 진행
+      // 설정된 모든 장조를 순서대로 진행한다.
       autoProgressAllThree(courtId, tA, tB, grp, ev);
     });
   });
 }
 
-// 3장조 전 경기제 자동 진행: 결과 저장 후 다음 장조로 자동 전환하거나 매치업 종료 처리
+// 결과 저장 후 다음 장조로 자동 전환하거나 매치업 종료 처리
 function autoProgressAllThree(courtId, teamA, teamB, group, event){
+  if(isSharedCourtMode()){
+    courtsRef.child(courtId).update({status:'done'});
+    toast(event+' 결과 저장 완료');return;
+  }
   resultsRef.once('value',function(snap){
     var st=matchupState(snap.val()||{},teamA,teamB);
     if(st.done){
       courtsRef.child(courtId).update({status:'done'});
-      toast('매치업 종료: '+teamA+' '+st.w1+':'+st.w2+' '+teamB);
+      toast('매치업 종료: '+teamA+' '+st.w1+':'+st.w2+' '+teamB+(st.w1===st.w2?' · 게임 '+st.gf+':'+st.ga+' · '+(st.winner?(st.winner===1?teamA:teamB)+' 승':'본부 확인 대기'):''));
       return;
     }
     courtsRef.child(courtId).update({
@@ -1302,6 +1369,7 @@ function resetCourt(courtId){
 // 대진표 순서 그대로 유지 → 혼동 없음. 단지 예정보다 일찍 시작 가능.
 function assignNextMatchup(courtId){
   if(!requireOnline()) return;
+  if(isSharedCourtMode()){assignNextSharedEvent(courtId);return;}
   var slotNums = Object.keys(SLOTS).map(Number).sort(function(a,b){return a-b;});
   if(slotNums.length === 0){
     toast('⚠️ 대진표가 없습니다. 대진표를 먼저 생성해주세요.');
@@ -1387,7 +1455,7 @@ function renderCourt(courtId, data){
   if(data.teamA && data.teamB){
     var state=matchupState(latestResults,data.teamA,data.teamB);
     var g=state.games, wA=state.w1, wB=state.w2;
-    var chips=['1장조','2장조','3장조'].map(function(ev){
+    var chips=matchEvents(data.teamA,data.teamB).map(function(ev){
       var cur=(data.event===ev);
       if(g[ev]){
         var win=g[ev].a>g[ev].b, lose=g[ev].a<g[ev].b;
@@ -1396,9 +1464,10 @@ function renderCourt(courtId, data){
       }
       return '<span style="padding:1px 6px;border-radius:4px;background:#0C0C0E;border:1px solid '+(cur?'#D2FF4E':'#1C1C20')+';color:#505055">'+ev.replace('장조','')+'장 -</span>';
     }).join('');
-    var decided=matchupState(latestResults,data.teamA,data.teamB).done;
+    var decided=state.done;
+    var outcome=decided && wA===wB?' · 게임 '+state.gf+':'+state.ga+' · '+(state.winner?(state.winner===1?data.teamA:data.teamB)+' 승':'본부 확인 대기'):'';
     var matchScore = (wA+wB>0)
-      ? '<span style="color:'+(decided?'#D2FF4E':'#909096')+';font-weight:900">'+wA+':'+wB+(decided?' 🏆':'')+'</span>'
+      ? '<span style="color:'+(decided?'#D2FF4E':'#909096')+';font-weight:900">'+wA+':'+wB+outcome+'</span>'
       : '<span style="color:#505055">0:0</span>';
     scoreStrip = '<div style="padding:6px 16px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:10px;border-bottom:1px solid #1C1C20">'
       +'<span style="color:#707075;font-weight:700">매치:</span>'+matchScore
@@ -1420,12 +1489,12 @@ function renderCourt(courtId, data){
     var has = sd && (sd.teamA || sd.teamB);
     var done = (completedSlots[courtId]||[]).indexOf(s) !== -1;
     var info = has ? slotMatchInfo(courtId, s) : null;
-    var inProgress = info && info.played>0 && !done; // 장조 일부만 진행
+    var inProgress = info && info.played>0 && !done && !sd.distributed;
     var isLive = false;
     if(!done && has && data.status==='live'){
       var _n=function(t){return (t||'').replace(/\s*\d+장조$/,'').trim();};
       var teamMatch=(_n(data.teamA)===_n(sd.teamA)&&_n(data.teamB)===_n(sd.teamB))||(_n(data.teamA)===_n(sd.teamB)&&_n(data.teamB)===_n(sd.teamA));
-      if(teamMatch) isLive=true;
+      if(teamMatch && (!sd.distributed || sd.event===data.event)) isLive=true;
     }
     // 상태별 색상: 종료(파랑) > 진행중(주황) > LIVE(주황) > 배정됨(초록) > 빈칸(회색)
     var state = done?'done':(inProgress||isLive)?'live':has?'set':'empty';
@@ -1435,10 +1504,11 @@ function renderCourt(courtId, data){
     var deco=done?'line-through':'none';
     // 클럽매치 스코어 라벨 (진행/종료 시)
     var scoreLabel='';
-    if(info && info.played>0){
-      var mark = done ? '✔' : '▶';
+    if(info && (info.played>0 || sd.distributed)){
+      var mark = done ? '✔' : sd.distributed && !isLive ? '' : '▶';
       var scoreCol = done ? '#9999FF' : '#FFC061';
-      scoreLabel = '<div style="font-size:9px;font-weight:800;color:'+scoreCol+';text-decoration:none;margin-top:1px">'+mark+info.winsA+':'+info.winsB+'</div>';
+      var slotScore=sd.distributed?(info.games[sd.event]?info.games[sd.event].a+':'+info.games[sd.event].b:sd.event):info.winsA+':'+info.winsB;
+      scoreLabel = '<div style="font-size:9px;font-weight:800;color:'+scoreCol+';text-decoration:none;margin-top:1px">'+mark+slotScore+'</div>';
     }
     slotRow+='<button onclick="applySlotToCourt(\''+courtId+'\','+s+')" '
       +'title="슬롯 '+s+' '+slotTime+(info?' · '+info.teamA+' vs '+info.teamB+' ('+info.winsA+':'+info.winsB+')':'')+'" '
@@ -1487,8 +1557,8 @@ function renderCourt(courtId, data){
     +'</div>'
     // Event selector
     +'<div class="event-row">'
-    +events.map(function(e){
-      return '<div class="event-chip '+(data.event===e?'selected':'')+'" onclick="updateCourt(\''+courtId+'\',\'event\',\''+e+'\')">'+(e==='2장조'?'2장조 · 혼복':e)+'</div>';
+    +matchEvents(data.teamA,data.teamB).map(function(e){
+      return '<div class="event-chip '+(data.event===e?'selected':'')+'" onclick="updateCourt(\''+courtId+'\',\'event\',\''+e+'\')">'+(e==='2장조'?'2장조 · 여복':e+' · 남복')+'</div>';
     }).join('')
     +'</div>'
     // 장조별 점수 스트립
@@ -1524,7 +1594,7 @@ function renderAllCourts(data){
 
 // ============ 코트 경과 타이머 ============
 function updateCourtTimers(){
-  var slotM = (latestBracketMeta && parseInt(latestBracketMeta.slotM)) || 60;
+  var slotM = (latestBracketMeta && parseInt(latestBracketMeta.slotM)) || 30;
   document.querySelectorAll('.court-timer').forEach(function(el){
     var st = parseInt(el.getAttribute('data-start'));
     if(!st) return;
@@ -1564,13 +1634,19 @@ function renderProgress(){
   var pct = Math.round(p.done/p.total*100);
   var remain = p.total - p.done;
   var nC = (latestBracketMeta && parseInt(latestBracketMeta.nCourts))
-        || (latestCourtsData ? Object.keys(latestCourtsData).length : 0) || 5;
-  var sM = (latestBracketMeta && parseInt(latestBracketMeta.slotM)) || 60;
+        || (latestCourtsData ? Object.keys(latestCourtsData).length : 0) || 3;
+  var sM = (latestBracketMeta && parseInt(latestBracketMeta.slotM)) || 30;
   var est = '';
   if(remain > 0 && nC > 0){
     var waves = Math.ceil(remain / nC);
     var fmt = function(m){ var h=Math.floor(m/60), mm=m%60; return (h? h+'시간':'')+(mm? (h?' ':'')+mm+'분':'') || '0분'; };
-    est = ' · 잔여 예상 약 ' + fmt(waves*sM*3);
+    var remainingMinutes=waves*sM*normalizeEventCount(latestBracketMeta && latestBracketMeta.nTeams);
+    if(isSharedCourtMode()){
+      remainingMinutes=Object.keys(SLOTS).filter(function(key){
+        return Object.values(SLOTS[key].courts).some(function(c){return !matchupState(latestResults,c.teamA,c.teamB).games[c.event];});
+      }).length*sM;
+    }
+    est = ' · 잔여 예상 약 ' + fmt(remainingMinutes);
   }
   el.style.display='block';
   el.innerHTML = '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">'
@@ -1705,23 +1781,41 @@ schedRef.child('meta').on('value',function(snap){
 var groupsRef = db.ref('groups');
 
 function initGroups(){
-  if(!confirm('조 편성을 초기화하시겠습니까?')) return;
-  groupsRef.set({
-    A:{name:'A조',teams:{'영남A':'영남A','영남B':'영남B','초청1':'초청1','초청2':'초청2'}},
-    B:{name:'B조',teams:{'영남C':'영남C','초청3':'초청3','초청4':'초청4','초청5':'초청5'}}
-  });
-  toast('A조/B조 편성 완료');
+  if(!requireOnline()) return;
+  if(!confirm('조 편성을 SEMT 확정 4팀 단일 풀리그로 초기화하시겠습니까?')) return;
+  var teams={};SEMT_TEAMS.forEach(function(name){teams[name]=name;});
+  groupsRef.set({A:{name:'A조',teams:teams,nTeams:3}});
+  toast('SEMT 4팀 단일 풀리그 편성 완료');
 }
 
-// Three doubles matches are required; old skipped records are not results.
+// Preliminary match results; legacy schedules default to three events.
+var matchEventCounts={};
+function normalizeEventCount(value){
+  var n=Number(value);
+  return Number.isInteger(n) && n>=1 && n<=4?n:3;
+}
+function syncMatchEventCounts(groups){
+  matchEventCounts={};
+  Object.keys(groups||{}).forEach(function(key){
+    var g=groups[key]||{}, n=normalizeEventCount(g.nTeams);
+    Object.keys(g.teams||{}).forEach(function(club){matchEventCounts[clubBaseName(club)]=n;});
+  });
+}
+function matchEventCount(teamA,teamB){
+  return normalizeEventCount(matchEventCounts[clubBaseName(teamA)]||matchEventCounts[clubBaseName(teamB)]);
+}
+function matchEvents(teamA,teamB,nTeams){
+  var count=nTeams===undefined?matchEventCount(teamA,teamB):normalizeEventCount(nTeams);
+  return Array.from({length:count},function(_,i){return (i+1)+'장조';});
+}
 function clubBaseName(team){
   return String(team || '').replace(/\s*\d+장조$/, '').trim();
 }
 function cleanGroupLabel(group){
-  return String(group || '').replace(/\s+[1-3]장조(?:\s*\(필요시\))?\s*$/, '').trim();
+  return String(group || '').replace(/\s+[1-4]장조(?:\s*\(필요시\))?\s*$/, '').trim();
 }
 function validMatchResult(r){
-  return !!(r && !r.skipped && /^[1-3]장조(?:\s*\(필요시\))?$/.test(r.event || '') &&
+  return !!(r && !r.skipped && /^[1-4]장조(?:\s*\(필요시\))?$/.test(r.event || '') &&
     r.scoreA !== null && r.scoreB !== null && r.scoreA !== '' && r.scoreB !== '' &&
     Number.isFinite(Number(r.scoreA)) && Number.isFinite(Number(r.scoreB)) &&
     Number(r.scoreA) >= 0 && Number(r.scoreB) >= 0 && Number(r.scoreA) !== Number(r.scoreB) &&
@@ -1738,45 +1832,54 @@ function shouldCountResult(results, key, r){
       (Number(other.timestamp || 0)===Number(r.timestamp || 0) && k>key);
   });
 }
-function matchupState(results, teamA, teamB){
+function matchupState(results, teamA, teamB, nTeams){
   var a=clubBaseName(teamA), b=clubBaseName(teamB);
-  var st={w1:0,w2:0,played:0,done:false,games:{},nextEvent:null};
+  var expected=matchEvents(teamA,teamB,nTeams);
+  var st={w1:0,w2:0,gf:0,ga:0,winner:0,played:0,done:false,games:{},nextEvent:null};
   Object.keys(results || {}).forEach(function(key){
     var r=results[key];
     if(!shouldCountResult(results,key,r)) return;
+    if(expected.indexOf(parseInt(r.event,10)+'장조')===-1) return;
     var ra=clubBaseName(r.teamA), rb=clubBaseName(r.teamB);
     if(!((ra===a && rb===b)||(ra===b && rb===a))) return;
     var sa=Number(ra===a?r.scoreA:r.scoreB), sb=Number(ra===a?r.scoreB:r.scoreA);
     st.games[parseInt(r.event,10)+'장조']={a:sa,b:sb};
+    st.gf+=sa;st.ga+=sb;
     if(sa>sb) st.w1++; else st.w2++;
   });
-  ['1장조','2장조','3장조'].forEach(function(ev){
+  expected.forEach(function(ev){
     if(st.games[ev]) st.played++;
     else if(!st.nextEvent) st.nextEvent=ev;
   });
-  st.done=st.played===3;
+  st.done=st.played===expected.length;
+  if(st.done){
+    var diff=st.w1-st.w2 || st.gf-st.ga;
+    st.winner=diff>0?1:diff<0?2:0;
+  }
   return st;
 }
-function calcMatchupStandings(groupTeams, results, ageTiebreaks){
+function calcMatchupStandings(groupTeams, results, ageTiebreaks, nTeams){
   var clubs=Object.keys(groupTeams), matchups={}, stats={};
   clubs.forEach(function(c){
     matchups[c]={};
-    stats[c]={club:c,matchWin:0,matchLose:0,setWin:0,setLose:0,setDraw:0,gf:0,ga:0,matchesPlayed:0,h2h:0};
+    stats[c]={club:c,matchWin:0,matchLose:0,matchPending:0,setWin:0,setLose:0,setDraw:0,gf:0,ga:0,matchesPlayed:0,h2h:0};
   });
   clubs.forEach(function(a){
     clubs.forEach(function(b){
       if(a===b) return;
-      var st=matchupState(results,a,b);
+      var st=matchupState(results,a,b,nTeams);
       var matches=Object.keys(st.games).sort().map(function(ev){
         var g=st.games[ev];
         return {sA:g.a,sB:g.b,myWin:g.a>g.b,draw:false};
       });
-      matchups[a][b]={jomatchesWon:st.w1,jomatchesLost:st.w2,jomatchesDraw:0,matches:matches,complete:st.done};
+      matchups[a][b]={jomatchesWon:st.w1,jomatchesLost:st.w2,jomatchesDraw:0,matches:matches,complete:st.done && st.winner!==0,playedAll:st.done,winner:st.winner,gameDiff:st.gf-st.ga};
       stats[a].setWin+=st.w1; stats[a].setLose+=st.w2;
       matches.forEach(function(m){stats[a].gf+=m.sA;stats[a].ga+=m.sB;});
       if(st.done){
         stats[a].matchesPlayed++;
-        if(st.w1>st.w2) stats[a].matchWin++; else stats[a].matchLose++;
+        if(st.winner===1) stats[a].matchWin++;
+        else if(st.winner===2) stats[a].matchLose++;
+        else stats[a].matchPending++;
       }
     });
   });
@@ -1796,7 +1899,7 @@ function calcMatchupStandings(groupTeams, results, ageTiebreaks){
       s.tieValue=0;s.headValue=0;
       if(tied.length===2){
         var other=tied[0]===s?tied[1]:tied[0], m=matchups[s.club][other.club];
-        s.h2h=m.complete?(m.jomatchesWon>m.jomatchesLost?1:0):null;
+        s.h2h=m.complete?(m.winner===1?1:0):null;
         s.tieValue=s.h2h||0;
       } else if(tied.length>=3){
         s.tieDiff=s.gf-s.ga;
@@ -1811,7 +1914,7 @@ function calcMatchupStandings(groupTeams, results, ageTiebreaks){
       if(tied.length>=3 && same.length===2){
         same.forEach(function(s,n){
           var m=matchups[s.club][same[1-n].club];
-          s.h2h=m.complete?(m.jomatchesWon>m.jomatchesLost?1:0):null;
+          s.h2h=m.complete?(m.winner===1?1:0):null;
           s.headValue=s.h2h||0;
         });
         same.sort(function(a,b){return b.headValue-a.headValue;});
@@ -1842,11 +1945,16 @@ function calcMatchupStandings(groupTeams, results, ageTiebreaks){
 
 
 // Qualification only: no cross-group seeding or knockout bracket.
+function isFourTeamLeague(groups){
+  var keys=Object.keys(groups||{}).filter(function(key){return groups[key] && Object.keys(groups[key].teams||{}).length;});
+  return keys.length===1 && Object.keys(groups[keys[0]].teams).length===4;
+}
 function buildQualifiers(groups,results){
+  if(isFourTeamLeague(groups)) return {groups:[],count:0,ready:false,leagueOnly:true};
   var quotas={A:3,B:3,C:2}, list=[], count=0;
   Object.keys(quotas).forEach(function(key){
     var g=(groups||{})[key]||{}, quota=quotas[key];
-    var res=calcMatchupStandings(g.teams||{},results,g.ageTiebreaks);
+    var res=calcMatchupStandings(g.teams||{},results,g.ageTiebreaks,g.nTeams);
     var complete=res.clubs.length>=quota && res.clubs.every(function(a){
       return res.clubs.every(function(b){return a===b || res.matchups[a][b].complete;});
     });
@@ -1861,11 +1969,12 @@ function buildQualifiers(groups,results){
 }
 function qualifiersHtml(groups,results){
   var plan=buildQualifiers(groups,results);
+  if(plan.leagueOnly) return '<p>4팀 풀리그 · 순위표에서 리그 순위를 확인할 수 있습니다.</p>';
   function safe(value){return String(value).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
   var h='<p style="font-size:14px;line-height:1.8;color:#D2FF4E">8강 진출 '+plan.count+'/8팀 확정'+(plan.ready?'':' · 예선 종료 및 동률 확인 대기')+'</p>';
   plan.groups.forEach(function(g){
     h+='<section style="padding:16px 0;border-top:1px solid #2A2A30"><h3 style="font-size:15px;color:#E8E8E8;margin:0 0 10px">'+safe(g.name)+' · '+g.qualified.length+'/'+g.quota+'팀 확정</h3>';
-    if(!g.complete) h+='<p style="font-size:12px;color:#909096">예선 세 장조 전체 경기 완료 대기</p>';
+    if(!g.complete) h+='<p style="font-size:12px;color:#909096">설정된 모든 장조 경기 완료 및 승패 확정 대기</p>';
     else {
       h+='<ul style="list-style:none;margin:0;padding:0">';
       g.qualified.forEach(function(s){
@@ -1907,7 +2016,7 @@ function saveAgeTiebreak(index,clear){
     }
   }
   Promise.all([db.ref('groups/'+form.groupKey).once('value'),resultsRef.once('value')]).then(function(snaps){
-    var g=snaps[0].val()||{}, res=calcMatchupStandings(g.teams||{},snaps[1].val()||{},g.ageTiebreaks);
+    var g=snaps[0].val()||{}, res=calcMatchupStandings(g.teams||{},snaps[1].val()||{},g.ageTiebreaks,g.nTeams);
     var check=res.ageChecks.find(function(c){return c.key===form.key && c.signature===form.signature;});
     if(!check){toast('경기 결과나 동률 대상이 바뀌었습니다. 순위표를 다시 확인해주세요');renderStandings();return;}
     return db.ref('groups/'+form.groupKey+'/ageTiebreaks/'+form.key).set(clear?null:{signature:form.signature,totals:totals}).then(function(){
@@ -1920,6 +2029,10 @@ function saveAgeTiebreak(index,clear){
 function renderStandings(){
   db.ref('groups').once('value',function(gsnap){
     var groups=gsnap.val();
+    syncMatchEventCounts(groups);
+    var fourTeamLeague=isFourTeamLeague(groups);
+    document.getElementById('qualifiersSection').hidden=fourTeamLeague;
+    document.getElementById('standingsModeNote').textContent=fourTeamLeague?'4팀 풀리그 · 팀당 3대전 · 총 6대전 · 설정된 모든 장조 진행':'A조 3팀 + B조 3팀 + C조 2팀, 총 8팀 본선 진출';
     if(!groups){
       document.getElementById('standingsArea').innerHTML='<div class="result-empty">조 편성을 먼저 초기화해주세요</div>';
       document.getElementById('qualifiersArea').innerHTML=qualifiersHtml({},{});
@@ -1938,13 +2051,13 @@ function renderStandings(){
         if(!g) return;
         var teams=g.teams||{};
         var color = GROUP_COLORS[gIdx] || '#D2FF4E';
-        var res = calcMatchupStandings(teams, allResults, g.ageTiebreaks);
+        var res = calcMatchupStandings(teams, allResults, g.ageTiebreaks, g.nTeams);
         var clubs = res.clubs;
         var matchups = res.matchups;
         var standings = res.standings;
         
         html += '<div class="standings-group">';
-        html += '<div class="standings-group-header" style="color:'+color+'">'+g.name+' — 클럽매치 결과표'+({A:' · 상위 3팀 진출',B:' · 상위 3팀 진출',C:' · 상위 2팀 진출'}[gKey]||'')+'</div>';
+        html += '<div class="standings-group-header" style="color:'+color+'">'+g.name+' — 클럽매치 결과표'+(fourTeamLeague?' · 4팀 풀리그':({A:' · 상위 3팀 진출',B:' · 상위 3팀 진출',C:' · 상위 2팀 진출'}[gKey]||''))+'</div>';
         
         // 매치업 크로스 테이블 (클럽 vs 클럽)
         html += '<div style="overflow-x:auto"><table class="standings-table" style="margin-bottom:16px"><thead><tr>';
@@ -1967,11 +2080,12 @@ function renderStandings(){
               if(m.matches.length === 0){
                 html += '<td style="text-align:center;color:#5A5A5E;font-size:11px">-</td>';
               } else {
-                var mWon = m.complete && m.jomatchesWon >= 2;
-                var mLost = m.complete && m.jomatchesLost >= 2;
+                var mWon = m.complete && m.winner===1;
+                var mLost = m.complete && m.winner===2;
                 var color2 = mWon?'#50C878':mLost?'#FF6B6B':'#FFB43C';
                 var bg = mWon?'rgba(80,200,120,.08)':mLost?'rgba(255,107,107,.08)':'rgba(255,180,60,.08)';
                 var scoreText = m.jomatchesWon+':'+m.jomatchesLost;
+                if(m.playedAll && m.jomatchesWon===m.jomatchesLost) scoreText+='<br><small>'+(m.complete?'게임 득실 '+(m.gameDiff>0?'+':'')+m.gameDiff:'본부 확인 대기')+'</small>';
                 html += '<td style="text-align:center;background:'+bg+'">'
                   +'<div style="font-weight:800;color:'+color2+';font-size:15px">'+scoreText+'</div></td>';
               }
@@ -1997,7 +2111,7 @@ function renderStandings(){
           html += '<tr class="'+qualify+'">'
             +'<td class="standings-rank" style="color:'+color+'">'+s.rank+(s.unresolvedTie?' (동률)':'')+'</td>'
             +'<td class="standings-team">'+s.club+'</td>'
-            +'<td style="font-size:14px"><span style="color:#50C878;font-weight:800">'+s.matchWin+'</span><span style="color:#5A5A5E">-</span><span style="color:#FF6B6B;font-weight:800">'+s.matchLose+'</span></td>'
+            +'<td style="font-size:14px"><span style="color:#50C878;font-weight:800">'+s.matchWin+'</span><span style="color:#5A5A5E">-</span><span style="color:#FF6B6B;font-weight:800">'+s.matchLose+'</span>'+(s.matchPending?'<br><small>본부 확인 대기 '+s.matchPending+'</small>':'')+'</td>'
             +'<td style="color:#FF6B6B;font-weight:700">'+(s.h2h===null?'-':s.h2h?'승':'패')+'</td>'
             +'<td style="color:#B8B8BF">'+(s.gf-s.ga>0?'+':'')+(s.gf-s.ga)+'</td>'
             +'<td style="color:#B8B8BF">'+(s.ageTotal===null?(s.agePending?'미확인':'-'):s.ageTotal)+'</td>'
@@ -2019,6 +2133,8 @@ function renderStandings(){
 resultsRef.on('value',function(){renderStandings()});
 db.ref('groups').on('value',function(snap){
   latestGroups=snap.val();
+  syncMatchEventCounts(latestGroups);
+  if(latestCourtsData) renderAllCourts(latestCourtsData);
   renderStandings();
   renderProgress();
 });
@@ -2072,12 +2188,12 @@ db.ref('bracket').on('value', function(snap) {
     if (!newSlots[slotNum]) newSlots[slotNum] = { time: m.time, courts: {} };
     newSlots[slotNum].courts[courtKey] = {
       teamA: m.club1, teamB: m.club2,
-      event: '1장조', group: cleanGroupLabel(m.group)
+      event: d.distribution==='shared-middle'?m.ttype:'1장조', group: cleanGroupLabel(m.group), distributed:d.distribution==='shared-middle'
     };
   });
   SLOTS = newSlots;
   // 코트 수가 다르면 자동 동기화 (경기 중인 코트는 건드리지 않음)
-  var newN = parseInt(d.nCourts) || 5;
+  var newN = parseInt(d.nCourts) || 3;
   courtsRef.once('value', function(csnap) {
     var cur = csnap.val() || {};
     var curN = Object.keys(cur).length;
@@ -2145,7 +2261,7 @@ function applySlotToCourt(courtId, num){
   if(info && info.played>0){
     // 장조별 점수 텍스트 구성
     var lines=[];
-    ['1장조','2장조','3장조'].forEach(function(ev){
+    matchEvents(info.teamA,info.teamB).forEach(function(ev){
       if(info.games[ev]){
         var g=info.games[ev];
         var mark = g.a>g.b ? '◀' : g.b>g.a ? '▶' : '=';
@@ -2153,8 +2269,8 @@ function applySlotToCourt(courtId, num){
       }
     });
     var statusTxt = info.decided
-      ? '✅ 매치 종료 — '+(info.winsA>info.winsB?info.teamA:info.teamB)+' 승 ('+Math.max(info.winsA,info.winsB)+':'+Math.min(info.winsA,info.winsB)+')'
-      : '⏳ 진행 중 ('+info.winsA+':'+info.winsB+', '+info.played+'/3장조)';
+      ? '✅ 매치 종료 — '+(info.winner?(info.winner===1?info.teamA:info.teamB)+' 승':'본부 확인 대기')+' ('+info.winsA+':'+info.winsB+')'+(info.winsA===info.winsB?' · 게임 '+info.gf+':'+info.ga:'')
+      : '⏳ 진행 중 ('+info.winsA+':'+info.winsB+', '+info.played+'/'+matchEventCount(info.teamA,info.teamB)+'장조)';
 
     var msg='📋 슬롯 '+num+' ('+slot.time+') 경기 기록\n'
       +'━━━━━━━━━━━━━━━━━━\n'
@@ -2163,7 +2279,7 @@ function applySlotToCourt(courtId, num){
       +statusTxt+'\n'
       +'━━━━━━━━━━━━━━━━━━\n\n'
       +'이 슬롯을 코트에 불러올까요?\n'
-      +(isDone ? '(확인 시 기존 기록을 삭제하고 다시 세팅합니다)' : '(확인 시 코트에 팀이 세팅됩니다)');
+      +(c.distributed?'('+c.event+'만 불러오며, 다른 장조 기록은 유지됩니다)':isDone ? '(확인 시 기존 기록을 삭제하고 다시 세팅합니다)' : '(확인 시 코트에 팀이 세팅됩니다)');
 
     if(!confirm(msg)) return; // 기록만 보고 취소 가능
   }
@@ -2173,6 +2289,9 @@ function applySlotToCourt(courtId, num){
     if(cd.status==='live'){
       if(!confirm('⚠️ 코트 '+courtId.replace('court','')+' 경기가 진행 중입니다!\n현재 점수 '+cd.scoreA+':'+cd.scoreB+'가 사라집니다.\n그래도 슬롯 '+num+'으로 교체하시겠습니까?')) return;
     }
+    if(c.distributed && sharedEventConflict(courtId,c,latestCourtsData)){
+      toast('같은 장조가 다른 코트에 배정되어 있습니다');return;
+    }
     _doApplySlot(courtId, num, c, slot, isDone);
   });
 }
@@ -2180,6 +2299,14 @@ function applySlotToCourt(courtId, num){
 function _doApplySlot(courtId, num, c, slot, isDone){
   var courtName=courtId.replace('court','코트 ');
   var tA=findTeam(c.teamA), tB=findTeam(c.teamB);
+  if(c.distributed){
+    var game=matchupState(latestResults,tA,tB).games[c.event];
+    courtsRef.child(courtId).update({
+      teamA:tA,teamB:tB,event:c.event,group:c.group,
+      scoreA:game?game.a:0,scoreB:game?game.b:0,status:game?'done':'waiting',startedAt:null
+    });
+    toast(courtName+' → 슬롯 '+num+' · '+c.event);return;
+  }
 
   if(isDone){
     // 기존 결과 삭제 후 재세팅 (확인은 applySlotToCourt에서 이미 받음)
@@ -2214,12 +2341,15 @@ function _doApplySlot(courtId, num, c, slot, isDone){
 // 대진표 게시 페이로드 (게시·원자적 불러오기 공용)
 function brBracketPayload(d){
   return {
+    distribution:d.distribution||'matchup',
+    mode:d.gds.length===1 && d.gds[0].clubs.length===4?'league4':'sequential',
     ver: d.ver,
     savedName: d.savedName || null,
     startT: d.startT,
     slotM: d.slotM,
     numSlots: d.numSlots,
     nCourts: d.nCourts,
+    nTeams: normalizeEventCount(d.nTeams),
     slots: d.slots,
     gds: d.gds,
     publishedAt: Date.now()
@@ -2270,7 +2400,7 @@ function brRenderSlotApply(d) {
       return '<span style="color:' + color + ';font-weight:700">' + m.club1 + '</span>'
         + '<span style="color:#707075"> vs </span>'
         + '<span style="color:' + color + ';font-weight:700">' + m.club2 + '</span>'
-        + '<span style="color:#505055;font-size:10px"> ' + m.court + '</span>';
+        + '<span style="color:#909096;font-size:10px"> ' + m.court + ' · '+m.ttype+'</span>';
     }).join('  ');
     html += '<div class="br-slot-item">'
       + '<span class="br-slot-time">' + t + '</span>'
@@ -2286,6 +2416,22 @@ function brApplySlot(time) {
   var matches = _brSlotData[time];
   if (!matches || !matches.length) { brShowMsg('슬롯 데이터를 찾을 수 없습니다', 'err'); return; }
   if (!confirm(time + ' 슬롯 (' + matches.length + '경기) 을 코트에 적용하시겠습니까?')) return;
+  if(BR_HISTORY[BR_CUR].distribution==='shared-middle'){
+    resultsRef.once('value',function(snap){
+      var next={},updates={};
+      for(var i=1;i<=BR_HISTORY[BR_CUR].nCourts;i++){
+        var m=matches.find(function(row){return parseInt(row.court)===i;});
+        var game=m?matchupState(snap.val(),m.club1,m.club2).games[m.ttype]:null;
+        var data={name:'코트 '+i,teamA:m?m.club1:'',teamB:m?m.club2:'',event:m?m.ttype:'1장조',
+          group:m?cleanGroupLabel(m.group):'',scoreA:game?game.a:0,scoreB:game?game.b:0,status:game?'done':'waiting',startedAt:null};
+        updates['courts/court'+i]=data;
+        if(m) next['court'+i]={teamA:data.teamA,teamB:data.teamB,event:data.event,group:data.group};
+      }
+      updates['schedule/next']=next;updates['schedule/meta/nextRound']=time+' 타임';
+      db.ref().update(updates,function(err){toast(err?'코트 적용 실패: '+err.message:time+' 장조별 코트 적용 완료');});
+    });
+    return;
+  }
 
   var nextData = {};
   matches.forEach(function(m) {
@@ -2293,7 +2439,7 @@ function brApplySlot(time) {
     if (courtNum) {
       nextData['court' + courtNum] = {
         teamA: m.club1, teamB: m.club2,
-        event: '1장조',
+        event: BR_HISTORY[BR_CUR].distribution==='shared-middle'?m.ttype:'1장조',
         group: cleanGroupLabel(m.group)
       };
     }
@@ -2328,7 +2474,7 @@ function brUpdateSlots(d) {
     if (!newSlots[slotNum]) newSlots[slotNum] = { time: m.time, courts: {} };
     newSlots[slotNum].courts[courtKey] = {
       teamA: m.club1, teamB: m.club2,
-      event: '1장조', group: cleanGroupLabel(m.group)
+      event: d.distribution==='shared-middle'?m.ttype:'1장조', group: cleanGroupLabel(m.group), distributed:d.distribution==='shared-middle'
     };
   });
   SLOTS = newSlots;
@@ -2356,6 +2502,26 @@ function brShowMsg(text, type) {
 }
 
 // Build club input UI
+function brSetFourTeamLeague(){
+  document.getElementById('br-nClubs').value=4;
+  document.getElementById('br-nCourts').value=3;
+  document.getElementById('br-nTeams').value=3;
+  document.getElementById('br-startT').value='07:10';
+  document.getElementById('br-slotM').value=30;
+  document.getElementById('br-distribution').value='shared-middle';
+  changeGroupCount(1);
+  brShowMsg('4팀 풀리그 · 3라운드 · 총 6대전 · 대전별 '+normalizeEventCount(document.getElementById('br-nTeams').value)+'장조', 'ok');
+}
+
+function brSyncFourTeamInputs(gds){
+  if(gds.length!==1 || gds[0].clubs.length!==4) return;
+  document.getElementById('groupCountSelect').value=1;
+  currentGroupCount=1;
+  renderGroupInputs(1);
+  document.getElementById('groupA-inputs').innerHTML='';
+  gds[0].clubs.forEach(function(club){addTeamInputWithValue('A',club.name);});
+}
+
 function brRenderClubRows(wrap, label, values, count) {
   if(!wrap) return;
   values = values || [];
@@ -2433,6 +2599,8 @@ function brLoadFromFirebase() {
     document.getElementById('groupCountSelect').value = gCount;
     currentGroupCount = gCount;
     document.getElementById('br-nClubs').value = maxN;
+    var firstGroup=Object.values(latestGroups||{}).find(function(g){return g && Object.keys(g.teams||{}).length;});
+    document.getElementById('br-nTeams').value=normalizeEventCount(firstGroup && firstGroup.nTeams);
     brBuildUI();
     
     // Fill in teams
@@ -2481,7 +2649,7 @@ function brMakeMatchesByRound(gd, nTeams) {
   var clubs = gd.clubs;
   var roundPairs = brGetRoundPairs(clubs.length);
   var bundleId = 0;
-  // 1코트 1매치업: 세 장조를 모두 진행한다.
+  // 1코트 1매치업: 설정된 모든 장조를 진행한다.
   return roundPairs.map(function(pairs, r) {
     var roundBundles = [];
     pairs.forEach(function(pair) {
@@ -2527,9 +2695,10 @@ function brGenerate() {
   if(!requireOnline()) return;
   try {
     var nCourts=parseInt(document.getElementById('br-nCourts').value)||5;
-    var nTeams=3;
-    var startT=document.getElementById('br-startT').value||'09:00';
-    var slotM=parseInt(document.getElementById('br-slotM').value)||60;
+    var nTeams=normalizeEventCount(document.getElementById('br-nTeams').value);
+    var distribution=document.getElementById('br-distribution').value;
+    var startT=document.getElementById('br-startT').value||'07:10';
+    var slotM=parseInt(document.getElementById('br-slotM').value)||30;
     var gCount=getGroupCount();
     var gds=[];
     for(var g=0;g<gCount;g++){
@@ -2542,12 +2711,17 @@ function brGenerate() {
       inputs.forEach(function(inp,ci){clubs.push({name:(inp.value.trim().replace(/[<>"'&]/g,''))||(label+'조클럽'+(ci+1))});});
       gds.push({name:label+'조',key:label,clubs:clubs});
     }
+    var names=gds.reduce(function(all,gd){return all.concat(gd.clubs.map(function(c){return c.name;}));},[]);
+    if(new Set(names).size!==names.length){brShowMsg('팀 이름은 중복 없이 입력해주세요.', 'err');return;}
+    if(distribution==='shared-middle' && (nCourts!==3 || gds.length!==1 || gds[0].clubs.length!==4)){
+      brShowMsg('2코트 공유는 4팀 단일 풀리그 · 3코트로 설정해주세요.', 'err');return;
+    }
     // Generate rounds for each group
     var allRounds=gds.map(function(gd){return brMakeMatchesByRound(gd,nTeams);});
     // Schedule all groups together
-    var result=brScheduleMulti(allRounds,gds,nCourts,startT,slotM);
+    var result=brScheduleMulti(allRounds,gds,nCourts,startT,slotM,nTeams,distribution);
     var ver=BR_HISTORY.length+1;
-    var sd={ver:ver,slots:result.slots,numSlots:result.numSlots,nCourts:nCourts,nTeams:nTeams,gds:gds,startT:startT,slotM:slotM};
+    var sd={ver:ver,slots:result.slots,numSlots:result.numSlots,nCourts:nCourts,nTeams:nTeams,gds:gds,startT:startT,slotM:slotM,distribution:distribution};
     BR_HISTORY.push(sd); BR_CUR=BR_HISTORY.length-1;
     brRenderTabs(); brRenderResult(sd);
     brShowMsg('대진표 #'+ver+' 생성 완료! ('+result.slots.length+'경기 / '+result.numSlots+'슬롯)', 'ok');
@@ -2569,16 +2743,18 @@ function brGenerate() {
       var tObj={};
       tData[gKey]={};
       gd.clubs.forEach(function(cl,ci){tObj[cl.name]=cl.name; tData[gKey][ci]=cl.name;});
-      gData[gKey]={name:gd.name,teams:tObj};
+      gData[gKey]={name:gd.name,teams:tObj,nTeams:nTeams};
     });
     db.ref('groups').set(gData);
-    db.ref('teams').set(tData);
+    db.ref('teams').set(tData,function(err){if(!err) brSyncFourTeamInputs(sd.gds);});
   } catch(e) { brShowMsg('오류: '+e.message,'err'); }
 }
 
 // 스케줄러: 1코트 1매치업, 조별 코트 구역 배정
-// 대진표에는 전체 경기(1조,2조,3조) 표시 / 실제 운영은 3장조 전 경기제
-function brScheduleMulti(allRounds, gds, nCourts, startT, slotM) {
+// 대진표의 모든 장조를 같은 코트에 순차 배정한다.
+function brScheduleMulti(allRounds, gds, nCourts, startT, slotM, nTeams, distribution) {
+  nTeams=normalizeEventCount(nTeams);
+  if(distribution==='shared-middle') return brScheduleSharedMiddle(allRounds,startT,slotM);
   var slots = [], slotIdx = 0;
   var gCount = allRounds.length;
   
@@ -2618,7 +2794,7 @@ function brScheduleMulti(allRounds, gds, nCourts, startT, slotM) {
     remaining.forEach(function(r){ totalRemaining += r.length; });
     if(totalRemaining === 0) break;
     
-    var time = brFmtTime(startT, slotIdx * 3, slotM);
+    var time = brFmtTime(startT, slotIdx * nTeams, slotM);
     var usedClubs = {};
     var slotMatches = [];
     var anyPicked = false;
@@ -2645,7 +2821,7 @@ function brScheduleMulti(allRounds, gds, nCourts, startT, slotM) {
           var courtNum = zone.courts[courtSlot];
           courtSlot++;
           
-          // 대진표에 전체 경기 표시 (1조, 2조, 3조)
+          // 대진표에 해당 대전의 모든 장조를 표시한다.
           bundle.matches.forEach(function(m){
             slotMatches.push({
               slot: slotIdx+1, time: time, court: courtNum+'번코트',
@@ -2670,13 +2846,36 @@ function brScheduleMulti(allRounds, gds, nCourts, startT, slotM) {
   return {slots:slots, numSlots:slotIdx};
 }
 
+function brScheduleSharedMiddle(allRounds,startT,slotM){
+  var slots=[],slotIdx=0;
+  allRounds[0].forEach(function(bundles,round){
+    var left=bundles[0].matches.slice(),right=bundles[1].matches.slice(),turn=round%2;
+    while(left.length || right.length){
+      var jobs=[];
+      function take(queue,court){
+        if(queue.length) jobs.push({match:queue.shift(),court:court});
+      }
+      take(left,1);
+      // The middle court alternates between the two matchups.
+      if(turn===0){take(left,2);take(right,3);}
+      else {if(right.length>1) take(right,2);take(right,3);}
+      jobs.forEach(function(job){
+        var m=job.match;
+        slots.push(Object.assign({},m,{slot:slotIdx+1,time:brFmtTime(startT,slotIdx,slotM),court:job.court+'번코트',round:round+1}));
+      });
+      slotIdx++;turn=1-turn;
+    }
+  });
+  return {slots:slots,numSlots:slotIdx};
+}
+
 function brRenderTabs() {
   document.getElementById('br-verSection').style.display='block';
   var wrap=document.getElementById('br-verTabs');
   wrap.innerHTML='';
   BR_HISTORY.forEach(function(sd,i){
     var maxC=sd.numSlots*sd.nCourts;
-    var util=maxC>0?Math.round(sd.slots.length/maxC*100):0;
+    var util=maxC>0?Math.round(sd.slots.length/(sd.distribution==='shared-middle'?1:normalizeEventCount(sd.nTeams))/maxC*100):0;
     var btn=document.createElement('button');
     btn.className='br-vtab'+(i===BR_CUR?' on':'');
     btn.innerHTML='대진표 #'+sd.ver+(sd.savedName?'<br><small style="color:#fbbf24">📂'+sd.savedName+'</small>':'')
@@ -2689,17 +2888,16 @@ function brRenderTabs() {
 function brRenderResult(d) {
   document.getElementById('br-result').style.display='block';
   
-  // 3장조 전 경기제 반영: 매치업당 3경기
-  // 매치업 수 = slots.length / matches_per_bundle (=3)
   var totalMatchups = 0;
   var slotMap = {};
   d.slots.forEach(function(m){
-    var key = m.time+'|'+m.court+'|'+m.club1+'|'+m.club2;
+    var key = m.club1+'|'+m.club2;
     if(!slotMap[key]) { slotMap[key] = true; totalMatchups++; }
   });
-  // 매치업당 개별 경기 시간(=slotM), 매치업 전체 시간 = 3 * slotM
-  var minMatchTime = 3 * d.slotM; // 세 장조 모두 진행
-  var maxMatchTime = 3 * d.slotM; // 세 장조 모두 진행
+  // 대전 전체 시간 = 장조 수 * 개별 경기 시간
+  var eventsPerSlot=d.distribution==='shared-middle'?1:normalizeEventCount(d.nTeams);
+  var minMatchTime = eventsPerSlot * d.slotM;
+  var maxMatchTime = minMatchTime;
   
   // 슬롯당 소요 시간 (매치업 전체 시간, 최대치 기준)
   var perSlotMin = maxMatchTime; // 슬롯 하나 = 매치업 하나 완료
@@ -2712,11 +2910,11 @@ function brRenderResult(d) {
   var dh_max = Math.floor(totMinMax/60), dm_max = totMinMax%60;
   var dh_min = Math.floor(totMinMin/60), dm_min = totMinMin%60;
   
-  var endT_max = brFmtTime(d.startT, actualSlots * 3, d.slotM);
-  var endT_min = brFmtTime(d.startT, actualSlots * 3, d.slotM);
+  var endT_max = brFmtTime(d.startT, actualSlots * eventsPerSlot, d.slotM);
+  var endT_min = endT_max;
   
   var maxC=actualSlots*d.nCourts;
-  var util=maxC>0?Math.round(totalMatchups/maxC*100):0;
+  var util=maxC>0?Math.round(d.slots.length/eventsPerSlot/maxC*100):0;
   document.getElementById('br-vn').textContent='대진표 #'+d.ver;
   document.getElementById('br-vi').innerHTML=(d.savedName?'<span style="color:#fbbf24;font-weight:700;margin-right:8px">📂'+d.savedName+'</span>':'')
     +'총 '+totalMatchups+'매치업 · '+actualSlots+'슬롯 · 가동률 '+util+'%';
@@ -2731,7 +2929,7 @@ function brRenderResult(d) {
     card(timeStr,'예상 소요시간',true)+
     card(timeRangeStr,'예상 종료')+
     card(d.slotM+'분','경기당 시간')+
-    card(maxMatchTime+'분','매치업당 시간');
+    card(maxMatchTime+'분','슬롯당 시간');
   var leg='<span style="font-size:11px;color:#707075;margin-right:4px">클럽 색상:</span>';
   d.gds.forEach(function(gd,gi){
     var pal=gi===0?BR_DARK_A:BR_DARK_B;
@@ -2754,6 +2952,7 @@ function brRenderResult(d) {
   for(var c=1;c<=d.nCourts;c++) courts.push(c+'번코트');
   var grid=document.getElementById('br-cgrid');
   grid.innerHTML='';
+  grid.style.minWidth=(80+d.nCourts*170)+'px';
   grid.style.gridTemplateColumns='80px '+courts.map(function(){return '1fr';}).join(' ');
   function addCell(parent,text,cls,inner){
     var el=document.createElement('div'); el.className=cls;
@@ -2764,7 +2963,7 @@ function brRenderResult(d) {
   courts.forEach(function(c){addCell(grid,c,'br-cc hdr');});
   times.forEach(function(t,ti){
     var isLast=ti===times.length-1;
-    var slotLabel = '슬롯 '+(ti+1)+'<br><span style="font-size:9px;color:#8A8A8E">'+(d.slotM*3)+'분</span>';
+    var slotLabel = '슬롯 '+(ti+1)+'<br><span style="font-size:9px;color:#8A8A8E">'+(d.slotM*eventsPerSlot)+'분</span>';
     addCell(grid,'','br-cc ctime'+(isLast?' last':''), slotLabel);
     courts.forEach(function(c){
       var matches=sm[t]&&sm[t][c];
@@ -2833,7 +3032,7 @@ function brDlExcel() {
   xml+='<Column ss:Width="70"/>';
   courts.forEach(function(){xml+='<Column ss:Width="130"/>';});
   var maxC=d.numSlots*d.nCourts;
-  var util=maxC>0?Math.round(d.slots.length/maxC*100):0;
+  var util=maxC>0?Math.round(d.slots.length/(d.distribution==='shared-middle'?1:normalizeEventCount(d.nTeams))/maxC*100):0;
   xml+=row('<Cell ss:StyleID="sTitle" ss:MergeAcross="'+d.nCourts+'"><Data ss:Type="String">'+xmlEsc('테니스 대진표 #'+d.ver+' ('+d.startT+' 시작 / '+d.numSlots+'슬롯 / 가동률 '+util+'%)')+'</Data></Cell>',30);
   xml+='<Row ss:Height="6"></Row>';
   xml+=row(cell('시간','sTime')+courts.map(function(c){return cell(c,'sHdr');}).join(''),32);
@@ -2929,11 +3128,12 @@ function _brDoLoadSchedule(entry, sd){
 
   // UI 설정값 복원 (조 수를 저장본에 맞춰 재구성 — A~F 전체 조 지원)
   document.getElementById('br-nCourts').value = sd.nCourts;
-  document.getElementById('br-nTeams').value  = 3;
+  document.getElementById('br-nTeams').value  = normalizeEventCount(sd.nTeams);
+  document.getElementById('br-distribution').value=sd.distribution||'matchup';
   document.getElementById('br-startT').value  = sd.startT;
   document.getElementById('br-slotM').value   = sd.slotM;
   document.getElementById('br-nClubs').value  = gds[0].clubs.length;
-  if(gds.length >= 2 && gds.length <= 6){
+  if(gds.length >= 1 && gds.length <= 6){
     document.getElementById('groupCountSelect').value = gds.length;
     currentGroupCount = gds.length;
     renderGroupInputs(gds.length);
@@ -2957,7 +3157,7 @@ function _brDoLoadSchedule(entry, sd){
     var teamsObj={};
     teamsData[gKey]={};
     gd.clubs.forEach(function(cl,ci){ teamsObj[cl.name]=cl.name; teamsData[gKey][ci]=cl.name; });
-    groupsData[gKey]={name:gd.name, teams:teamsObj};
+    groupsData[gKey]={name:gd.name, teams:teamsObj,nTeams:normalizeEventCount(sd.nTeams)};
   });
 
   // 코트 초기화 데이터 구성
@@ -2981,6 +3181,7 @@ function _brDoLoadSchedule(entry, sd){
       return;
     }
     completedSlots = {};
+    brSyncFourTeamInputs(gds);
     renderStandings();
     if(latestCourtsData) renderAllCourts(latestCourtsData);
     brShowMsg('"'+entry.name+'" 불러오기 완료! 코트 '+sd.nCourts+'개 · 순위표 초기화됨','ok');
@@ -2998,7 +3199,7 @@ function brRenderSavedList(){
   list.innerHTML=saved.map(function(e){
     var sd=e.data;
     var maxC=sd.numSlots*sd.nCourts;
-    var util=maxC>0?Math.round(sd.slots.length/maxC*100):0;
+    var util=maxC>0?Math.round(sd.slots.length/(sd.distribution==='shared-middle'?1:normalizeEventCount(sd.nTeams))/maxC*100):0;
     var names=sd.gds.map(function(gd){return gd.clubs.map(function(c){return c.name;}).join(', ');}).join(' | ');
     return '<div class="br-saved-item">'
       +'<div class="br-si-info"><div class="br-si-name">'+esc(e.name)+'</div>'
@@ -3027,10 +3228,12 @@ db.ref('bracket').once('value', function(snap) {
   if(d.nCourts) document.getElementById('br-nCourts').value = d.nCourts;
   if(d.slotM)   document.getElementById('br-slotM').value   = d.slotM;
   if(d.startT)  document.getElementById('br-startT').value  = d.startT;
+  document.getElementById('br-nTeams').value=normalizeEventCount(d.nTeams);
+  document.getElementById('br-distribution').value=d.distribution||'matchup';
   var gds = toArr(d.gds).map(function(gd, gi){ return {name:gd.name, key:gd.key||GROUP_LABELS[gi], clubs:toArr(gd.clubs)}; });
   if(gds.length && gds[0].clubs.length) {
     document.getElementById('br-nClubs').value = gds[0].clubs.length;
-    if(gds.length >= 2 && gds.length <= 6){
+    if(gds.length >= 1 && gds.length <= 6){
       document.getElementById('groupCountSelect').value = gds.length;
       currentGroupCount = gds.length;
     }
@@ -3044,7 +3247,7 @@ db.ref('bracket').once('value', function(snap) {
   var sd = {
     ver: d.ver||1, savedName: d.savedName||null,
     slots: toArr(d.slots), numSlots: d.numSlots,
-    nCourts: d.nCourts, nTeams: d.nTeams||3,
+    nCourts: d.nCourts, nTeams: d.nTeams||3, distribution:d.distribution||'matchup',
     gds: gds, startT: d.startT, slotM: d.slotM
   };
   BR_HISTORY = [sd]; BR_CUR = 0;
@@ -3056,12 +3259,7 @@ db.ref('bracket').once('value', function(snap) {
 function brResetAll(){
   if(!confirm('대진표 생성 탭을 초기화하시겠습니까?\n(생성 이력과 입력값이 모두 지워집니다)')) return;
   BR_HISTORY = []; BR_CUR = 0;
-  document.getElementById('br-nCourts').value = 5;
-  document.getElementById('br-nClubs').value  = 4;
-  document.getElementById('br-nTeams').value  = 3;
-  document.getElementById('br-startT').value  = '09:00';
-  document.getElementById('br-slotM').value   = 60;
-  brBuildUI();
+  brSetFourTeamLeague();
   document.getElementById('br-verSection').style.display     = 'none';
   document.getElementById('br-result').style.display         = 'none';
   document.getElementById('br-slot-apply-panel').style.display = 'none';
@@ -3072,7 +3270,7 @@ function brResetAll(){
 // Init schedule grid based on courts count
 courtsRef.once('value',function(snap){
   var data=snap.val();
-  var n=data?Object.keys(data).length:5;
+  var n=data && Object.keys(data).length?Object.keys(data).length:3;
   renderScheduleGrid(n);
 });
 
@@ -3110,6 +3308,10 @@ function syncCourtStatusFromResults(){
     var d=latestCourtsData[courtId];
     if(!d || d.status!=='done' || !d.teamA || !d.teamB) return;
     var st=matchupState(latestResults,d.teamA,d.teamB);
+    if(isSharedCourtMode()){
+      if(!st.games[d.event]) courtsRef.child(courtId).update({status:'waiting',scoreA:0,scoreB:0,startedAt:null});
+      return;
+    }
     if(!st.done) courtsRef.child(courtId).update({
       status:'waiting',event:st.nextEvent,scoreA:0,scoreB:0,startedAt:null
     });
@@ -3117,7 +3319,7 @@ function syncCourtStatusFromResults(){
 }
 
 // 결과에서 슬롯 번호 찾기
-function findSlotNum(courtName, teamA, teamB, group){
+function findSlotNum(courtName, teamA, teamB, group, event){
   var cKey=courtName.replace('코트 ','court').replace('코트','court').trim();
   var norm=function(t){return (t||'').replace(/\s*\d+장조$/,'').trim();};
   var cA=norm(teamA), cB=norm(teamB);
@@ -3128,7 +3330,7 @@ function findSlotNum(courtName, teamA, teamB, group){
     if(!sd) continue;
     var sA=norm(sd.teamA), sB=norm(sd.teamB);
     var tm=(sA===cA&&sB===cB)||(sA===cB&&sB===cA);
-    if(tm) return s;
+    if(tm && (!sd.distributed || sd.event===event)) return s;
   }
   return null;
 }
@@ -3141,7 +3343,10 @@ function buildCompletedSlots(results){
     Object.keys(courts).forEach(function(ck){
       if(!cs[ck]) cs[ck]=[];
       var sd=courts[ck];
-      if(sd && sd.teamA && sd.teamB && matchupState(results,sd.teamA,sd.teamB).done) cs[ck].push(Number(s));
+      if(sd && sd.teamA && sd.teamB){
+        var state=matchupState(results,sd.teamA,sd.teamB);
+        if(sd.distributed?!!state.games[sd.event]:state.done) cs[ck].push(Number(s));
+      }
     });
   });
   return cs;
@@ -3153,7 +3358,7 @@ function slotMatchInfo(courtId,s){
   if(!sd || !sd.teamA || !sd.teamB) return null;
   var st=matchupState(latestResults,sd.teamA,sd.teamB);
   return {teamA:clubBaseName(sd.teamA),teamB:clubBaseName(sd.teamB),winsA:st.w1,winsB:st.w2,
-    played:st.played,decided:st.done,games:st.games};
+    played:st.played,decided:st.done,games:st.games,winner:st.winner,gf:st.gf,ga:st.ga};
 }
 
 // Listen for results
@@ -3180,7 +3385,7 @@ resultsRef.orderByChild('timestamp').on('value',function(snap){
     html+='<div class="result-card">'
       +'<div class="result-info">'
       +'<div class="result-meta">'+(r.time||'')+' · '+(r.court||'')+' · '+(r.event||'')+' · '+cleanGroupLabel(r.group)
-      +(function(){var sn=findSlotNum(r.court||'',r.teamA||'',r.teamB||'',r.group||'');return sn?' · <span style="color:#D2FF4E;font-weight:700">슬롯 '+sn+'</span>':''})()
+      +(function(){var sn=findSlotNum(r.court||'',r.teamA||'',r.teamB||'',r.group||'',r.event||'');return sn?' · <span style="color:#D2FF4E;font-weight:700">슬롯 '+sn+'</span>':''})()
       +'</div>'
       +'<div class="result-match">'+(r.teamA||'?')+' vs '+(r.teamB||'?')+'</div>'
       +'</div>'
