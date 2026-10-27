@@ -40,6 +40,13 @@ a{color:inherit;text-decoration:none}button{font:inherit;cursor:pointer}a,button
 @media(min-width:1021px){.p1-in{min-height:490px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center}.hero-description br{display:none}.hero-description{max-width:550px}}
 @media(min-width:721px) and (max-width:1020px){.wrapper{padding:0 32px}.p1-in{padding:40px 34px;max-width:650px}.p1-gold{font-size:48px}.summary-item{padding:0 22px}.summary-item strong,.summary-item:first-child strong{font-size:21px}.p1{min-height:460px}}
 @media(max-width:720px){.wrapper{padding:0 18px}.site-header{min-height:76px}.logo{width:42px}.brand-text strong{font-size:13px}.club-home-link{font-size:9px}.header-nav{font-size:11px}.hero-grid{padding:4px 0 0}.p1{min-height:0;border-radius:12px}.p1-in{padding:28px 22px 24px;max-width:none}.court-hero{object-position:68% center}.p1::after{background:linear-gradient(90deg,rgba(7,29,23,.87),rgba(7,29,23,.35)),linear-gradient(0deg,rgba(7,29,23,.7),transparent 65%)}.hero-label{font-size:8px;letter-spacing:.15em;margin-bottom:24px}.p1-gold{font-size:clamp(29px,8.3vw,40px);line-height:1.22;letter-spacing:-.055em}.hero-description{font-size:11px;line-height:1.9;margin:18px 0 22px}.hero-meta{font-size:11px}.cta-wrap{margin-top:26px;gap:8px}.club-feature-link{font-size:12px;padding:10px 14px;min-height:46px}.club-feature-link small{font-size:10px}.score-link,.cta-btn{font-size:11px;min-height:40px;padding:10px 14px}.club-song{padding:12px 0;justify-content:space-between;gap:8px}.club-song>div{display:block}.club-song-status{font-size:8px;margin-top:2px;letter-spacing:.06em}.club-song-title{font-size:10px}.music-btn{font-size:9px;padding:6px 9px;gap:8px;min-height:34px}.event-summary{margin:10px 0 0;grid-template-columns:repeat(2,minmax(0,1fr));padding:20px 0;gap:18px 0}.summary-item{padding:0;border:0}.summary-item:first-child{grid-column:1/-1;padding:0 0 16px;border-bottom:1px solid var(--line)}.summary-item:nth-child(2){padding-right:14px;border-right:1px solid var(--line)}.summary-item:last-child{padding-left:16px}.summary-item:first-child strong{font-size:23px}.summary-item strong{font-size:17px}.summary-item span,.summary-item:first-child span{font-size:10px;margin-top:4px}.p2-in{padding-top:28px}.sh{margin-bottom:18px}.sh-t{font-size:20px}.section-kicker{font-size:8px}.ig{gap:0 20px;margin-bottom:20px}.ii-v{font-size:13px}.ii-d{font-size:10px}.ii{padding:14px 0}.fb{padding:24px 0;margin:0}.ft,.pt{font-size:16px;margin-bottom:18px}.ff{padding:18px;gap:18px;border-radius:8px}.fs{padding:0 0 16px;border:0;border-bottom:1px solid #d4dfc9;grid-template-columns:32px 1fr}.fs:last-child{padding-bottom:0}.sv{font-size:13px}.ss{font-size:10px}.rule-details summary{font-size:11px}.rules-copy p,#participationPlan p{font-size:12px}#participationPlan p:last-child{font-size:11px}.ps{padding:24px 0}.pc{padding:14px 10px}.pn{font-size:12px}.pa{font-size:10px}}
+
+/* 코트노트 link: white variant beside the SEMT button; club links sit on their own row on desktop */
+.cta-wrap .cta-break{flex-basis:100%;height:0;order:1}
+.cta-wrap .club-feature-link{order:2;flex:1 1 0}
+.cta-wrap a.club-feature-link.courtnote-link{background:#fff;border-color:#cedbbf}
+.cta-wrap a.club-feature-link.courtnote-link:hover{background:#edf1e9}
+@media(max-width:720px){.cta-wrap .cta-break{display:none}.cta-wrap .club-feature-link{order:-1;flex:1 1 100%}}
 </style>
 </head>
 <body>
@@ -61,13 +68,13 @@ a{color:inherit;text-decoration:none}button{font:inherit;cursor:pointer}a,button
       <h1 class="p1-title p1-gold" id="eventTitle"><span>SEMT 클럽 초청</span> 테니스 교류전</h1>
       <p class="hero-description">다섯 클럽이 함께 뛰는 하루.<br>승부의 즐거움과 클럽 간 교류를 코트에서 나눕니다.</p>
       <div class="hero-meta"><span>11월 1일 (일) · 07:00–13:40</span><span>성서국민체육공원 테니스장</span></div>
-      <div class="cta-wrap"><a class="score-link" href="scoreboard.html">스코어보드 <span aria-hidden="true">↗</span></a><a class="club-feature-link" href="https://semt.kr/" target="_blank" rel="noopener noreferrer" aria-label="SEMT 클럽 홈페이지 방문 (새 탭)"><span>SEMT 클럽 홈페이지<small>semt.kr</small></span><span class="club-feature-arrow" aria-hidden="true">↗</span></a><button class="cta-btn" onclick="go()">대회 안내 <span class="arrow" aria-hidden="true">↓</span></button></div>
+      <div class="cta-wrap"><a class="score-link" href="scoreboard.html">스코어보드 <span aria-hidden="true">↗</span></a><a class="club-feature-link" href="https://semt.kr/" target="_blank" rel="noopener noreferrer" aria-label="SEMT 클럽 홈페이지 방문 (새 탭)"><span>SEMT 클럽 홈페이지<small>semt.kr</small></span><span class="club-feature-arrow" aria-hidden="true">↗</span></a><a class="club-feature-link courtnote-link" href="https://topeople.kr/" target="_blank" rel="noopener noreferrer" aria-label="코트노트 테니스 동호인 사이트 방문 (새 탭)"><span>코트노트<small>테니스 동호인을 위한 새로운 놀이터</small></span><span class="club-feature-arrow" aria-hidden="true">↗</span></a><span class="cta-break" aria-hidden="true"></span><button class="cta-btn" onclick="go()">대회 안내 <span class="arrow" aria-hidden="true">↓</span></button></div>
 
     </div>
   </section>
       <div class="club-song"><div><div class="club-song-title">SEMT 클럽송</div><span class="club-song-status" id="musicStatus" role="status">SEMT CLUB SONG</span></div><button class="music-btn" id="musicBtn" onclick="toggleMusic()" aria-controls="bgm" aria-label="SEMT 클럽송 켜기" aria-pressed="false"><span id="musicLabel">클럽송 켜기</span><span class="music-state" id="musicState" aria-hidden="true">OFF</span></button></div>
   <div class="event-summary" aria-label="대회 요약">
-    <div class="summary-item"><strong>5개 클럽 · 4팀</strong><span>TPL · SEMT · 팝스틴 · 코트피플 · 영남<br>총 35명 참가</span></div>
+    <div class="summary-item"><strong>5개 클럽 · 4팀</strong><span>TPL · SEMT · 팝스틴 · 코트피플 · 영남 총 35명 참가</span></div>
     <div class="summary-item"><strong>남복 · 여복 · 남복</strong><span>예선 세 장조 모두 진행</span></div>
     <div class="summary-item"><strong>3코트 · 30분</strong><span>공식 경기와 빈 코트 친선</span></div>
   </div>
@@ -115,7 +122,7 @@ a{color:inherit;text-decoration:none}button{font:inherit;cursor:pointer}a,button
   </div>
 
   </main>
-  <footer class="fo"><div><div class="fo-n">주최 SEMT 클럽</div><div class="fo-s">SUNDAY EARLY MORNING TENNIS</div></div><div class="footer-links"><a class="club-home-link" href="https://semt.kr/" target="_blank" rel="noopener noreferrer">클럽 홈페이지 ↗</a></div></footer>
+  <footer class="fo"><div><div class="fo-n">주최 SEMT 클럽</div><div class="fo-s">SUNDAY EARLY MORNING TENNIS</div></div><div class="footer-links"><a class="club-home-link" href="https://semt.kr/" target="_blank" rel="noopener noreferrer">클럽 홈페이지 ↗</a><a class="club-home-link" href="https://topeople.kr/" target="_blank" rel="noopener noreferrer">코트노트 ↗</a></div></footer>
 
 </div>
 <!-- Music -->
