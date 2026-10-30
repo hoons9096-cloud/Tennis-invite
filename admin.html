@@ -402,13 +402,15 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0C0C0E;color:#E8E8E8;min-
     <!-- Config -->
     <div class="br-cfg">
       <div class="br-ci"><label>코트 수</label><input type="number" id="br-nCourts" value="3" min="1" max="10"></div>
-      <div class="br-ci"><label for="br-distribution">코트 운영</label><select id="br-distribution" style="width:180px"><option value="matchup">대전별 한 코트 순차</option><option value="shared-middle" selected>3코트 · 2코트 공유</option></select></div>
+      <div class="br-ci"><label for="br-distribution">코트 운영</label><select id="br-distribution" style="width:180px"><option value="matchup">대전별 한 코트 순차</option><option value="shared-middle" selected>3코트 · 2코트 공유 (4·5클럽)</option></select></div>
+      <div class="br-ci"><label for="br-balance">시간 배치</label><select id="br-balance" style="width:190px"><option value="balanced" selected>팀별 시간 균등 배치</option><option value="original">기존 대진 순서 유지</option></select></div>
       <div class="br-ci"><label>최대 조 팀 수</label><input type="number" id="br-nClubs" value="4" min="2" max="8" oninput="brBuildUI()"></div>
       <div class="br-ci"><label for="br-nTeams">클럽당 복식조</label><select id="br-nTeams"><option value="1">1장조</option><option value="2">2장조</option><option value="3" selected>3장조</option><option value="4">4장조</option></select></div>
       <div class="br-ci"><label>시작 시간</label><input type="time" id="br-startT" value="07:10"></div>
       <div class="br-ci"><label>장조당 시간(분)</label><input type="number" id="br-slotM" value="30" min="15" max="180" step="5"></div>
     </div>
 
+    <p style="font-size:12px;color:#A0A0A5;margin:0 0 14px">시간 균등 배치: 팀별 첫 경기 대기와 경기 사이 공백을 줄이도록 타임 순서를 조정합니다. 대결·장조·코트 배정은 유지됩니다. 개인별 출전 간격은 선수 명단에 따라 별도 확인해주세요.</p>
     <!-- Club inputs (dynamic) -->
     <div class="br-grps" id="br-grps-container">
       <!-- Dynamically rendered by brBuildUI -->
@@ -2433,6 +2435,7 @@ function _doApplySlot(courtId, num, c, slot, isDone){
 // 대진표 게시 페이로드 (게시·원자적 불러오기 공용)
 function brBracketPayload(d){
   return {
+    balance:d.balance||'original',
     distribution:d.distribution||'matchup',
     mode:d.gds.length===1 && d.gds[0].clubs.length===4?'league4':'sequential',
     ver: d.ver,
@@ -2789,6 +2792,7 @@ function brGenerate() {
     var nCourts=parseInt(document.getElementById('br-nCourts').value)||5;
     var nTeams=normalizeEventCount(document.getElementById('br-nTeams').value);
     var distribution=document.getElementById('br-distribution').value;
+    var balance=document.getElementById('br-balance').value;
     var startT=document.getElementById('br-startT').value||'07:10';
     var slotM=parseInt(document.getElementById('br-slotM').value)||30;
     var gCount=getGroupCount();
@@ -2805,18 +2809,25 @@ function brGenerate() {
     }
     var names=gds.reduce(function(all,gd){return all.concat(gd.clubs.map(function(c){return c.name;}));},[]);
     if(new Set(names).size!==names.length){brShowMsg('팀 이름은 중복 없이 입력해주세요.', 'err');return;}
-    if(distribution==='shared-middle' && (nCourts!==3 || gds.length!==1 || gds[0].clubs.length!==4)){
-      brShowMsg('2코트 공유는 4팀 단일 풀리그 · 3코트로 설정해주세요.', 'err');return;
+    // Five clubs have only two simultaneous matchups. Split their distinct
+    // doubles entries across courts rather than leaving court 3 unused.
+    if(nCourts===3 && gds.length===1 && gds[0].clubs.length===5){
+      distribution='shared-middle';
+      document.getElementById('br-distribution').value=distribution;
+    }
+    if(distribution==='shared-middle' && (nCourts!==3 || gds.length!==1 || [4,5].indexOf(gds[0].clubs.length)===-1)){
+      brShowMsg('2코트 공유는 4~5클럽 단일 풀리그 · 3코트로 설정해주세요.', 'err');return;
     }
     // Generate rounds for each group
     var allRounds=gds.map(function(gd){return brMakeMatchesByRound(gd,nTeams);});
     // Schedule all groups together
     var result=brScheduleMulti(allRounds,gds,nCourts,startT,slotM,nTeams,distribution);
+    if(balance==='balanced') result=brBalanceSlotOrder(result,gds,startT,slotM,distribution==='shared-middle'?1:nTeams);
     var ver=BR_HISTORY.length+1;
-    var sd={ver:ver,slots:result.slots,numSlots:result.numSlots,nCourts:nCourts,nTeams:nTeams,gds:gds,startT:startT,slotM:slotM,distribution:distribution};
+    var sd={ver:ver,slots:result.slots,numSlots:result.numSlots,nCourts:nCourts,nTeams:nTeams,gds:gds,startT:startT,slotM:slotM,distribution:distribution,balance:balance};
     BR_HISTORY.push(sd); BR_CUR=BR_HISTORY.length-1;
     brRenderTabs(); brRenderResult(sd);
-    brShowMsg('대진표 #'+ver+' 생성 완료! ('+result.slots.length+'경기 / '+result.numSlots+'슬롯)', 'ok');
+    brShowMsg('대진표 #'+ver+' 생성 완료! ('+result.slots.length+'경기 / '+result.numSlots+'슬롯)'+(distribution==='shared-middle'?' · 동시 출전 장조는 선수 중복 없이 편성해주세요.':''), 'ok');
     brPublishSilent(sd);
     // ★ 매치업 대기열(큐) 생성 → Firebase 저장 (빠른 진행용)
     var queue = [];
@@ -2959,6 +2970,58 @@ function brScheduleSharedMiddle(allRounds,startT,slotM){
     }
   });
   return {slots:slots,numSlots:slotIdx};
+}
+
+// Reorder whole time slots only: court assignments, opponents and entry
+// conflicts remain unchanged. Seeded local search keeps regeneration repeatable.
+function brBalanceSlotOrder(result,gds,startT,slotM,stride){
+  var groups={};
+  result.slots.forEach(function(m){(groups[m.slot]||(groups[m.slot]=[])).push(m);});
+  var rows=Object.keys(groups).sort(function(a,b){return Number(a)-Number(b);}).map(function(k){return groups[k];});
+  var n=rows.length;
+  if(n<2) return result;
+  var clubs=[];
+  gds.forEach(function(g){g.clubs.forEach(function(c){if(clubs.indexOf(c.name)<0) clubs.push(c.name);});});
+  var attendance=rows.map(function(row){
+    var present={};row.forEach(function(m){present[m.club1]=true;present[m.club2]=true;});return present;
+  });
+  function score(order){
+    var firstMax=0,gapMax=0,squares=0,firstSum=0;
+    clubs.forEach(function(c){
+      var last=-1,first=-1;
+      order.forEach(function(idx,pos){if(attendance[idx][c]){
+        if(first<0){first=pos;firstMax=Math.max(firstMax,pos);firstSum+=pos;}
+        else {var gap=pos-last-1;gapMax=Math.max(gapMax,gap);squares+=gap*gap;}
+        last=pos;
+      }});
+      if(last>=0){var tail=n-last-1;squares+=first*first+tail*tail;}
+    });
+    return [firstMax,gapMax,squares,firstSum];
+  }
+  function better(a,b){for(var k=0;k<a.length;k++){if(a[k]!==b[k]) return a[k]<b[k];}return false;}
+  var seed=76231;
+  function random(limit){seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed%limit;}
+  var best=rows.map(function(_,i){return i;}),bestScore=score(best);
+  // Bound work for large multi-group events.
+  var trials=Math.min(2000,Math.max(100,Math.floor(16000/n)));
+  for(var restart=0;restart<5;restart++){
+    var order=best.slice();
+    if(restart){for(var j=n-1;j>0;j--){var k=random(j+1),v=order[j];order[j]=order[k];order[k]=v;}}
+    var current=score(order);
+    for(var t=0;t<trials;t++){
+      var a=random(n),b=random(n);if(a===b) continue;
+      var v=order[a];order[a]=order[b];order[b]=v;
+      var next=score(order);
+      if(better(next,current) || next.every(function(v,i){return v===current[i];})) current=next;
+      else {v=order[a];order[a]=order[b];order[b]=v;}
+      if(better(current,bestScore)){best=order.slice();bestScore=current.slice();}
+    }
+  }
+  var slots=[];
+  best.forEach(function(idx,pos){rows[idx].forEach(function(m){
+    slots.push(Object.assign({},m,{slot:pos+1,time:brFmtTime(startT,pos*stride,slotM)}));
+  });});
+  return {slots:slots,numSlots:result.numSlots};
 }
 
 function brRenderTabs() {
@@ -3222,6 +3285,7 @@ function _brDoLoadSchedule(entry, sd){
   document.getElementById('br-nCourts').value = sd.nCourts;
   document.getElementById('br-nTeams').value  = normalizeEventCount(sd.nTeams);
   document.getElementById('br-distribution').value=sd.distribution||'matchup';
+  document.getElementById('br-balance').value=sd.balance||'original';
   document.getElementById('br-startT').value  = sd.startT;
   document.getElementById('br-slotM').value   = sd.slotM;
   document.getElementById('br-nClubs').value  = gds[0].clubs.length;
@@ -3322,6 +3386,7 @@ db.ref('bracket').once('value', function(snap) {
   if(d.startT)  document.getElementById('br-startT').value  = d.startT;
   document.getElementById('br-nTeams').value=normalizeEventCount(d.nTeams);
   document.getElementById('br-distribution').value=d.distribution||'matchup';
+  document.getElementById('br-balance').value=d.balance||'original';
   var gds = toArr(d.gds).map(function(gd, gi){ return {name:gd.name, key:gd.key||GROUP_LABELS[gi], clubs:toArr(gd.clubs)}; });
   if(gds.length && gds[0].clubs.length) {
     document.getElementById('br-nClubs').value = gds[0].clubs.length;
@@ -3339,7 +3404,7 @@ db.ref('bracket').once('value', function(snap) {
   var sd = {
     ver: d.ver||1, savedName: d.savedName||null,
     slots: toArr(d.slots), numSlots: d.numSlots,
-    nCourts: d.nCourts, nTeams: d.nTeams||3, distribution:d.distribution||'matchup',
+    nCourts: d.nCourts, nTeams: d.nTeams||3, distribution:d.distribution||'matchup', balance:d.balance||'original',
     gds: gds, startT: d.startT, slotM: d.slotM
   };
   BR_HISTORY = [sd]; BR_CUR = 0;
